@@ -4,17 +4,15 @@
 ##
 ##############################################################################
 
-function readnamedobjects(ctx::RDAContext, fl::RDATag)
-    if !hasattr(fl) return Hash() end
-    convert(Hash, readitem(ctx))
-end
-
-readattrs(ctx::RDAContext, fl::RDATag) = readnamedobjects(ctx, fl)
-
 function readdummy(ctx::RDAContext, fl::RDATag)
     # for reading elements without body,
     # e.g. NULL, empty environment etc
     null
+end
+
+function readattrs(ctx::RDAContext, fl::RDATag)
+    if !hasattr(fl) return Hash() end
+    convert(Hash, readitem(ctx))
 end
 
 readnil = readdummy
@@ -54,13 +52,8 @@ end
 function readlist(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == VECSXP
     n = readlength(ctx.io)
-    res = RList([readitem(ctx) for i in 1:n],
-                readattrs(ctx, fl))
-    if ctx.convertdataframes && isdataframe(res)
-        DataFrame(res)
-    else
-        res
-    end
+    RList([readitem(ctx) for i in 1:n],
+          readattrs(ctx, fl))
 end
 
 function readrefindex(ctx::RDAContext, fl::RDATag)
