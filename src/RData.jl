@@ -6,6 +6,10 @@ import DataArrays.data, Base.convert
 include("sxtags.jl")
 include("constants.jl")
 
+typealias RString UTF8String     # default String container for R string
+typealias Hash Dict{RString, Any}
+const nullhash = Hash()
+
 # abstract RDA format IO stream wrapper
 abstract RDAIO
 
@@ -21,9 +25,6 @@ include("io/XDRIO.jl")
 include("io/ASCIIIO.jl")
 include("io/NativeIO.jl")
 include("io/utils.jl")
-
-typealias Hash Dict{String, Any}
-const nullhash = Hash()
 
 include("sxtypes.jl")
 include("convert.jl")

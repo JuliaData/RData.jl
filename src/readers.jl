@@ -21,34 +21,34 @@ readnil = readdummy
 
 function readnumeric(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == REALSXP
-    RNumeric(readfloatorNA(ctx.io, readlength(ctx.io)),
-             readattrs(ctx, fl))
+    RNumericVector(readfloatorNA(ctx.io, readlength(ctx.io)),
+                   readattrs(ctx, fl))
 end
 
 function readinteger(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == INTSXP
-    RInteger(readintorNA(ctx.io, readlength(ctx.io)),
-             readattrs(ctx, fl))
+    RIntegerVector(readintorNA(ctx.io, readlength(ctx.io)),
+                   readattrs(ctx, fl))
 end
 
 function readlogical(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == LGLSXP # excluding this check, the method is the same as readinteger()
-    RLogical(readintorNA(ctx.io, readlength(ctx.io)),
-             readattrs(ctx, fl))
+    RLogicalVector(readintorNA(ctx.io, readlength(ctx.io)),
+                   readattrs(ctx, fl))
 end
 
 function readcomplex(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == CPLXSXP
     n = readlength(ctx.io)
     data = readfloatorNA(ctx.io, 2n)
-    RComplex(Complex128[@compat(Complex128(data[i],data[i+1])) for i in 2(1:n)-1],
-             readattrs(ctx, fl))
+    RComplexVector(Complex128[@compat(Complex128(data[i],data[i+1])) for i in 2(1:n)-1],
+                   readattrs(ctx, fl))
 end
 
 function readstring(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == STRSXP
-    RString(readcharacter(ctx.io, readlength(ctx.io))...,
-            readattrs(ctx, fl))
+    RStringVector(readcharacter(ctx.io, readlength(ctx.io))...,
+                  readattrs(ctx, fl))
 end
 
 function readlist(ctx::RDAContext, fl::RDATag)
@@ -107,7 +107,7 @@ end
 function readname(ctx)
     if readint32(ctx.io) != 0 error( "Names in persistent strings not supported") end
     n = readint32(ctx.io)
-    return String[ readcharacter(ctx.io) for i in 1:n ]
+    return RString[ readcharacter(ctx.io) for i in 1:n ]
 end
 
 function readnamespace(ctx::RDAContext, fl::RDATag)
@@ -263,8 +263,8 @@ function readunsupported( ctx::RDAContext, fl::RDATag )
 end
 
 immutable SXTypeInfo
-    name::String         # type name
-    reader::Function     # function to read the contents from RDA stream
+    name::UTF8String     # type name
+    reader::Function     # reads the contents from RDA stream
 end
 
 const SXTypes = @compat Dict{SXType, SXTypeInfo}(      # Map SEXPREC type ids to names
