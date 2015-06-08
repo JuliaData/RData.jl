@@ -126,11 +126,14 @@ end
 
 const emptystrvec = RString[]
 
-getattr(ro::ROBJ, attrnm, default) = haskey(ro.attr, attrnm) ? ro.attr[attrnm].data : default;
+hasattr(ro::ROBJ, attrnm) = haskey(ro.attr, attrnm)
+hasnames(ro::ROBJ) = hasattr(ro, "names")
+hasdim(ro::ROBJ) = hasattr(ro, "dim")
+hasdimnames(ro::ROBJ) = hasattr(ro, "dimnames")
+getattr(ro::ROBJ, attrnm) = getindex( ro.attr, attrnm ).data
+getattr(ro::ROBJ, attrnm, default) = hasattr( ro, attrnm ) ? getindex( ro.attr, attrnm ).data : default
 
-hasnames(ro::ROBJ) = haskey(ro.attr, "names")
-
-Base.names(ro::ROBJ) = getattr(ro, "names", emptystrvec)
+Base.names(ro::ROBJ) = getattr(ro, "names")
 
 class(ro::ROBJ) = getattr(ro, "class", emptystrvec)
 class(x) = emptystrvec

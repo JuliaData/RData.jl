@@ -49,17 +49,27 @@ function sexp2julia(rl::RSEXPREC)
 end
 
 function sexp2julia(rv::RVEC)
+    # FIXME dimnames
+    # FIXME option to always convert to DataArray
     nas = namask(rv)
     hasna = any(nas)
     if hasnames(rv)
         # if data has no NA, convert to simple Vector
-        if hasna DictoVec( DataArray(rv.data, nas), names(rv) )
-        else DictoVec( rv.data, names(rv) )
-        end
+        return DictoVec( hasna ? DataArray(rv.data, nas) : rv.data, names(rv) )
     else
-        # no, names, the result is just a vector
-        if hasna DataArray(rv.data, nas)
-        else rv.data
+        hasdims = hasdim(rv)
+        if !hasdims && length(rv.data)==1
+            # scalar
+            # FIXME handle NAs
+            # if hasna
+            return rv.data[1]
+        elseif !hasdims
+            # vectors
+            return hasna ? DataArray( rv.data, nas ) : rv.data
+        else
+            # matrices and so on
+            dims = tuple(convert(Vector{Int64}, getattr(rv, "dim"))...)
+            return hasna ? DataArray( reshape( rv.data, dims ), reshape( nas, dims ) ) : reshape( rv.data, dims )
         end
     end
 end
