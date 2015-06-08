@@ -1,7 +1,7 @@
 module RData
 
 using Compat, DataFrames, DataFrames.identifier, GZip
-import DataArrays.data, Base.convert
+import DataArrays.data, Base.convert, Base.get, Base.haskey, Base.keys, Base.values, Base.show
 
 include("sxtags.jl")
 include("constants.jl")
@@ -9,6 +9,8 @@ include("constants.jl")
 typealias RString UTF8String     # default String container for R string
 typealias Hash Dict{RString, Any}
 const nullhash = Hash()
+
+include("DictoVec.jl")
 
 # abstract RDA format IO stream wrapper
 abstract RDAIO
