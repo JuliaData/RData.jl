@@ -1,4 +1,4 @@
-function rdaio(io::IO, formatcode::AbstractString)
+function rdaio(io::IO, formatcode::String)
     if formatcode == "X" XDRIO(io)
     elseif formatcode == "A" ASCIIIO(io)
     elseif formatcode == "B" NativeIO(io)

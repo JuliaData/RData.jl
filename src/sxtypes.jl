@@ -8,7 +8,7 @@
 abstract RSEXPREC{S}             # Basic R object - symbolic expression
 
 type RSymbol <: RSEXPREC{SYMSXP} # Not quite the same as a Julia symbol
-    displayname::String
+    displayname::RString
 end
 
 abstract ROBJ{S} <: RSEXPREC{S}  # R object that can have attributes
@@ -22,10 +22,10 @@ type RVector{T, S} <: RVEC{T, S} # R vector object
     RVector(v::Vector{T} = T[], attr::Hash = Hash()) = new(v, attr)
 end
 
-typealias RLogical RVector{Int32, LGLSXP}
-typealias RInteger RVector{Int32, INTSXP}
-typealias RNumeric RVector{Float64, REALSXP}
-typealias RComplex RVector{Complex128, CPLXSXP}
+typealias RLogicalVector RVector{Int32, LGLSXP}
+typealias RIntegerVector RVector{Int32, INTSXP}
+typealias RNumericVector RVector{Float64, REALSXP}
+typealias RComplexVector RVector{Complex128, CPLXSXP}
 
 type RNullableVector{T, S} <: RVEC{T, S} # R vector object with explicit NA values
     data::Vector{T}
@@ -33,7 +33,7 @@ type RNullableVector{T, S} <: RVEC{T, S} # R vector object with explicit NA valu
     attr::Hash                  # collection of R object attributes
 end
 
-typealias RString RNullableVector{String,STRSXP}
+typealias RStringVector RNullableVector{RString,STRSXP}
 typealias RList RVector{Any,VECSXP}  # "list" in R == Julia cell array
 
 # Representation of R's paired list-like structures
@@ -42,13 +42,13 @@ typealias RList RVector{Any,VECSXP}  # "list" in R == Julia cell array
 # uses vector representation
 type RPairList <: ROBJ{LISTSXP}
     items::Vector{Any}
-    tags::Vector{String}
+    tags::Vector{RString}
     attr::Hash
 
-    RPairList( attr::Hash = Hash() ) = new( Any[], String[], attr )
+    RPairList( attr::Hash = Hash() ) = new( Any[], RString[], attr )
 end
 
-function Base.push!( pl::RPairList, item, tag::String )
+function Base.push!( pl::RPairList, item, tag::RString )
     push!( pl.tags, tag )
     push!( pl.items, item )
 end
@@ -110,11 +110,11 @@ type RBytecode <: ROBJ{BCODESXP}
 end
 
 type RPackage <: RSEXPREC{PACKAGESXP}
-    name::Vector{String}
+    name::Vector{RString}
 end
 
 type RNamespace <: RSEXPREC{NAMESPACESXP}
-    name::Vector{String}
+    name::Vector{RString}
 end
 
 ##############################################################################
@@ -124,18 +124,20 @@ end
 ##
 ##############################################################################
 
-const emptystrvec = Array(String,0)
+const emptystrvec = RString[]
 
-getattr{T}(ro::ROBJ, attrnm::String, default::T) = haskey(ro.attr, attrnm) ? ro.attr[attrnm].data : default;
+getattr(ro::ROBJ, attrnm, default) = haskey(ro.attr, attrnm) ? ro.attr[attrnm].data : default;
+
+hasnames(ro::ROBJ) = haskey(ro.attr, "names")
 
 Base.names(ro::ROBJ) = getattr(ro, "names", emptystrvec)
 
 class(ro::ROBJ) = getattr(ro, "class", emptystrvec)
 class(x) = emptystrvec
-inherits(x, clnm::String) = any(class(x) .== clnm)
+inherits(x, clnm) = any(class(x) .== clnm)
 
 isdataframe(rl::RList) = inherits(rl, "data.frame")
-isfactor(ri::RInteger) = inherits(ri, "factor")
+isfactor(ri::RIntegerVector) = inherits(ri, "factor")
 
 Base.length(rl::RVEC) = length(rl.data)
 Base.size(rv::RVEC) = length(rv.data)

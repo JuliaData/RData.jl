@@ -27,5 +27,5 @@ function readnchars(io::ASCIIIO, n::Int32)  # reads N bytes-sized string
     if (n==-1) return "" end
     str = unescape_string(chomp(readline(io.sub)))
     length(str) == n || error("Character string length mismatch")
-    str
+    convert(RString, str)
 end
