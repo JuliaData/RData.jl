@@ -48,11 +48,27 @@ function sexp2julia(rl::RSEXPREC)
     return nothing
 end
 
+function sexp2julia(rv::RVEC)
+    nas = namask(rv)
+    hasna = any(nas)
+    if hasnames(rv)
+        # if data has no NA, convert to simple Vector
+        if hasna DictoVec( DataArray(rv.data, nas), names(rv) )
+        else DictoVec( rv.data, names(rv) )
+        end
+    else
+        # no, names, the result is just a vector
+        if hasna DataArray(rv.data, nas)
+        else rv.data
+        end
+    end
+end
+
 function sexp2julia(rl::RList)
     if isdataframe(rl)
         DataFrame(map(data, rl.data),
                   Symbol[identifier(x) for x in names(rl)])
     else
-        rl
+        DictoVec{Vector{Any}}( map(sexp2julia, rl.data), names(rl) )
     end
 end
