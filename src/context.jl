@@ -6,8 +6,7 @@ type RDAContext{T <: RDAIO}    # RDA reading context
     Rver::VersionNumber        # R version that has written RDA
     Rmin::VersionNumber        # R minimal version to read RDA
 
-    # behaviour
-    convertdataframes::Bool    # if R dataframe objects should be automatically converted into DataFrames
+    kwdict::Dict{Symbol,Any}
 
     # intermediate data
     ref_tab::Vector{RSEXPREC}  # SEXP array for references
@@ -21,7 +20,7 @@ type RDAContext{T <: RDAIO}    # RDA reading context
             fmtver,
             VersionNumber( div(rver,65536), div(rver%65536, 256), rver%256 ),
             VersionNumber( div(rminver,65536), div(rminver%65536, 256), rminver%256 ),
-            get(kwdict,:convertdataframes,false),
+            kwdict,
             RSEXPREC[])
     end
 end

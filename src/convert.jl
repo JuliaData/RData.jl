@@ -43,7 +43,16 @@ function DataArrays.data(ri::RIntegerVector)
     return PooledDataArray(DataArrays.RefArray(refs), pool)
 end
 
-function Base.convert(::Type{DataFrame}, rl::RList)
-    DataFrame(map(data, rl.data),
-              Symbol[identifier(x) for x in names(rl)])
+function sexp2julia(rl::RSEXPREC)
+    # TODO warning that converter is missing
+    return nothing
+end
+
+function sexp2julia(rl::RList)
+    if isdataframe(rl)
+        DataFrame(map(data, rl.data),
+                  Symbol[identifier(x) for x in names(rl)])
+    else
+        rl
+    end
 end
