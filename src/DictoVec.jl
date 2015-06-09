@@ -75,16 +75,17 @@ function Base.show{V}(io::IO, dict::DictoVec{V})
     else
         first = true
         print(io, "DictoVec(")
+        n = 0
         for i in eachindex(dict.data)
             first || print(io, ',')
             first = false
             k = get( dict.index2name, i, "" )
-            if key != ""
+            if k != ""
                 show(io, k)
                 print(io, "=>")
             end
             show(io, dict.data[i])
-            n+=1
+            n += 1
             # limit && n >= 10 && (print(io, "…"); break)
         end
         print(io, ")")
