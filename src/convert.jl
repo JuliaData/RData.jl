@@ -43,8 +43,8 @@ function DataArrays.data(ri::RIntegerVector)
     return PooledDataArray(DataArrays.RefArray(refs), pool)
 end
 
-function sexp2julia(rl::RSEXPREC)
-    # TODO warning that converter is missing
+function sexp2julia(rex::RSEXPREC)
+    warn( "Conversion of $(typeof(rex)) to Julia is not implemented" )
     return nothing
 end
 
