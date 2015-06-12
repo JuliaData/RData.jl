@@ -8,7 +8,7 @@ include("constants.jl")
 
 typealias RString UTF8String     # default String container for R string
 typealias Hash Dict{RString, Any}
-const nullhash = Hash()
+const emptyhash = Hash()
 
 include("DictoVec.jl")
 

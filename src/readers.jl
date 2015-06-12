@@ -11,8 +11,8 @@ function readdummy(ctx::RDAContext, fl::RDATag)
 end
 
 function readattrs(ctx::RDAContext, fl::RDATag)
-    if !hasattr(fl) return Hash() end
-    convert(Hash, readitem(ctx))
+    if !hasattr(fl) return emptyhash
+    else convert(Hash, readitem(ctx)) end
 end
 
 readnil = readdummy
