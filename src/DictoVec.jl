@@ -10,19 +10,22 @@ function name2index( names::Vector{RString} )
     n2i, i2n
 end
 
-# Dictionary or vector
-type DictoVec{V}
-    data::V
+# Container that could be indexed either
+# by string keys as dictionary
+# or by element indicies as a vector.
+# Mimics the behaviour of R vectors
+type DictoVec
+    data
     name2index::Dict{RString,Int64}
     index2name::Dict{Int64,RString}
 
-    function DictoVec( data::V, names::Vector{RString} )
+    function DictoVec( data, names::Vector{RString} )
         n2i, i2n = name2index(names)
         new( data, n2i, i2n )
     end
 end
 
-Base.haskey{K<:String}(dict::DictoVec{K}, key::K) = haskey( dict.index, key )
+Base.haskey(dict::DictoVec, key) = haskey( dict.index, key )
 
 function Base.setindex!(dict::DictoVec, value, key::RString)
     ix = get( dict.name2index, key, length(data)+1 )
@@ -68,7 +71,7 @@ function Base.values(dict::DictoVec)
     return eachindex(dict.data)
 end
 
-function Base.show{V}(io::IO, dict::DictoVec{V})
+function Base.show(io::IO, dict::DictoVec)
     if isempty(dict.name2index)
         # no keys
         show(dict.data)
@@ -92,4 +95,4 @@ function Base.show{V}(io::IO, dict::DictoVec{V})
     end
 end
 
-Base.show{V}(dict::DictoVec{V}) = Base.show(STDOUT, dict)
+Base.show(dict::DictoVec) = Base.show(STDOUT, dict.data)
