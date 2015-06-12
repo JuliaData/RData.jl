@@ -9,10 +9,6 @@ function Base.convert(::Type{Hash}, pl::RPairList)
     res
 end
 
-function Base.convert(::Type{Hash}, ptr::RExtPtr)
-    Hash(Pair(ptr.tag.displayname, ptr.protected))
-end
-
 ##############################################################################
 ##
 ## Conversion of intermediate R objects into DataArray and DataFrame objects
