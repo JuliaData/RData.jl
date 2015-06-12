@@ -56,14 +56,10 @@ function readlist(ctx::RDAContext, fl::RDATag)
                    readattrs(ctx, fl))
 end
 
-function readrefindex(ctx::RDAContext, fl::RDATag)
-    ix = fl >> 8
-    ix != 0 ? ix : readint32(ctx.io)
-end
-
 function readref(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == REFSXP
-    ix = readrefindex(ctx, fl)
+    ix = fl >> 8
+    ix != 0 ? ix : readint32(ctx.io)
     if ( ix > length( ctx.ref_tab ) )
         throw( BoundsError( "undefined reference index=$ix" ) )
     else
