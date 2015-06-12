@@ -52,8 +52,8 @@ end
 function readlist(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == VECSXP
     n = readlength(ctx.io)
-    RList([readitem(ctx) for i in 1:n],
-          readattrs(ctx, fl))
+    RList(RSEXPREC[readitem(ctx) for i in 1:n],
+                   readattrs(ctx, fl))
 end
 
 function readrefindex(ctx::RDAContext, fl::RDATag)

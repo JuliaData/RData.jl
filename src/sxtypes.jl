@@ -29,12 +29,12 @@ typealias RComplexVector RVector{Complex128, CPLXSXP}
 
 type RNullableVector{T, S} <: RVEC{T, S} # R vector object with explicit NA values
     data::Vector{T}
-    na::BitVector               # mask of NA elements
-    attr::Hash                  # collection of R object attributes
+    na::BitVector                # mask of NA elements
+    attr::Hash                   # collection of R object attributes
 end
 
 typealias RStringVector RNullableVector{RString,STRSXP}
-typealias RList RVector{Any,VECSXP}  # "list" in R == Julia cell array
+typealias RList RVector{RSEXPREC,VECSXP}  # "list" in R == Julia cell array
 
 # Representation of R's paired list-like structures
 # (LISTSXP, LANGSXP)
