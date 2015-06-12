@@ -178,7 +178,7 @@ function readbuiltin(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == BUILTINSXP
     res = readnchars(ctx.io, readint32(ctx.io))
     readattrs(ctx, fl)
-    res
+    return res
 end
 
 function readextptr(ctx::RDAContext, fl::RDATag)
@@ -187,6 +187,7 @@ function readextptr(ctx::RDAContext, fl::RDATag)
     res.protected = readitem(ctx)
     res.tag = readitem(ctx)
     res.attr = readattrs(ctx, fl)
+    return res
 end
 
 type BytecodeContext # bytecode reading context
@@ -249,6 +250,7 @@ function readbytecode( ctx::RDAContext, fl::RDATag )
     @assert fl == BCODESXP
     res = readbytecodecontents( BytecodeContext( ctx, readint32( ctx.io ) ) )
     res.attrs = readattrs( ctx, fl )
+    return res
 end
 
 function readunsupported( ctx::RDAContext, fl::RDATag )
