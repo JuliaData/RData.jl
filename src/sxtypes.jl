@@ -53,17 +53,13 @@ function Base.push!( pl::RPairList, item, tag::RString )
     push!( pl.items, item )
 end
 
-function Base.push!( pl::RPairList, item )
-    push!( pl, null, item )
-end
-
 type RClosure <: ROBJ{CLOSXP}
     formals
     body
     env
     attr::Hash
 
-    RClosure( attr::Hash = Hash() ) = new( null, null, null, attr )
+    RClosure( attr::Hash = Hash() ) = new( nothing, nothing, nothing, attr )
 end
 
 type RPromise <: ROBJ{PROMSXP}
@@ -72,7 +68,7 @@ type RPromise <: ROBJ{PROMSXP}
     env
     attr::Hash
 
-    RPromise( attr::Hash = Hash() ) = new( null, null, null, attr )
+    RPromise( attr::Hash = Hash() ) = new( nothing, nothing, nothing, attr )
 end
 
 type REnvironment <: ROBJ{ENVSXP}
@@ -81,7 +77,7 @@ type REnvironment <: ROBJ{ENVSXP}
     hashtab
     attr::Hash
 
-    REnvironment() = new( null, null, null, Hash() )
+    REnvironment() = new( nothing, nothing, nothing, Hash() )
 end
 
 type RRaw <: ROBJ{RAWSXP}
@@ -98,7 +94,7 @@ type RExtPtr <: ROBJ{EXTPTRSXP}
     tag
     attr::Hash
 
-    RExtPtr() = new( null, null, Hash() )
+    RExtPtr() = new( nothing, nothing, Hash() )
 end
 
 type RBytecode <: ROBJ{BCODESXP}
@@ -106,7 +102,7 @@ type RBytecode <: ROBJ{BCODESXP}
     tag
     car
     cdr
-    RBytecode( code = null, consts = null, attr::Hash = Hash() ) = new( attr, null, code, consts )
+    RBytecode( code = nothing, consts = nothing, attr::Hash = Hash() ) = new( attr, nothing, code, consts )
 end
 
 type RPackage <: RSEXPREC{PACKAGESXP}
