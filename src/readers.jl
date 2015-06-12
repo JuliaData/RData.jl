@@ -118,10 +118,10 @@ function readpairedobjects(ctx::RDAContext, fl::RDATag)
             if ( isa(tag, RSymbol) )
                 nm = tag.displayname
             else
-                nm = "\0"
+                nm = emptydictkey
             end
         else
-            nm = "\0"
+            nm = emptydictkey
         end
         push!( res, readitem(ctx), nm )
         fl = readuint32(ctx.io)

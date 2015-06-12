@@ -20,3 +20,5 @@ if LONG_VECTOR_SUPPORT
 else
     typealias RVecLength Int
 end
+
+const emptydictkey = RString("\0")
