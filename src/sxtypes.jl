@@ -41,14 +41,14 @@ typealias RList RVector{Any,VECSXP}  # "list" in R == Julia cell array
 # Unlike R that represents it as singly-linked list,
 # uses vector representation
 type RPairList <: ROBJ{LISTSXP}
-    items::Vector{Any}
+    items::Vector{RSEXPREC}
     tags::Vector{RString}
     attr::Hash
 
-    RPairList( attr::Hash = Hash() ) = new( Any[], RString[], attr )
+    RPairList( attr::Hash = Hash() ) = new( RSEXPREC[], RString[], attr )
 end
 
-function Base.push!( pl::RPairList, item, tag::RString )
+function Base.push!( pl::RPairList, item::RSEXPREC, tag::RString )
     push!( pl.tags, tag )
     push!( pl.items, item )
 end
