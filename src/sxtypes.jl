@@ -62,6 +62,10 @@ type RClosure <: ROBJ{CLOSXP}
     RClosure( attr::Hash = Hash() ) = new( nothing, nothing, nothing, attr )
 end
 
+type RBuiltin <: RSEXPREC{BUILTINSXP}
+    internal_function::RString
+end
+
 type RPromise <: ROBJ{PROMSXP}
     value
     expr

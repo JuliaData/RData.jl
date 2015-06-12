@@ -175,10 +175,8 @@ end
 
 # reads built-in R objects
 function readbuiltin(ctx::RDAContext, fl::RDATag)
-    @assert sxtype(fl) == BUILTINSXP
-    res = readnchars(ctx.io, readint32(ctx.io))
-    readattrs(ctx, fl)
-    return res
+    @assert sxtype(fl) == BUILTINSXP || sxtype(fl) == SPECIALSXP
+    RBuiltin( readnchars(ctx.io, readint32(ctx.io)) )
 end
 
 function readextptr(ctx::RDAContext, fl::RDATag)
