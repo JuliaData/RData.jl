@@ -113,6 +113,10 @@ type RNamespace <: RSEXPREC{NAMESPACESXP}
     name::Vector{RString}
 end
 
+# R objects without body (empty environments, missing args etc)
+type RDummy{S} <: RSEXPREC{S}
+end
+
 ##############################################################################
 ##
 ## Utilities for working with basic properties of R objects:
