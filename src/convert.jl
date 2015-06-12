@@ -72,9 +72,9 @@ end
 
 function sexp2julia(rl::RList)
     if isdataframe(rl)
-        DataFrame(map(data, rl.data),
-                  Symbol[identifier(x) for x in names(rl)])
+        # FIXME remove Any type assertion workaround
+        DataFrame( Any[ data(col) for col in rl.data ], map(identifier, names(rl)))
     else
-        DictoVec{Vector{Any}}( map(sexp2julia, rl.data), names(rl) )
+        DictoVec( Any[ sexp2julia(item) for item in rl.data ], names(rl) )
     end
 end
