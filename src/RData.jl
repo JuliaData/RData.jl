@@ -8,6 +8,7 @@ include("constants.jl")
 
 typealias RString UTF8String     # default String container for R string
 typealias Hash Dict{RString, Any}
+
 const emptyhash = Hash()
 
 include("DictoVec.jl")
@@ -70,6 +71,6 @@ read_rda(io::IO; kwoptions...) = read_rda(io, kwoptions)
 
 read_rda(fnm::String; kwoptions...) = gzopen(fnm) do io read_rda(io, kwoptions) end
 
-export read_rda, sexp2julia
+export read_rda, sexp2julia, DictoVec
 
 end # module
