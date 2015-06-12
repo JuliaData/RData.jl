@@ -7,7 +7,7 @@
 function readdummy(ctx::RDAContext, fl::RDATag)
     # for reading elements without body,
     # e.g. NULL, empty environment etc
-    null
+    nothing
 end
 
 function readattrs(ctx::RDAContext, fl::RDATag)
