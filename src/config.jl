@@ -4,7 +4,6 @@
 ## (I assume 1954 is the year of Ross's birth or something like that.)
 ##
 ##############################################################################
-
 if ENDIAN_BOM == 0x01020304
     const R_NA_FLOAT64 = reinterpret(Float64, [0x7ff00000, @compat(UInt32(1954))])[1]
 else
@@ -21,4 +20,8 @@ else
     typealias RVecLength Int
 end
 
-const emptydictkey = RString("\0")
+typealias RString UTF8String     # default String container for R string
+typealias Hash Dict{RString, Any}
+
+const emptyhash = Hash()
+const emptyhashkey = RString("\0")
