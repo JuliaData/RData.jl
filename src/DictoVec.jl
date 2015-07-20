@@ -99,4 +99,10 @@ function Base.show(io::IO, dict::DictoVec)
     end
 end
 
-Base.show(dict::DictoVec) = Base.show(STDOUT, dict.data)
+function Base.convert(::Type{Dict{RString,Any}}, dv::DictoVec)
+    res = Dict{RString,Any}()
+    for (k,v) in dv.name2index
+        res[k] = dv.data[v]
+    end
+    res
+end
