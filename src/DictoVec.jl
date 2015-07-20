@@ -23,6 +23,10 @@ type DictoVec
         n2i, i2n = name2index(names)
         new( data, n2i, i2n )
     end
+
+    function DictoVec(data)
+        new(data, Dict{RString,Int}(), Dict{Int,RString}())
+    end
 end
 
 Base.length(dict::DictoVec) = length(dict.data)
