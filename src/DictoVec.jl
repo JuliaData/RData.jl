@@ -27,11 +27,15 @@ end
 
 Base.haskey(dict::DictoVec, key) = haskey( dict.index, key )
 
-function Base.setindex!(dict::DictoVec, value, key::RString)
-    ix = get( dict.name2index, key, length(data)+1 )
-    dict.name2index[key] = ix
-    dict.index2name[ix] = key
-    setindex!( dict.data, value, ix)
+function Base.setindex!(dict::DictoVec, value, key)
+    ix = get(dict.name2index, key, 0)
+    if ix > 0
+      setindex!(dict.data, value, ix)
+    else
+      dict.name2index[key] = length(dict.data)+1
+      dict.index2name[ix] = key
+      push!(dict.data, value)
+    end
 end
 
 function Base.setindex!(dict::DictoVec, value, index::Int64)
