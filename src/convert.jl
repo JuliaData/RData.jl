@@ -46,7 +46,7 @@ end
 
 function sexp2julia(rv::RVEC)
     # FIXME dimnames
-    # FIXME option to always convert to DataArray
+    # FIXME forceDataArrays option to always convert to DataArray
     nas = namask(rv)
     hasna = any(nas)
     if hasnames(rv)
@@ -73,8 +73,11 @@ end
 function sexp2julia(rl::RList)
     if isdataframe(rl)
         # FIXME remove Any type assertion workaround
-        DataFrame( Any[ data(col) for col in rl.data ], map(identifier, names(rl)))
+        DataFrame(Any[ data(col) for col in rl.data ], map(identifier, names(rl)))
+    elseif hasnames(rl)
+        DictoVec(Any[sexp2julia(item) for item in rl.data ], names(rl))
     else
-        DictoVec( Any[ sexp2julia(item) for item in rl.data ], names(rl) )
+        # FIXME return DictoVec if forceDictoVec is on
+        map(sexp2julia, rl.data)
     end
 end
