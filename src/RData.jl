@@ -1,7 +1,7 @@
 module RData
 
 using Compat, DataFrames, DataFrames.identifier, GZip
-import DataArrays.data, Base.convert, Base.get, Base.haskey, Base.keys, Base.values, Base.show
+import DataArrays.data, Base.convert, Base.get, Base.haskey, Base.keys, Base.values, Base.length, Base.show
 
 include("config.jl")
 include("sxtypes.jl")

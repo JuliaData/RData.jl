@@ -16,8 +16,8 @@ end
 # Mimics the behaviour of R vectors
 type DictoVec
     data
-    name2index::Dict{RString,Int64}
-    index2name::Dict{Int64,RString}
+    name2index::Dict{RString,Int}
+    index2name::Dict{Int,RString}
 
     function DictoVec( data, names::Vector{RString} )
         n2i, i2n = name2index(names)
@@ -25,7 +25,9 @@ type DictoVec
     end
 end
 
-Base.haskey(dict::DictoVec, key) = haskey( dict.index, key )
+Base.length(dict::DictoVec) = length(dict.data)
+
+Base.haskey(dict::DictoVec, key) = haskey(dict.index, key)
 
 function Base.setindex!(dict::DictoVec, value, key)
     ix = get(dict.name2index, key, 0)
