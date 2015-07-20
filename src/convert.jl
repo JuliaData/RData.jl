@@ -17,9 +17,9 @@ end
 
 namask(rl::RLogicalVector) = bitpack(rl.data .== R_NA_INT32)
 namask(ri::RIntegerVector) = bitpack(ri.data .== R_NA_INT32)
-namask(rn::RNumericVector) = bitpack([rn.data[i] === R_NA_FLOAT64 for i in 1:length(rn.data)])
-namask(rc::RComplexVector) = bitpack([rc.data[i].re === R_NA_FLOAT64 ||
-                                      rc.data[i].im === R_NA_FLOAT64 for i in 1:length(rc.data)])
+namask(rn::RNumericVector) = bitpack(Bool[rn.data[i] === R_NA_FLOAT64 for i in 1:length(rn.data)])
+namask(rc::RComplexVector) = bitpack(Bool[rc.data[i].re === R_NA_FLOAT64 ||
+                                          rc.data[i].im === R_NA_FLOAT64 for i in 1:length(rc.data)])
 namask(rv::RNullableVector) = rv.na
 
 DataArrays.data(rv::RVEC) = DataArray(rv.data, namask(rv))
