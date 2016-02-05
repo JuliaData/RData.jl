@@ -14,18 +14,18 @@ end
 # by string keys as dictionary
 # or by element indicies as a vector.
 # Mimics the behaviour of R vectors
-type DictoVec
-    data
-    name2index::Dict{RString,Int}
-    index2name::Dict{Int,RString}
+immutable DictoVec{T}
+    data::T
+    name2index::Dict{RString, Int}
+    index2name::Dict{Int, RString}
 
-    function DictoVec( data, names::Vector{RString} )
+    function Base.call{T}(::Type{DictoVec}, data::T, names::Vector{RString})
         n2i, i2n = name2index(names)
-        new( data, n2i, i2n )
+        new{T}(data, n2i, i2n)
     end
 
-    function DictoVec(data)
-        new(data, Dict{RString,Int}(), Dict{Int,RString}())
+    function Base.call{T}(::Type{DictoVec}, data::T)
+        new{T}(data, Dict{RString,Int}(), Dict{Int,RString}())
     end
 end
 
