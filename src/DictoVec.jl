@@ -30,6 +30,7 @@ type DictoVec
 end
 
 Base.length(dict::DictoVec) = length(dict.data)
+Base.isempty(dict::DictoVec) = isempty(dict.data)
 
 Base.haskey(dict::DictoVec, key) = haskey(dict.name2index, key)
 
