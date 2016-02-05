@@ -49,7 +49,7 @@ function Base.setindex!(dict::DictoVec, value, index::Int64)
     setindex!(dict.data, value, index)
 end
 
-Base.getindex(dict::DictoVec, index::Int64) = getindex(dict.data, index)
+Base.getindex(dict::DictoVec, index::Int) = getindex(dict.data, index)
 
 function Base.getindex(dict::DictoVec, key)
     ix = get(dict.name2index, key, 0)
@@ -60,14 +60,14 @@ function Base.getindex(dict::DictoVec, key)
     end
 end
 
-Base.get(dict::DictoVec, index::Int64, default) = get( dict.data, index, default )
+Base.get(dict::DictoVec, index::Int, default) = get( dict.data, index, default )
 
 function Base.get(dict::DictoVec, key, default)
     ix = get( dict.name2index, key, 0 )
     return ix > 0 ? dict.data[ix] : default
 end
 
-Base.get(f::Function, dict::DictoVec, index::Int64) = get(f, dict.data, index)
+Base.get(f::Function, dict::DictoVec, index::Int) = get(f, dict.data, index)
 
 function Base.get(f::Function, dict::DictoVec, key)
     ix = get( dict.name2index, key, 0 )
