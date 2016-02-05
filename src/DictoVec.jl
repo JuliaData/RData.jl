@@ -79,7 +79,7 @@ function Base.keys(dict::DictoVec)
 end
 
 function Base.values(dict::DictoVec)
-    return eachindex(dict.data)
+    return dict.data
 end
 
 function Base.show(io::IO, dict::DictoVec)
