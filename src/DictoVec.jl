@@ -31,7 +31,7 @@ end
 
 Base.length(dict::DictoVec) = length(dict.data)
 
-Base.haskey(dict::DictoVec, key) = haskey(dict.index, key)
+Base.haskey(dict::DictoVec, key) = haskey(dict.name2index, key)
 
 function Base.setindex!(dict::DictoVec, value, key)
     ix = get(dict.name2index, key, 0)
