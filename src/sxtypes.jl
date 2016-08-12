@@ -86,18 +86,34 @@ end
 ##
 ##############################################################################
 
+"""
+    Base class for RData internal representation of all R types.
+    `SEXPREC` stands for S (R predecessor) expression record.
+"""
+abstract RSEXPREC{S}
 
-abstract RSEXPREC{S}             # Basic R object - symbolic expression
-
-type RSymbol <: RSEXPREC{SYMSXP} # Not quite the same as a Julia symbol
+"""
+    R symbol.
+    Not quite the same as a Julia symbol.
+"""
+type RSymbol <: RSEXPREC{SYMSXP}
     displayname::RString
 end
 
-abstract ROBJ{S} <: RSEXPREC{S}  # R object that can have attributes
+"""
+    Base class for all R types (objects) that can have attributes.
+"""
+abstract ROBJ{S} <: RSEXPREC{S}
 
-abstract RVEC{T, S} <: ROBJ{S}   # abstract R vector (actual storage implementation may differ)
+"""
+   Base class for all R vector-like objects.
+"""
+abstract RVEC{T, S} <: ROBJ{S}
 
-type RVector{T, S} <: RVEC{T, S} # R vector object
+"""
+    R vector object.
+"""
+type RVector{T, S} <: RVEC{T, S}
     data::Vector{T}
     attr::Hash                   # collection of R object attributes
 
@@ -109,7 +125,10 @@ typealias RIntegerVector RVector{Int32, INTSXP}
 typealias RNumericVector RVector{Float64, REALSXP}
 typealias RComplexVector RVector{Complex128, CPLXSXP}
 
-type RNullableVector{T, S} <: RVEC{T, S} # R vector object with explicit NA values
+"""
+    R vector object with explicit NA values.
+"""
+type RNullableVector{T, S} <: RVEC{T, S}
     data::Vector{T}
     na::BitVector                # mask of NA elements
     attr::Hash                   # collection of R object attributes
@@ -118,10 +137,11 @@ end
 typealias RStringVector RNullableVector{RString,STRSXP}
 typealias RList RVector{RSEXPREC,VECSXP}  # "list" in R == Julia cell array
 
-# Representation of R's paired list-like structures
-# (LISTSXP, LANGSXP)
-# Unlike R that represents it as singly-linked list,
-# uses vector representation
+"""
+    Representation of R's paired list-like structures (`LISTSXP`, `LANGSXP`).
+    Unlike R that represents it as singly-linked list,
+    `RPairList` uses vector representation.
+"""
 type RPairList <: ROBJ{LISTSXP}
     items::Vector{RSEXPREC}
     tags::Vector{RString}

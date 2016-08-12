@@ -6,7 +6,9 @@ import DataArrays.data, Base.convert, Base.get, Base.haskey, Base.keys, Base.val
 include("config.jl")
 include("sxtypes.jl")
 
-# abstract RDA format IO stream wrapper
+"""
+Abstract RDA format IO stream wrapper.
+"""
 abstract RDAIO
 
 ##############################################################################
