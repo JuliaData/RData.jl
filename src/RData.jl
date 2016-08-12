@@ -4,7 +4,7 @@ using Compat, DataFrames, GZip
 import DataArrays: data
 import DataFrames: identifier
 import Base: convert, get, haskey, keys, values, length, show
-import Compat: unsafe_string
+import Compat: UTF8String, unsafe_string
 
 export
     # read_rda,

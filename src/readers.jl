@@ -244,7 +244,7 @@ end
 function readbytecode( ctx::RDAContext, fl::RDATag )
     @assert fl == BCODESXP
     res = readbytecodecontents( BytecodeContext( ctx, readint32( ctx.io ) ) )
-    res.attrs = readattrs( ctx, fl )
+    res.attr = readattrs( ctx, fl )
     return res
 end
 
