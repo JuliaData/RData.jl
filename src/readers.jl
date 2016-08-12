@@ -184,7 +184,10 @@ function readextptr(ctx::RDAContext, fl::RDATag)
     return res
 end
 
-type BytecodeContext # bytecode reading context
+"""
+    Context for reading R bytecode.
+"""
+type BytecodeContext
     ctx::RDAContext  # parent RDA context
     ref_tab::Vector  # table of bytecode references
 
@@ -194,7 +197,7 @@ end
 function readbytecodelang(bctx::BytecodeContext, bctype::Int32)
     if bctype == BCREPREF # refer to an already defined bytecode
         return bctx.ref_tab[readint32(bctx.ctx.io)+1]
-    elseif bctype ∈ [ BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP ]
+    elseif bctype ∈ [ BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP ] # FIXME define Set constant
         pos = 0
         hasattr = false
         if bctype == BCREPDEF # define a reference
@@ -226,7 +229,7 @@ function readbytecodeconsts( bctx::BytecodeContext )
         bctype = readint32(bctx.ctx.io)
         if bctype == BCODESXP
             readbytecodecontents(bctx)
-        elseif bctype ∈ [ BCREPDEF, BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP ]
+        elseif bctype ∈ [ BCREPDEF, BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP ] # FIXME define Set constant
             readbytecodelang(bctx, bctype)
         else
             readitem(bctx.ctx)
@@ -251,12 +254,18 @@ function readunsupported( ctx::RDAContext, fl::RDATag )
     error( "Reading SEXPREC of type $(sxtype(fl)) ($(SXTypes[sxtype(fl)].name)) is not supported" )
 end
 
+"""
+    Definition of R type.
+"""
 immutable SXTypeInfo
-    name::UTF8String     # type name
-    reader::Function     # reads the contents from RDA stream
+    name::UTF8String     # R type name
+    reader::Function     # function to deserialize R type from RDA stream
 end
 
-const SXTypes = @compat Dict{SXType, SXTypeInfo}(      # Map SEXPREC type ids to names
+"""
+    Maps R type id (`SXType`) to its `SXTypeInfo`.
+"""
+const SXTypes = Dict{SXType, SXTypeInfo}(
     NILSXP     => SXTypeInfo("NULL",readdummy),
     SYMSXP     => SXTypeInfo("Symbol",readsymbol),
     LISTSXP    => SXTypeInfo("Pairlist",readpairlist),
