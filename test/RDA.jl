@@ -14,7 +14,7 @@ module TestRDA
         # df['chr'] = c('ab', 'c')
         # df['factor'] = factor(df$chr)
         # df['cplx'] = complex( real=c(1.1,0.0), imaginary=c(0.5,1.0) )
-        # #utf=c('Ж', '∰')) R handles it, read_rda doesn't.
+        # #utf=c('Ж', '∰')) R handles it, RData.read_rda doesn't.
         # save(df, file='types.rda')
         # save(df, file='types_ascii.rda', ascii=TRUE)
 
@@ -57,39 +57,39 @@ module TestRDA
     testdir = dirname(@__FILE__)
 
     df = DataFrame(num = [1.1, 2.2])
-    @test isequal(sexp2julia(read_rda("$testdir/data/minimal.rda",convert=false)["df"]), df)
-    @test isequal(read_rda("$testdir/data/minimal.rda",convert=true)["df"], df)
-    @test isequal(open(read_rda,"$testdir/data/minimal_ascii.rda")["df"], df)
+    @test isequal(sexp2julia(RData.read_rda("$testdir/data/minimal.rda",convert=false)["df"]), df)
+    @test isequal(RData.read_rda("$testdir/data/minimal.rda",convert=true)["df"], df)
+    @test isequal(open(RData.read_rda,"$testdir/data/minimal_ascii.rda")["df"], df)
 
     df[:int] = Int32[1, 2]
     df[:logi] = [true, false]
     df[:chr] = ["ab", "c"]
     df[:factor] = pool(df[:chr])
     df[:cplx] = Complex128[1.1+0.5im, 1.0im]
-    @test isequal(sexp2julia(read_rda("$testdir/data/types.rda",convert=false)["df"]), df)
-    @test isequal(sexp2julia(read_rda("$testdir/data/types_ascii.rda",convert=false)["df"]), df)
+    @test isequal(sexp2julia(RData.read_rda("$testdir/data/types.rda",convert=false)["df"]), df)
+    @test isequal(sexp2julia(RData.read_rda("$testdir/data/types_ascii.rda",convert=false)["df"]), df)
 
     df[2, :] = NA
     append!(df, df[2, :])
     df[3, :num] = NaN
     df[:, :cplx] = @data [NA, @compat(Complex128(1,NaN)), NaN]
-    @test isequal(sexp2julia(read_rda("$testdir/data/NAs.rda",convert=false)["df"]), df)
+    @test isequal(sexp2julia(RData.read_rda("$testdir/data/NAs.rda",convert=false)["df"]), df)
     # ASCII format saves NaN as NA
     df[3, :num] = NA
     df[:, :cplx] = @data [NA, NA, NA]
-    @test isequal(sexp2julia(read_rda("$testdir/data/NAs_ascii.rda",convert=false)["df"]), df)
+    @test isequal(sexp2julia(RData.read_rda("$testdir/data/NAs_ascii.rda",convert=false)["df"]), df)
 
-    rda_names = names(sexp2julia(read_rda("$testdir/data/names.rda",convert=false)["df"]))
+    rda_names = names(sexp2julia(RData.read_rda("$testdir/data/names.rda",convert=false)["df"]))
     expected_names = [:_end, :x!, :x1, :_B_C_, :x, :x_1]
     @test rda_names == expected_names
-    rda_names = names(sexp2julia(read_rda("$testdir/data/names_ascii.rda",convert=false)["df"]))
+    rda_names = names(sexp2julia(RData.read_rda("$testdir/data/names_ascii.rda",convert=false)["df"]))
     @test rda_names == [:_end, :x!, :x1, :_B_C_, :x, :x_1]
 
-    rda_envs = read_rda("$testdir/data/envs.rda",convert=false)
+    rda_envs = RData.read_rda("$testdir/data/envs.rda",convert=false)
 
-    rda_pairlists = read_rda("$testdir/data/pairlists.rda",convert=false)
+    rda_pairlists = RData.read_rda("$testdir/data/pairlists.rda",convert=false)
 
-    rda_closures = read_rda("$testdir/data/closures.rda",convert=false)
+    rda_closures = RData.read_rda("$testdir/data/closures.rda",convert=false)
 
-    rda_cmpfuns = read_rda("$testdir/data/cmpfun.rda",convert=false)
+    rda_cmpfuns = RData.read_rda("$testdir/data/cmpfun.rda",convert=false)
 end
