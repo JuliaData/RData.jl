@@ -222,17 +222,18 @@ end
 
 function readbytecodeconsts( bctx::BytecodeContext )
     nconsts = readint32(bctx.ctx.io)
-    RList( [ begin
+    v = Vector{RSEXPREC}(nconsts)
+    @inbounds for i = 1:nconsts
         bctype = readint32(bctx.ctx.io)
-        if bctype == BCODESXP
+        v[i] = if bctype == BCODESXP
             readbytecodecontents(bctx)
-        elseif bctype ∈ [ BCREPDEF, BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP ]
+        elseif bctype ∈ [BCREPDEF, BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP]
             readbytecodelang(bctx, bctype)
         else
             readitem(bctx.ctx)
         end
-        end
-        for i in 1:nconsts ] )
+    end
+    return RList(v)
 end
 
 function readbytecodecontents( bctx::BytecodeContext )
