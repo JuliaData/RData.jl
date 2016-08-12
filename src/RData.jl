@@ -3,7 +3,6 @@ module RData
 using Compat, DataFrames, GZip
 import DataArrays: data
 import DataFrames: identifier
-import Base: convert, get, haskey, keys, values, length, show
 import Compat: UTF8String, unsafe_string
 
 export
