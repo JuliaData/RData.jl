@@ -188,7 +188,7 @@ type BytecodeContext # bytecode reading context
     ctx::RDAContext  # parent RDA context
     ref_tab::Vector  # table of bytecode references
 
-    BytecodeContext( ctx::RDAContext, nrefs::Int32 ) = new( ctx, Array( Any, int(nrefs) ) )
+    BytecodeContext( ctx::RDAContext, nrefs::Int32 ) = new( ctx, Array( Any, Int(nrefs) ) )
 end
 
 function readbytecodelang(bctx::BytecodeContext, bctype::Int32)
