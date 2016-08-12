@@ -10,10 +10,11 @@ function name2index( names::Vector{RString} )
     n2i, i2n
 end
 
-# Container that could be indexed either
-# by string keys as dictionary
-# or by element indicies as a vector.
-# Mimics the behaviour of R vectors
+"""
+    Container that mimics R vector behaviour.
+    Elements could be accessed either by indices as a normal vector,
+    or (optionally) by string keys as a dictionary.
+"""
 immutable DictoVec{T}
     data::T
     name2index::Dict{RString, Int}
