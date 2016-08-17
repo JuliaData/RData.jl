@@ -1,10 +1,10 @@
-function name2index( names::Vector{RString} )
+function name2index(names::Vector{RString})
     n2i = Dict{RString,Int64}()
     i2n = Dict{Int64,RString}()
-    for i in eachindex(names)
-        if names[i] != ""
-            n2i[names[i]] = i
-            i2n[i] = names[i]
+    @inbounds for (i,k) in enumerate(names)
+        if k != ""
+            n2i[k] = i
+            i2n[i] = k
         end
     end
     n2i, i2n
@@ -20,13 +20,9 @@ immutable DictoVec{T}
     name2index::Dict{RString, Int}
     index2name::Dict{Int, RString}
 
-    function Base.call{T}(::Type{DictoVec}, data::T, names::Vector{RString})
+    @compat function (::Type{DictoVec}){T}(data::T, names::Vector{RString} = Vector{RString}())
         n2i, i2n = name2index(names)
         new{T}(data, n2i, i2n)
-    end
-
-    function Base.call{T}(::Type{DictoVec}, data::T)
-        new{T}(data, Dict{RString,Int}(), Dict{Int,RString}())
     end
 end
 
