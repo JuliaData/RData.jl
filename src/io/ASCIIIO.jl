@@ -15,11 +15,25 @@ function readintorNA(io::ASCIIIO)
 end
 readintorNA(io::ASCIIIO, n::RVecLength) = Int32[readintorNA(io) for i in 1:n]
 
-function readfloatorNA(io::ASCIIIO)
-    str = chomp(readline(io.sub));
-    str == R_NA_STRING ? R_NA_FLOAT64 : parse(Float64, str)
+# this method have Win32 ABI issues, see JuliaStats/RData.jl#5
+# R's NA is silently converted to NaN when the value is loaded in the register(?)
+#function readfloatorNA(io::ASCIIIO)
+#    str = chomp(readline(io.sub));
+#    str == R_NA_STRING ? R_NA_FLOAT64 : parse(Float64, str)
+#end
+function readfloatorNA(io::ASCIIIO, n::RVecLength)
+    res = Vector{Float64}(n)
+    res_uint = reinterpret(UInt64, res) # alias of res for setting NA
+    @inbounds for i in 1:n
+        str = chomp(readline(io.sub))
+        if str != R_NA_STRING
+            res[i] = parse(Float64, str)
+        else
+            res_uint[i] = R_NA_FLOAT64 # see JuliaStats/RData.jl#5
+        end
+    end
+    res
 end
-readfloatorNA(io::ASCIIIO, n::RVecLength) = Float64[readfloatorNA(io) for i in 1:n]
 
 readuint8(io::ASCIIIO, n::RVecLength) = UInt8[hex2bytes(chomp(readline(io.sub)))[1] for i in 1:n] # FIXME optimize for speed
 

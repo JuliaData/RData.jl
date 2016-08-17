@@ -38,8 +38,7 @@ end
 function readcomplex(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == CPLXSXP
     n = readlength(ctx.io)
-    data = readfloatorNA(ctx.io, 2n)
-    RComplexVector(Complex128[@compat(Complex128(data[i],data[i+1])) for i in 2(1:n)-1],
+    RComplexVector(reinterpret(Complex128, readfloatorNA(ctx.io, 2n)),
                    readattrs(ctx, fl))
 end
 

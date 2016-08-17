@@ -13,8 +13,10 @@ readfloat64(io::XDRIO) = ntoh(read(io.sub, Float64))
 readintorNA(io::XDRIO) = readint32(io)
 readintorNA(io::XDRIO, n::RVecLength) = map!(ntoh, read(io.sub, Int32, n))
 
-readfloatorNA(io::XDRIO) = readfloat64(io)
-readfloatorNA(io::XDRIO, n::RVecLength) = map!(ntoh, read(io.sub, Float64, n))
+# this method have Win32 ABI issues, see JuliaStats/RData.jl#5
+# R's NA is silently converted to NaN when the value is loaded in the register(?)
+#readfloatorNA(io::XDRIO) = readfloat64(io)
+readfloatorNA(io::XDRIO, n::RVecLength) = reinterpret(Float64, map!(ntoh, read(io.sub, UInt64, n)))
 
 readuint8(io::XDRIO, n::RVecLength) = readbytes(io.sub, n)
 
