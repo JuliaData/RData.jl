@@ -4,10 +4,12 @@ using Compat, DataFrames, GZip, FileIO
 import DataArrays: data
 import DataFrames: identifier
 import Compat: UTF8String, unsafe_string
+import FileIO: load
 
 export
     sexp2julia,
-    DictoVec
+    DictoVec,
+    load # export FileIO.load()
 
 include("config.jl")
 include("sxtypes.jl")
