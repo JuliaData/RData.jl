@@ -191,7 +191,7 @@ type BytecodeContext
     ctx::RDAContext  # parent RDA context
     ref_tab::Vector  # table of bytecode references
 
-    BytecodeContext( ctx::RDAContext, nrefs::Int32 ) = new( ctx, Array( Any, int(nrefs) ) )
+    BytecodeContext( ctx::RDAContext, nrefs::Int32 ) = new( ctx, Array( Any, Int(nrefs) ) )
 end
 
 function readbytecodelang(bctx::BytecodeContext, bctype::Int32)
@@ -225,17 +225,18 @@ end
 
 function readbytecodeconsts( bctx::BytecodeContext )
     nconsts = readint32(bctx.ctx.io)
-    RList( [ begin
+    v = Vector{RSEXPREC}(nconsts)
+    @inbounds for i = 1:nconsts
         bctype = readint32(bctx.ctx.io)
-        if bctype == BCODESXP
+        v[i] = if bctype == BCODESXP
             readbytecodecontents(bctx)
         elseif bctype ∈ [ BCREPDEF, BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP ] # FIXME define Set constant
             readbytecodelang(bctx, bctype)
         else
             readitem(bctx.ctx)
         end
-        end
-        for i in 1:nconsts ] )
+    end
+    return RList(v)
 end
 
 function readbytecodecontents( bctx::BytecodeContext )
@@ -246,7 +247,7 @@ end
 function readbytecode( ctx::RDAContext, fl::RDATag )
     @assert fl == BCODESXP
     res = readbytecodecontents( BytecodeContext( ctx, readint32( ctx.io ) ) )
-    res.attrs = readattrs( ctx, fl )
+    res.attr = readattrs( ctx, fl )
     return res
 end
 

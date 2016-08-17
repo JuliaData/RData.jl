@@ -12,7 +12,7 @@ end
 const R_NA_INT32 = typemin(Int32)
 const R_NA_STRING = "NA"
 
-const LONG_VECTOR_SUPPORT = (WORD_SIZE > 32) # disable long vectors support on 32-bit machines
+const LONG_VECTOR_SUPPORT = (Sys.WORD_SIZE > 32) # disable long vectors support on 32-bit machines
 
 if LONG_VECTOR_SUPPORT
     typealias RVecLength Int64

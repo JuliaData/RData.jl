@@ -1,7 +1,14 @@
 module RData
 
-using Compat, DataFrames, DataFrames.identifier, GZip
-import DataArrays.data, Base.convert, Base.get, Base.haskey, Base.keys, Base.values, Base.length, Base.show
+using Compat, DataFrames, GZip
+import DataArrays: data
+import DataFrames: identifier
+import Compat: UTF8String, unsafe_string
+
+export
+    # read_rda,
+    sexp2julia,
+    DictoVec
 
 include("config.jl")
 include("sxtypes.jl")
@@ -66,6 +73,5 @@ read_rda(io::IO; kwoptions...) = read_rda(io, kwoptions)
 
 read_rda(fnm::AbstractString; kwoptions...) = gzopen(fnm) do io read_rda(io, kwoptions) end
 
-export read_rda, sexp2julia, DictoVec
 
 end # module

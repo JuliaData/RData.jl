@@ -20,5 +20,5 @@ readuint8(io::XDRIO, n::RVecLength) = readbytes(io.sub, n)
 
 function readnchars(io::XDRIO, n::Int32)  # a single character string
     readbytes!(io.sub, io.buf, n)
-    convert(RString, bytestring(pointer(io.buf), n) )
+    convert(RString, unsafe_string(pointer(io.buf), n) )
 end
