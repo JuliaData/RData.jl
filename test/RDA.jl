@@ -3,7 +3,6 @@ module TestRDA
     using DataFrames
     using RData
     using Compat
-    using FileIO
 
     # R code generating test .rdas
         # df = data.frame(num=c(1.1, 2.2))
