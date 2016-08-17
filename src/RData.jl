@@ -1,12 +1,11 @@
 module RData
 
-using Compat, DataFrames, GZip
+using Compat, DataFrames, GZip, FileIO
 import DataArrays: data
 import DataFrames: identifier
 import Compat: UTF8String, unsafe_string
 
 export
-    # read_rda,
     sexp2julia,
     DictoVec
 
@@ -37,11 +36,32 @@ include("convert.jl")
 include("context.jl")
 include("readers.jl")
 
-function read_rda(io::IO, kwoptions::Vector{Any})
-    header = chomp(readline(io))
-    @assert header[1] == 'R' # readable header (or RDX2)
-    @assert header[2] == 'D'
-    @assert header[4] == '2'
+##############################################################################
+##
+## FileIO integration
+##
+##############################################################################
+
+# test for RD?2 magic sequence at the beginning of R data input stream
+function detect_rdata(io)
+    read(io, UInt8) == UInt8('R') &&
+    read(io, UInt8) == UInt8('D') &&
+    (fmt = read(io, UInt8); fmt == UInt8('A') || fmt == UInt8('B') || fmt == UInt8('X')) &&
+    read(io, UInt8) == UInt8('2') &&
+    read(io, UInt8) == 0x0A
+end
+
+add_format(format"RData", detect_rdata, [".rdata", ".rda"], [:RData])
+
+function load(f::File{format"RData"}; kwoptions...)
+    gzopen(filename(f)) do s
+        load(Stream(f, s), kwoptions)
+    end
+end
+
+function load(s::Stream{format"RData"}, kwoptions::Vector{Any})
+    io = stream(s)
+    @assert detect_rdata(io)
     ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
     @assert ctx.fmtver == 2    # format version
 #    println("Written by R version $(ctx.Rver)")
@@ -69,9 +89,6 @@ function read_rda(io::IO, kwoptions::Vector{Any})
     return res
 end
 
-read_rda(io::IO; kwoptions...) = read_rda(io, kwoptions)
-
-read_rda(fnm::AbstractString; kwoptions...) = gzopen(fnm) do io read_rda(io, kwoptions) end
-
+load(s::Stream{format"RData"}; kwoptions...) = load(s, kwoptions)
 
 end # module
