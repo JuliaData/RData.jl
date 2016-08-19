@@ -182,7 +182,7 @@ type REnvironment <: ROBJ{ENVSXP}
 end
 
 type RRaw <: ROBJ{RAWSXP}
-    data
+    data::Vector{UInt8}
     attr::Hash
 end
 
