@@ -180,9 +180,9 @@ end
 """
     Context for reading R bytecode.
 """
-type BytecodeContext
-    ctx::RDAContext  # parent RDA context
-    ref_tab::Vector  # table of bytecode references
+immutable BytecodeContext
+    ctx::RDAContext         # parent RDA context
+    ref_tab::Vector{Any}    # table of bytecode references
 
     BytecodeContext(ctx::RDAContext, nrefs::Int32) = new(ctx, Array(Any, Int(nrefs)))
 end
