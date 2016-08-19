@@ -59,11 +59,8 @@ function readref(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == REFSXP
     ix = fl >> 8
     ix != 0 ? ix : readint32(ctx.io)
-    if ( ix > length( ctx.ref_tab ) )
-        throw(BoundsError("undefined reference index=$ix"))
-    else
-        return ctx.ref_tab[ix]
-    end
+    (ix <= length(ctx.ref_tab)) || throw(BoundsError("undefined reference index=$ix"))
+    return ctx.ref_tab[ix]
 end
 
 function readsymbol(ctx::RDAContext, fl::RDATag)
@@ -93,7 +90,8 @@ function readenv(ctx::RDAContext, fl::RDATag)
 end
 
 function readname(ctx)
-    if readint32(ctx.io) != 0 error("Names in persistent strings not supported") end
+    (readint32(ctx.io) == zero(Int32)) ||
+        error("Names in persistent strings not supported")
     n = readint32(ctx.io)
     return RString[readcharacter(ctx.io) for i in 1:n]
 end
@@ -143,9 +141,7 @@ end
 function readclosure(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == CLOSXP
     res = RClosure(readattrs(ctx, fl))
-    if hastag(fl)
-        res.env = readitem(ctx)
-    end
+    hastag(fl) && (res.env = readitem(ctx))
     res.formals = readitem(ctx)
     res.body = readitem(ctx)
     return res
@@ -154,9 +150,7 @@ end
 function readpromise(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == PROMSXP
     res = RPromise( readattrs(ctx, fl) )
-    if hastag(fl)
-        res.env = readitem(ctx)
-    end
+    hastag(fl) && (res.env = readitem(ctx))
     res.value = readitem(ctx)
     res.expr = readitem(ctx)
     return res
@@ -211,11 +205,11 @@ function readbytecodelang(bctx::BytecodeContext, bctype::Int32)
             hasattr = true
         end
         res = RBytecode() # FIXME create a RPairlist if LANG/LISTSXP?
-        if (hasattr) res.attr = readitem(bctx.ctx) end
+        hasattr && (res.attr = readitem(bctx.ctx))
         res.tag = readitem(bctx.ctx)
         res.car = readbytecodelang(bctx, readint32(bctx.ctx.io))
         res.cdr = readbytecodelang(bctx, readint32(bctx.ctx.io))
-        if (pos > 0) setindex!(bctx.ref_tab, res, pos) end
+        (pos > 0) && setindex!(bctx.ref_tab, res, pos)
         return res
     else
         return readitem(bctx.ctx)
