@@ -58,7 +58,7 @@ end
 function readref(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == REFSXP
     ix = fl >> 8
-    ix != 0 ? ix : readint32(ctx.io)
+    ix = ix != 0 ? ix : readint32(ctx.io)
     (ix <= length(ctx.ref_tab)) || throw(BoundsError("undefined reference index=$ix"))
     return ctx.ref_tab[ix]
 end
