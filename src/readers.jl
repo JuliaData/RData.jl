@@ -187,10 +187,12 @@ type BytecodeContext
     BytecodeContext(ctx::RDAContext, nrefs::Int32) = new(ctx, Array(Any, Int(nrefs)))
 end
 
+const BYTECODELANG_Types = Set([BCREPREF, BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP])
+
 function readbytecodelang(bctx::BytecodeContext, bctype::Int32)
     if bctype == BCREPREF # refer to an already defined bytecode
         return bctx.ref_tab[readint32(bctx.ctx.io)+1]
-    elseif bctype ∈ [BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP] # FIXME define Set constant
+    elseif bctype ∈ BYTECODELANG_Types
         pos = 0
         hasattr = false
         if bctype == BCREPDEF # define a reference
@@ -223,7 +225,7 @@ function readbytecodeconsts(bctx::BytecodeContext)
         bctype = readint32(bctx.ctx.io)
         v[i] = if bctype == BCODESXP
             readbytecodecontents(bctx)
-        elseif bctype ∈ [BCREPDEF, BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP] # FIXME define Set constant
+        elseif bctype ∈ BYTECODELANG_Types
             readbytecodelang(bctx, bctype)
         else
             readitem(bctx.ctx)
