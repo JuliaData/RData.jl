@@ -91,7 +91,7 @@ abstract RSEXPREC{S}
     R symbol.
     Not quite the same as a Julia symbol.
 """
-type RSymbol <: RSEXPREC{SYMSXP}
+immutable RSymbol <: RSEXPREC{SYMSXP}
     displayname::RString
 end
 
@@ -123,7 +123,7 @@ typealias RComplexVector RVector{Complex128, CPLXSXP}
 """
     R vector object with explicit NA values.
 """
-type RNullableVector{T, S} <: RVEC{T, S}
+immutable RNullableVector{T, S} <: RVEC{T, S}
     data::Vector{T}
     na::BitVector                # mask of NA elements
     attr::Hash                   # collection of R object attributes
@@ -137,7 +137,7 @@ typealias RList RVector{RSEXPREC,VECSXP}  # "list" in R == Julia cell array
     Unlike R that represents it as singly-linked list,
     `RPairList` uses vector representation.
 """
-type RPairList <: ROBJ{LISTSXP}
+immutable RPairList <: ROBJ{LISTSXP}
     items::Vector{RSEXPREC}
     tags::Vector{RString}
     attr::Hash
@@ -159,7 +159,7 @@ type RClosure <: ROBJ{CLOSXP}
     RClosure( attr::Hash = Hash() ) = new( nothing, nothing, nothing, attr )
 end
 
-type RBuiltin <: RSEXPREC{BUILTINSXP}
+immutable RBuiltin <: RSEXPREC{BUILTINSXP}
     internal_function::RString
 end
 
@@ -181,12 +181,12 @@ type REnvironment <: ROBJ{ENVSXP}
     REnvironment() = new( nothing, nothing, nothing, Hash() )
 end
 
-type RRaw <: ROBJ{RAWSXP}
+immutable RRaw <: ROBJ{RAWSXP}
     data::Vector{UInt8}
     attr::Hash
 end
 
-type RS4Obj <: ROBJ{S4SXP}
+immutable RS4Obj <: ROBJ{S4SXP}
     attr::Hash
 end
 
@@ -206,16 +206,16 @@ type RBytecode <: ROBJ{BCODESXP}
     RBytecode( code = nothing, consts = nothing, attr::Hash = Hash() ) = new( attr, nothing, code, consts )
 end
 
-type RPackage <: RSEXPREC{PACKAGESXP}
+immutable RPackage <: RSEXPREC{PACKAGESXP}
     name::Vector{RString}
 end
 
-type RNamespace <: RSEXPREC{NAMESPACESXP}
+immutable RNamespace <: RSEXPREC{NAMESPACESXP}
     name::Vector{RString}
 end
 
 # R objects without body (empty environments, missing args etc)
-type RDummy{S} <: RSEXPREC{S}
+immutable RDummy{S} <: RSEXPREC{S}
 end
 
 ##############################################################################
