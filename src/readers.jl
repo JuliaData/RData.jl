@@ -52,36 +52,33 @@ function readlist(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == VECSXP
     n = readlength(ctx.io)
     RList(RSEXPREC[readitem(ctx) for i in 1:n],
-                   readattrs(ctx, fl))
+          readattrs(ctx, fl))
 end
 
 function readref(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == REFSXP
     ix = fl >> 8
-    ix != 0 ? ix : readint32(ctx.io)
-    if ( ix > length( ctx.ref_tab ) )
-        throw( BoundsError( "undefined reference index=$ix" ) )
-    else
-        return ctx.ref_tab[ix]
-    end
+    ix = ix != 0 ? ix : readint32(ctx.io)
+    (ix <= length(ctx.ref_tab)) || throw(BoundsError("undefined reference index=$ix"))
+    return ctx.ref_tab[ix]
 end
 
 function readsymbol(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == SYMSXP
-    registerref( ctx, RSymbol(readcharacter(ctx.io)) )
+    registerref(ctx, RSymbol(readcharacter(ctx.io)))
 end
 
 function readS4(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == S4SXP
     # S4 objects doesn't contain any data other than its attributes
     # FIXME S4 is read just as a named hash of its attributes
-    RS4Obj( readattrs(ctx, fl) )
+    RS4Obj(readattrs(ctx, fl))
 end
 
 function readenv(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == ENVSXP
     is_locked = readint32( ctx.io )
-    res = registerref( ctx, REnvironment() ) # registering before reading the contents
+    res = registerref(ctx, REnvironment()) # registering before reading the contents
     res.enclosed = readitem(ctx)
     res.frame = readitem(ctx)
     res.hashtab = readitem(ctx)
@@ -93,28 +90,29 @@ function readenv(ctx::RDAContext, fl::RDATag)
 end
 
 function readname(ctx)
-    if readint32(ctx.io) != 0 error( "Names in persistent strings not supported") end
+    (readint32(ctx.io) == zero(Int32)) ||
+        error("Names in persistent strings not supported")
     n = readint32(ctx.io)
-    return RString[ readcharacter(ctx.io) for i in 1:n ]
+    return RString[readcharacter(ctx.io) for i in 1:n]
 end
 
 function readnamespace(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == NAMESPACESXP
-    registerref( ctx, RNamespace(readname(ctx)) )
+    registerref(ctx, RNamespace(readname(ctx)))
 end
 
 function readpackage(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == PACKAGESXP
-    registerref( ctx, RPackage(readname(ctx)) )
+    registerref(ctx, RPackage(readname(ctx)))
 end
 
 # reads single-linked lists R objects
 function readpairedobjects(ctx::RDAContext, fl::RDATag)
-    res = RPairList( readattrs(ctx, fl) )
+    res = RPairList(readattrs(ctx, fl))
     while sxtype(fl) != NILVALUE_SXP
-        if ( hastag(fl) )
+        if hastag(fl)
             tag = readitem(ctx)
-            if ( isa(tag, RSymbol) )
+            if isa(tag, RSymbol)
                 nm = tag.displayname
             else
                 nm = emptyhashkey
@@ -122,7 +120,7 @@ function readpairedobjects(ctx::RDAContext, fl::RDATag)
         else
             nm = emptyhashkey
         end
-        push!( res, readitem(ctx), nm )
+        push!(res, readitem(ctx), nm)
         fl = readuint32(ctx.io)
         readattrs(ctx, fl)
     end
@@ -142,10 +140,8 @@ end
 
 function readclosure(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == CLOSXP
-    res = RClosure( readattrs(ctx, fl) )
-    if ( hastag(fl) )
-        res.env = readitem(ctx)
-    end
+    res = RClosure(readattrs(ctx, fl))
+    hastag(fl) && (res.env = readitem(ctx))
     res.formals = readitem(ctx)
     res.body = readitem(ctx)
     return res
@@ -154,9 +150,7 @@ end
 function readpromise(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == PROMSXP
     res = RPromise( readattrs(ctx, fl) )
-    if ( hastag(fl) )
-        res.env = readitem(ctx)
-    end
+    hastag(fl) && (res.env = readitem(ctx))
     res.value = readitem(ctx)
     res.expr = readitem(ctx)
     return res
@@ -171,12 +165,12 @@ end
 # reads built-in R objects
 function readbuiltin(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == BUILTINSXP || sxtype(fl) == SPECIALSXP
-    RBuiltin( readnchars(ctx.io, readint32(ctx.io)) )
+    RBuiltin(readnchars(ctx.io, readint32(ctx.io)))
 end
 
 function readextptr(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == EXTPTRSXP
-    res = registerref( ctx, RExtPtr() ) # registering before reading the contents
+    res = registerref(ctx, RExtPtr()) # registering before reading the contents
     res.protected = readitem(ctx)
     res.tag = readitem(ctx)
     res.attr = readattrs(ctx, fl)
@@ -186,17 +180,19 @@ end
 """
     Context for reading R bytecode.
 """
-type BytecodeContext
-    ctx::RDAContext  # parent RDA context
-    ref_tab::Vector  # table of bytecode references
+immutable BytecodeContext
+    ctx::RDAContext         # parent RDA context
+    ref_tab::Vector{Any}    # table of bytecode references
 
-    BytecodeContext( ctx::RDAContext, nrefs::Int32 ) = new( ctx, Array( Any, Int(nrefs) ) )
+    BytecodeContext(ctx::RDAContext, nrefs::Int32) = new(ctx, Array(Any, Int(nrefs)))
 end
+
+const BYTECODELANG_Types = Set([BCREPREF, BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP])
 
 function readbytecodelang(bctx::BytecodeContext, bctype::Int32)
     if bctype == BCREPREF # refer to an already defined bytecode
         return bctx.ref_tab[readint32(bctx.ctx.io)+1]
-    elseif bctype ∈ [ BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP ] # FIXME define Set constant
+    elseif bctype ∈ BYTECODELANG_Types
         pos = 0
         hasattr = false
         if bctype == BCREPDEF # define a reference
@@ -211,25 +207,25 @@ function readbytecodelang(bctx::BytecodeContext, bctype::Int32)
             hasattr = true
         end
         res = RBytecode() # FIXME create a RPairlist if LANG/LISTSXP?
-        if ( hasattr ) res.attr = readitem(bctx.ctx) end
+        hasattr && (res.attr = readitem(bctx.ctx))
         res.tag = readitem(bctx.ctx)
         res.car = readbytecodelang(bctx, readint32(bctx.ctx.io))
         res.cdr = readbytecodelang(bctx, readint32(bctx.ctx.io))
-        if ( pos > 0 ) setindex!(bctx.ref_tab, res, pos) end
+        (pos > 0) && setindex!(bctx.ref_tab, res, pos)
         return res
     else
         return readitem(bctx.ctx)
     end
 end
 
-function readbytecodeconsts( bctx::BytecodeContext )
+function readbytecodeconsts(bctx::BytecodeContext)
     nconsts = readint32(bctx.ctx.io)
     v = Vector{RSEXPREC}(nconsts)
     @inbounds for i = 1:nconsts
         bctype = readint32(bctx.ctx.io)
         v[i] = if bctype == BCODESXP
             readbytecodecontents(bctx)
-        elseif bctype ∈ [ BCREPDEF, BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP ] # FIXME define Set constant
+        elseif bctype ∈ BYTECODELANG_Types
             readbytecodelang(bctx, bctype)
         else
             readitem(bctx.ctx)
@@ -238,20 +234,20 @@ function readbytecodeconsts( bctx::BytecodeContext )
     return RList(v)
 end
 
-function readbytecodecontents( bctx::BytecodeContext )
-    RBytecode( readitem(bctx.ctx),
-               readbytecodeconsts(bctx) )
+function readbytecodecontents(bctx::BytecodeContext)
+    RBytecode(readitem(bctx.ctx),
+              readbytecodeconsts(bctx))
 end
 
-function readbytecode( ctx::RDAContext, fl::RDATag )
+function readbytecode(ctx::RDAContext, fl::RDATag)
     @assert fl == BCODESXP
-    res = readbytecodecontents( BytecodeContext( ctx, readint32( ctx.io ) ) )
-    res.attr = readattrs( ctx, fl )
+    res = readbytecodecontents(BytecodeContext(ctx, readint32(ctx.io)))
+    res.attr = readattrs(ctx, fl)
     return res
 end
 
-function readunsupported( ctx::RDAContext, fl::RDATag )
-    error( "Reading SEXPREC of type $(sxtype(fl)) ($(SXTypes[sxtype(fl)].name)) is not supported" )
+function readunsupported(ctx::RDAContext, fl::RDATag)
+    error("Reading SEXPREC of type $(sxtype(fl)) ($(SXTypes[sxtype(fl)].name)) is not supported")
 end
 
 """
