@@ -11,7 +11,8 @@ import FileIO: load, add_format
 export
     sexp2julia,
     DictoVec,
-    load # export FileIO.load()
+    load, # export FileIO.load()
+    add_format
 
 include("config.jl")
 include("sxtypes.jl")
