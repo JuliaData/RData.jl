@@ -4,6 +4,15 @@ module TestRDA
     using RData
     using Compat
 
+    # check for Float64 NA
+    @test !RData.isna_float64(reinterpret(UInt64, 1.0))
+    @test !RData.isna_float64(reinterpret(UInt64, NaN))
+    @test !RData.isna_float64(reinterpret(UInt64, Inf))
+    @test !RData.isna_float64(reinterpret(UInt64, -Inf))
+    @test RData.isna_float64(reinterpret(UInt64, RData.R_NA_FLOAT64))
+    # check that alternative NA is also recognized (#10)
+    @test RData.isna_float64(reinterpret(UInt64, RData.R_NA_FLOAT64 | ((Base.significand_mask(Float64) + 1) >> 1)))
+
     testdir = dirname(@__FILE__)
 
     df = DataFrame(num = [1.1, 2.2])
