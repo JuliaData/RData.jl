@@ -17,10 +17,10 @@ end
 
 namask(rl::RLogicalVector) = BitArray(rl.data .== R_NA_INT32)
 namask(ri::RIntegerVector) = BitArray(ri.data .== R_NA_INT32)
-namask(rn::RNumericVector) = BitArray(reinterpret(UInt64, rn.data) .== R_NA_FLOAT64)
+namask(rn::RNumericVector) = BitArray(map(isna_float64, reinterpret(UInt64, rn.data)))
 # if re or im is NA, the whole complex number is NA
 # FIXME avoid temporary Vector{Bool}
-namask(rc::RComplexVector) = BitArray([v.re == R_NA_FLOAT64 || v.im == R_NA_FLOAT64 for v in reinterpret(Complex{UInt64}, rc.data)])
+namask(rc::RComplexVector) = BitArray([isna_float64(v.re) || isna_float64(v.im) for v in reinterpret(Complex{UInt64}, rc.data)])
 namask(rv::RNullableVector) = rv.na
 
 DataArrays.data(rv::RVEC) = DataArray(rv.data, namask(rv))

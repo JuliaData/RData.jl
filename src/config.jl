@@ -1,19 +1,29 @@
 ##############################################################################
 ##
 ## Constants used as NA patterns in R.
-## 0x000007a2 == UInt32(1954) is a non-standard addition to NaN bit pattern
-## to discriminate NA from NaN.
-## (I assume 1954 is the year of Ross's birth or something like that.)
-## Note that float NA are defined as UInt64 to workaround the win32 ABI
-# issue (see JuliaStats/RData.jl#5 and JuliaLang/julia#17195).
 ##
 ##############################################################################
 
+"""
+    Non-standard addition to NaN bit pattern to discriminate NA from NaN.
+    0x000007a2 == UInt32(1954)
+    (I assume 1954 is the year of Ross's birth or something like that.)
+"""
+const R_NA_FLOAT64_LOW = 0x000007a2
+
+## Note that float NA are defined as UInt64 to workaround the win32 ABI
+## issue (see JuliaStats/RData.jl#5 and JuliaLang/julia#17195).
 if ENDIAN_BOM == 0x01020304
-    const R_NA_FLOAT64 = 0x000007a27ff00000
+    const R_NA_FLOAT64 = (R_NA_FLOAT64_LOW % UInt64 << 32) | (Base.exponent_mask(Float64) >> 32)
 else
-    const R_NA_FLOAT64 = 0x7ff00000000007a2
+    const R_NA_FLOAT64 = Base.exponent_mask(Float64) | R_NA_FLOAT64_LOW
 end
+
+# Some .rda files might use R_NA_FLOAT64 = 0x7ff80000000007a2,
+# so the proper check for NA: isnan(x) & lowword(x) == R_NA_FLOAT64_LOW
+isna_float64(x::UInt64) =
+    ((x & Base.exponent_mask(Float64)) == Base.exponent_mask(Float64)) &&
+    ((x % UInt32) == R_NA_FLOAT64_LOW)
 
 const R_NA_INT32 = typemin(Int32)
 const R_NA_STRING = "NA"
