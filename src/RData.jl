@@ -6,13 +6,12 @@ using Compat, DataFrames, GZip, FileIO
 import DataArrays: data
 import DataFrames: identifier
 import Compat: UTF8String, unsafe_string
-import FileIO: load, add_format
+import FileIO: load
 
 export
     sexp2julia,
     DictoVec,
-    load, # export FileIO.load()
-    add_format
+    load # export FileIO.load()
 
 include("config.jl")
 include("sxtypes.jl")
@@ -56,8 +55,6 @@ function detect_rdata(io)
     read(io, UInt8) == 0x0A
 end
 
-add_format(format"RData", detect_rdata, [".rdata", ".rda"], [:RData])
-
 function load(f::File{format"RData"}; kwoptions...)
     gzopen(filename(f)) do s
         load(Stream(f, s), kwoptions)
@@ -95,5 +92,9 @@ function load(s::Stream{format"RData"}, kwoptions::Vector{Any})
 end
 
 load(s::Stream{format"RData"}; kwoptions...) = load(s, kwoptions)
+
+function __init__()
+    FileIO.add_format(format"RData", detect_rdata, [".rdata", ".rda"], [:RData])
+end
 
 end # module
