@@ -5,8 +5,8 @@ type ASCIIIO{T<:IO} <: RDAIO
     sub::T              # underlying IO stream
 
     ASCIIIO(io::T) = new(io)
+    @compat (::Type{ASCIIIO}){T<:IO}(io::T) = new{T}(io)
 end
-ASCIIIO{T <: IO}(io::T) = ASCIIIO{T}(io)
 
 readint32(io::ASCIIIO) = parse(Int32, readline(io.sub))
 readuint32(io::ASCIIIO) = parse(UInt32, readline(io.sub))

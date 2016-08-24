@@ -6,8 +6,8 @@ type XDRIO{T<:IO} <: RDAIO
     buf::Vector{UInt8} # buffer for strings
 
     XDRIO(io::T) = new(io, Array(UInt8, 1024))
+    @compat (::Type{XDRIO}){T <: IO}(io::T) = new{T}(io, Array(UInt8, 1024))
 end
-XDRIO{T <: IO}(io::T) = XDRIO{T}(io)
 
 readint32(io::XDRIO) = ntoh(read(io.sub, Int32))
 readuint32(io::XDRIO) = ntoh(read(io.sub, UInt32))
