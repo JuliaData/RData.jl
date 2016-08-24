@@ -42,15 +42,6 @@ include("readers.jl")
 ##
 ##############################################################################
 
-# test for RD?2 magic sequence at the beginning of R data input stream
-function detect_rdata(io)
-    read(io, UInt8) == UInt8('R') &&
-    read(io, UInt8) == UInt8('D') &&
-    (fmt = read(io, UInt8); fmt == UInt8('A') || fmt == UInt8('B') || fmt == UInt8('X')) &&
-    read(io, UInt8) == UInt8('2') &&
-    read(io, UInt8) == 0x0A
-end
-
 function load(f::File{format"RData"}; kwoptions...)
     gzopen(filename(f)) do s
         load(Stream(f, s), kwoptions)
@@ -59,7 +50,7 @@ end
 
 function load(s::Stream{format"RData"}, kwoptions::Vector{Any})
     io = stream(s)
-    @assert detect_rdata(io)
+    @assert FileIO.detect_rdata(io)
     ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
     @assert ctx.fmtver == 2    # format version
 #    println("Written by R version $(ctx.Rver)")
@@ -88,9 +79,5 @@ function load(s::Stream{format"RData"}, kwoptions::Vector{Any})
 end
 
 load(s::Stream{format"RData"}; kwoptions...) = load(s, kwoptions)
-
-function __init__()
-    FileIO.add_format(format"RData", detect_rdata, [".rdata", ".rda"], [:RData])
-end
 
 end # module
