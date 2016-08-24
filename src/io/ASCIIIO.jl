@@ -1,4 +1,7 @@
-type ASCIIIO{T<:IO} <: RDAIO #  ASCII RData format IO stream wrapper
+"""
+    ASCII RData format IO stream wrapper.
+"""
+type ASCIIIO{T<:IO} <: RDAIO
     sub::T              # underlying IO stream
 
     ASCIIIO(io::T) = new(io)

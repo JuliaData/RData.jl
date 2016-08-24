@@ -21,14 +21,6 @@ Abstract RDA format IO stream wrapper.
 """
 abstract RDAIO
 
-##############################################################################
-##
-## Utilities for reading a single data element.
-## The read<type>orNA functions are needed because the ASCII format
-## stores the NA as the string 'NA'.  Perhaps it would be easier to
-## wrap the conversion in a try/catch block.
-##
-##############################################################################
 include("io/XDRIO.jl")
 include("io/ASCIIIO.jl")
 include("io/NativeIO.jl")
@@ -42,7 +34,11 @@ include("readers.jl")
 
 ##############################################################################
 ##
-## FileIO integration
+## FileIO integration.
+## supported `kwoptions`:
+## convert::Bool (true by default) for converting R objects into Julia equivalents,
+##               otherwise load() returns R internal representation (ROBJ-derived objects)
+## TODO option for disabling names checking (e.g. column names)
 ##
 ##############################################################################
 
