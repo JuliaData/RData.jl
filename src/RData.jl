@@ -74,16 +74,16 @@ function load(s::Stream{format"RData"}, kwoptions::Vector{Any})
     # top level read -- must be a paired list of objects
     # we read it here to be able to convert to julia objects inplace
     fl = readuint32(ctx.io)
-    sxtype(fl) == LISTSXP || error( "Top level R object is not a paired list")
-    !hasattr(fl) || error( "Top level R paired list should have no attributes" )
+    sxtype(fl) == LISTSXP || error("Top level R object is not a paired list")
+    !hasattr(fl) || error("Top level R paired list should have no attributes")
 
     res = Dict{RString,Any}()
     while sxtype(fl) != NILVALUE_SXP
-        hastag(fl) || error( "Top level list element has no name")
+        hastag(fl) || error("Top level list element has no name")
         tag = readitem(ctx)
         obj_name = convert(RString, isa(tag, RSymbol) ? tag.displayname : "\0")
         obj = readitem(ctx)
-        setindex!( res, (convert2julia ? sexp2julia(obj) : obj), obj_name )
+        setindex!(res, (convert2julia ? sexp2julia(obj) : obj), obj_name)
         fl = readuint32(ctx.io)
         readattrs(ctx, fl)
     end

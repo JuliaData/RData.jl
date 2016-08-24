@@ -2,7 +2,7 @@ function rdaio(io::IO, formatcode::AbstractString)
     if formatcode == "X" XDRIO(io)
     elseif formatcode == "A" ASCIIIO(io)
     elseif formatcode == "B" NativeIO(io)
-    else error( "Unrecognized RDA format \"$formatcode\"" )
+    else error("Unrecognized RDA format \"$formatcode\"")
     end
 end
 
