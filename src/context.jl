@@ -26,8 +26,8 @@ type RDAContext{T <: RDAIO}
         kwdict = Dict{Symbol,Any}(kwoptions)
         new(io,
             fmtver,
-            VersionNumber( div(rver,65536), div(rver%65536, 256), rver%256 ),
-            VersionNumber( div(rminver,65536), div(rminver%65536, 256), rminver%256 ),
+            VersionNumber(div(rver,65536), div(rver%65536, 256), rver%256),
+            VersionNumber(div(rminver,65536), div(rminver%65536, 256), rminver%256),
             kwdict,
             RSEXPREC[])
     end

@@ -57,17 +57,17 @@ function Base.getindex(dict::DictoVec, key)
     end
 end
 
-Base.get(dict::DictoVec, index::Int, default) = get( dict.data, index, default )
+Base.get(dict::DictoVec, index::Int, default) = get(dict.data, index, default)
 
 function Base.get(dict::DictoVec, key, default)
-    ix = get( dict.name2index, key, 0 )
+    ix = get(dict.name2index, key, 0)
     return ix > 0 ? dict.data[ix] : default
 end
 
 Base.get(f::Function, dict::DictoVec, index::Int) = get(f, dict.data, index)
 
 function Base.get(f::Function, dict::DictoVec, key)
-    ix = get( dict.name2index, key, 0 )
+    ix = get(dict.name2index, key, 0)
     return ix > 0 ? dict.data[ix] : f()
 end
 
@@ -90,7 +90,7 @@ function Base.show(io::IO, dict::DictoVec)
         for i in eachindex(dict.data)
             first || print(io, ',')
             first = false
-            k = get( dict.index2name, i, "" )
+            k = get(dict.index2name, i, "")
             if k != ""
                 show(io, k)
                 print(io, "=>")

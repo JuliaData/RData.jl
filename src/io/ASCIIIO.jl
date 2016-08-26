@@ -1,9 +1,12 @@
-type ASCIIIO{T<:IO} <: RDAIO #  ASCII RData format IO stream wrapper
+"""
+    ASCII RData format IO stream wrapper.
+"""
+type ASCIIIO{T<:IO} <: RDAIO
     sub::T              # underlying IO stream
 
-    ASCIIIO( io::T ) = new( io )
+    ASCIIIO(io::T) = new(io)
+    @compat (::Type{ASCIIIO}){T<:IO}(io::T) = new{T}(io)
 end
-ASCIIIO{T <: IO}(io::T) = ASCIIIO{T}(io)
 
 readint32(io::ASCIIIO) = parse(Int32, readline(io.sub))
 readuint32(io::ASCIIIO) = parse(UInt32, readline(io.sub))
@@ -21,6 +24,7 @@ readintorNA(io::ASCIIIO, n::RVecLength) = Int32[readintorNA(io) for i in 1:n]
 #    str = chomp(readline(io.sub));
 #    str == R_NA_STRING ? R_NA_FLOAT64 : parse(Float64, str)
 #end
+
 function readfloatorNA(io::ASCIIIO, n::RVecLength)
     res = Vector{Float64}(n)
     res_uint = reinterpret(UInt64, res) # alias of res for setting NA

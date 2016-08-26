@@ -77,7 +77,7 @@ end
 
 function readenv(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == ENVSXP
-    is_locked = readint32( ctx.io )
+    is_locked = readint32(ctx.io)
     res = registerref(ctx, REnvironment()) # registering before reading the contents
     res.enclosed = readitem(ctx)
     res.frame = readitem(ctx)
@@ -149,7 +149,7 @@ end
 
 function readpromise(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == PROMSXP
-    res = RPromise( readattrs(ctx, fl) )
+    res = RPromise(readattrs(ctx, fl))
     hastag(fl) && (res.env = readitem(ctx))
     res.value = readitem(ctx)
     res.expr = readitem(ctx)

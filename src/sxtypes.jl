@@ -142,12 +142,12 @@ immutable RPairList <: ROBJ{LISTSXP}
     tags::Vector{RString}
     attr::Hash
 
-    RPairList( attr::Hash = Hash() ) = new( RSEXPREC[], RString[], attr )
+    RPairList(attr::Hash = Hash()) = new(RSEXPREC[], RString[], attr)
 end
 
-function Base.push!( pl::RPairList, item::RSEXPREC, tag::RString )
-    push!( pl.tags, tag )
-    push!( pl.items, item )
+function Base.push!(pl::RPairList, item::RSEXPREC, tag::RString)
+    push!(pl.tags, tag)
+    push!(pl.items, item)
 end
 
 type RClosure <: ROBJ{CLOSXP}
@@ -156,7 +156,7 @@ type RClosure <: ROBJ{CLOSXP}
     env
     attr::Hash
 
-    RClosure( attr::Hash = Hash() ) = new( nothing, nothing, nothing, attr )
+    RClosure(attr::Hash = Hash()) = new(nothing, nothing, nothing, attr)
 end
 
 immutable RBuiltin <: RSEXPREC{BUILTINSXP}
@@ -169,7 +169,7 @@ type RPromise <: ROBJ{PROMSXP}
     env
     attr::Hash
 
-    RPromise( attr::Hash = Hash() ) = new( nothing, nothing, nothing, attr )
+    RPromise(attr::Hash = Hash()) = new(nothing, nothing, nothing, attr)
 end
 
 type REnvironment <: ROBJ{ENVSXP}
@@ -178,7 +178,7 @@ type REnvironment <: ROBJ{ENVSXP}
     hashtab
     attr::Hash
 
-    REnvironment() = new( nothing, nothing, nothing, Hash() )
+    REnvironment() = new(nothing, nothing, nothing, Hash())
 end
 
 immutable RRaw <: ROBJ{RAWSXP}
@@ -195,7 +195,7 @@ type RExtPtr <: ROBJ{EXTPTRSXP}
     tag
     attr::Hash
 
-    RExtPtr() = new( nothing, nothing, Hash() )
+    RExtPtr() = new(nothing, nothing, Hash())
 end
 
 type RBytecode <: ROBJ{BCODESXP}
@@ -203,7 +203,8 @@ type RBytecode <: ROBJ{BCODESXP}
     tag
     car
     cdr
-    RBytecode( code = nothing, consts = nothing, attr::Hash = Hash() ) = new( attr, nothing, code, consts )
+    RBytecode(code = nothing, consts = nothing, attr::Hash = Hash()) =
+        new(attr, nothing, code, consts)
 end
 
 immutable RPackage <: RSEXPREC{PACKAGESXP}
@@ -231,8 +232,8 @@ hasattr(ro::ROBJ, attrnm) = haskey(ro.attr, attrnm)
 hasnames(ro::ROBJ) = hasattr(ro, "names")
 hasdim(ro::ROBJ) = hasattr(ro, "dim")
 hasdimnames(ro::ROBJ) = hasattr(ro, "dimnames")
-getattr(ro::ROBJ, attrnm) = getindex( ro.attr, attrnm ).data
-getattr(ro::ROBJ, attrnm, default) = hasattr( ro, attrnm ) ? getindex( ro.attr, attrnm ).data : default
+getattr(ro::ROBJ, attrnm) = getindex(ro.attr, attrnm).data
+getattr(ro::ROBJ, attrnm, default) = hasattr(ro, attrnm) ? getindex(ro.attr, attrnm).data : default
 
 Base.names(ro::ROBJ) = getattr(ro, "names")
 

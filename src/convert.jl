@@ -41,7 +41,7 @@ function DataArrays.data(ri::RIntegerVector)
 end
 
 function sexp2julia(rex::RSEXPREC)
-    warn( "Conversion of $(typeof(rex)) to Julia is not implemented" )
+    warn("Conversion of $(typeof(rex)) to Julia is not implemented")
     return nothing
 end
 
@@ -52,7 +52,7 @@ function sexp2julia(rv::RVEC)
     hasna = any(nas)
     if hasnames(rv)
         # if data has no NA, convert to simple Vector
-        return DictoVec( hasna ? DataArray(rv.data, nas) : rv.data, names(rv) )
+        return DictoVec(hasna ? DataArray(rv.data, nas) : rv.data, names(rv))
     else
         hasdims = hasdim(rv)
         if !hasdims && length(rv.data)==1
@@ -62,11 +62,12 @@ function sexp2julia(rv::RVEC)
             return rv.data[1]
         elseif !hasdims
             # vectors
-            return hasna ? DataArray( rv.data, nas ) : rv.data
+            return hasna ? DataArray(rv.data, nas) : rv.data
         else
             # matrices and so on
             dims = tuple(convert(Vector{Int64}, getattr(rv, "dim"))...)
-            return hasna ? DataArray( reshape( rv.data, dims ), reshape( nas, dims ) ) : reshape( rv.data, dims )
+            return hasna ? DataArray(reshape(rv.data, dims), reshape(nas, dims)) :
+                         reshape(rv.data, dims)
         end
     end
 end
@@ -74,9 +75,9 @@ end
 function sexp2julia(rl::RList)
     if isdataframe(rl)
         # FIXME remove Any type assertion workaround
-        DataFrame(Any[ data(col) for col in rl.data ], map(identifier, names(rl)))
+        DataFrame(Any[data(col) for col in rl.data], map(identifier, names(rl)))
     elseif hasnames(rl)
-        DictoVec(Any[sexp2julia(item) for item in rl.data ], names(rl))
+        DictoVec(Any[sexp2julia(item) for item in rl.data], names(rl))
     else
         # FIXME return DictoVec if forceDictoVec is on
         map(sexp2julia, rl.data)
