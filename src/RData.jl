@@ -2,7 +2,7 @@ __precompile__()
 
 module RData
 
-using Compat, DataFrames, GZip, FileIO
+using Compat, DataFrames, GZip, FileIO, DataArrays  
 import DataArrays: data
 import DataFrames: identifier
 import Compat: UTF8String, unsafe_string
