@@ -1,11 +1,11 @@
 ## RData v0.0.4 Release Notes
 
-Now the official way to load `.RData`/`.rda` files is by `FileIO.load()`.
+Now the recommended way to load `.RData`/`.rda` files is by `FileIO.load()`.
 
 ##### Changes
 * FileIO.jl integration ([#6], [#15])
 * Enable precompilation ([#9])
-* Enhance numeric NA detection ([#10])
+* Fix numeric NA detection ([#10])
 
 ## RData v0.0.1 Release Notes
 
