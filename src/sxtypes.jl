@@ -68,7 +68,7 @@ const ATTRLISTSXP =       0xEF
 ##
 ##############################################################################
 
-typealias RDATag UInt32
+const RDATag = UInt32
 
 isobj(fl::RDATag) = (fl & 0x00000100) != 0
 hasattr(fl::RDATag) = (fl & 0x00000200) != 0
@@ -85,59 +85,59 @@ sxtype(fl::RDATag) = fl % UInt8
     Base class for RData internal representation of all R types.
     `SEXPREC` stands for S (R predecessor) expression record.
 """
-abstract RSEXPREC{S}
+abstract type RSEXPREC{S} end
 
 """
     R symbol.
     Not quite the same as a Julia symbol.
 """
-immutable RSymbol <: RSEXPREC{SYMSXP}
+struct RSymbol <: RSEXPREC{SYMSXP}
     displayname::RString
 end
 
 """
     Base class for all R types (objects) that can have attributes.
 """
-abstract ROBJ{S} <: RSEXPREC{S}
+abstract type ROBJ{S} <: RSEXPREC{S} end
 
 """
    Base class for all R vector-like objects.
 """
-abstract RVEC{T, S} <: ROBJ{S}
+abstract type RVEC{T, S} <: ROBJ{S} end
 
 """
     R vector object.
 """
-type RVector{T, S} <: RVEC{T, S}
+mutable struct RVector{T, S} <: RVEC{T, S}
     data::Vector{T}
     attr::Hash                   # collection of R object attributes
 
-    RVector(v::Vector{T} = T[], attr::Hash = Hash()) = new(v, attr)
+    RVector{T,S}(v::Vector{T} = T[], attr::Hash = Hash()) where {T,S} = new(v, attr)
 end
 
-typealias RLogicalVector RVector{Int32, LGLSXP}
-typealias RIntegerVector RVector{Int32, INTSXP}
-typealias RNumericVector RVector{Float64, REALSXP}
-typealias RComplexVector RVector{Complex128, CPLXSXP}
+const RLogicalVector = RVector{Int32, LGLSXP}
+const RIntegerVector = RVector{Int32, INTSXP}
+const RNumericVector = RVector{Float64, REALSXP}
+const RComplexVector = RVector{Complex128, CPLXSXP}
 
 """
     R vector object with explicit NA values.
 """
-immutable RNullableVector{T, S} <: RVEC{T, S}
+struct RNullableVector{T, S} <: RVEC{T, S}
     data::Vector{T}
     na::BitVector                # mask of NA elements
     attr::Hash                   # collection of R object attributes
 end
 
-typealias RStringVector RNullableVector{RString,STRSXP}
-typealias RList RVector{RSEXPREC,VECSXP}  # "list" in R == Julia cell array
+const RStringVector = RNullableVector{RString,STRSXP}
+const RList = RVector{RSEXPREC,VECSXP}  # "list" in R == Julia cell array
 
 """
     Representation of R's paired list-like structures (`LISTSXP`, `LANGSXP`).
     Unlike R that represents it as singly-linked list,
     `RPairList` uses vector representation.
 """
-immutable RPairList <: ROBJ{LISTSXP}
+struct RPairList <: ROBJ{LISTSXP}
     items::Vector{RSEXPREC}
     tags::Vector{RString}
     attr::Hash
@@ -150,7 +150,7 @@ function Base.push!(pl::RPairList, item::RSEXPREC, tag::RString)
     push!(pl.items, item)
 end
 
-type RClosure <: ROBJ{CLOSXP}
+mutable struct RClosure <: ROBJ{CLOSXP}
     formals
     body
     env
@@ -159,11 +159,11 @@ type RClosure <: ROBJ{CLOSXP}
     RClosure(attr::Hash = Hash()) = new(nothing, nothing, nothing, attr)
 end
 
-immutable RBuiltin <: RSEXPREC{BUILTINSXP}
+struct RBuiltin <: RSEXPREC{BUILTINSXP}
     internal_function::RString
 end
 
-type RPromise <: ROBJ{PROMSXP}
+mutable struct RPromise <: ROBJ{PROMSXP}
     value
     expr
     env
@@ -172,7 +172,7 @@ type RPromise <: ROBJ{PROMSXP}
     RPromise(attr::Hash = Hash()) = new(nothing, nothing, nothing, attr)
 end
 
-type REnvironment <: ROBJ{ENVSXP}
+mutable struct REnvironment <: ROBJ{ENVSXP}
     enclosed
     frame
     hashtab
@@ -181,16 +181,16 @@ type REnvironment <: ROBJ{ENVSXP}
     REnvironment() = new(nothing, nothing, nothing, Hash())
 end
 
-immutable RRaw <: ROBJ{RAWSXP}
+struct RRaw <: ROBJ{RAWSXP}
     data::Vector{UInt8}
     attr::Hash
 end
 
-immutable RS4Obj <: ROBJ{S4SXP}
+struct RS4Obj <: ROBJ{S4SXP}
     attr::Hash
 end
 
-type RExtPtr <: ROBJ{EXTPTRSXP}
+mutable struct RExtPtr <: ROBJ{EXTPTRSXP}
     protected
     tag
     attr::Hash
@@ -198,7 +198,7 @@ type RExtPtr <: ROBJ{EXTPTRSXP}
     RExtPtr() = new(nothing, nothing, Hash())
 end
 
-type RBytecode <: ROBJ{BCODESXP}
+mutable struct RBytecode <: ROBJ{BCODESXP}
     attr::Hash
     tag
     car
@@ -207,16 +207,16 @@ type RBytecode <: ROBJ{BCODESXP}
         new(attr, nothing, code, consts)
 end
 
-immutable RPackage <: RSEXPREC{PACKAGESXP}
+struct RPackage <: RSEXPREC{PACKAGESXP}
     name::Vector{RString}
 end
 
-immutable RNamespace <: RSEXPREC{NAMESPACESXP}
+struct RNamespace <: RSEXPREC{NAMESPACESXP}
     name::Vector{RString}
 end
 
 # R objects without body (empty environments, missing args etc)
-immutable RDummy{S} <: RSEXPREC{S}
+struct RDummy{S} <: RSEXPREC{S}
 end
 
 ##############################################################################

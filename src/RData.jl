@@ -19,7 +19,7 @@ include("sxtypes.jl")
 """
 Abstract RDA format IO stream wrapper.
 """
-abstract RDAIO
+abstract type RDAIO end
 
 include("io/XDRIO.jl")
 include("io/ASCIIIO.jl")
