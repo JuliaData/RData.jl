@@ -19,7 +19,7 @@ type RDAContext{T <: RDAIO}
     # intermediate data
     ref_tab::Vector{RSEXPREC}  # SEXP array for references
 
-    function RDAContext(io::T, kwoptions::Vector{Any})
+    function RDAContext{T}(io::T, kwoptions::Vector{Any}) where {T}
         fmtver = readint32(io)
         rver = readint32(io)
         rminver = readint32(io)

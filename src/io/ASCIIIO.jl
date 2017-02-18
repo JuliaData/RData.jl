@@ -4,7 +4,7 @@
 type ASCIIIO{T<:IO} <: RDAIO
     sub::T              # underlying IO stream
 
-    ASCIIIO(io::T) = new(io)
+    ASCIIIO{T}(io::T) where {T} = new(io)
     @compat (::Type{ASCIIIO}){T<:IO}(io::T) = new{T}(io)
 end
 
