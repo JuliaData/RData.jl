@@ -6,6 +6,7 @@ Switched from `DataFrames` to `DataTables`, dropped Julia v0.4 support
 * using `NullableArrays.jl` and `CategoricalArrays.jl`
 instead of `DataArrays.jl` ([#19], see [JuliaStats/DataFrames.jl#1008])
 * Julia v0.4 not supported (`DataTables.jl` requires v0.5)
+* R logical vectors converted to `Vector{Bool}` (instead of `Vector{Int32}`)
 
 ## RData v0.0.4 Release Notes
 

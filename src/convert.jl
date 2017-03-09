@@ -15,22 +15,27 @@ end
 ##
 ##############################################################################
 
-namask(rl::RLogicalVector) = [flag == R_NA_INT32 for flag in rl.data]
-namask(ri::RIntegerVector) = [flag == R_NA_INT32 for flag in ri.data]
+namask(ri::RVector{Int32}) = [i == R_NA_INT32 for i in ri.data]
 namask(rn::RNumericVector) = map(isna_float64, reinterpret(UInt64, rn.data))
 # if re or im is NA, the whole complex number is NA
 # FIXME avoid temporary Vector{Bool}
 namask(rc::RComplexVector) = [isna_float64(v.re) || isna_float64(v.im) for v in reinterpret(Complex{UInt64}, rc.data)]
 namask(rv::RNullableVector) = rv.na
 
-function _julia_vector(rv::RVEC, force_nullable::Bool)
+function _julia_vector{T}(::Type{T}, rv::RVEC, force_nullable::Bool)
     na_mask = namask(rv)
-    (force_nullable || any(na_mask)) ? NullableArray(rv.data, na_mask) : rv.data
+    (force_nullable || any(na_mask)) ? NullableArray(convert(Vector{T}, rv.data), na_mask) : rv.data
 end
 
 # convert R vector into either NullableArray
 # or Array if force_nullable=false and there are no NAs
-julia_vector(rv::RVEC, force_nullable::Bool) = _julia_vector(rv, force_nullable)
+julia_vector(rv::RVEC, force_nullable::Bool) = _julia_vector(eltype(rv.data), rv, force_nullable)
+
+function julia_vector(rl::RLogicalVector, force_nullable::Bool)
+    v = Bool[flag != zero(eltype(rl.data)) for flag in rl.data]
+    na_mask = namask(rl)
+    (force_nullable || any(na_mask)) ? NullableArray(v, na_mask) : v
+end
 
 # converts Vector{Int32} into Vector{R} replacing R_NA_INT32 with 0
 na2zero{R}(::Type{R}, v::Vector{Int32}) = [x != R_NA_INT32 ? R(x) : zero(R) for x in v]
@@ -38,7 +43,7 @@ na2zero{R}(::Type{R}, v::Vector{Int32}) = [x != R_NA_INT32 ? R(x) : zero(R) for 
 # convert to [Nullable]CategoricalArray{String} if `ri`is a factor,
 # or to [Nullable]Array{Int32} otherwise
 function julia_vector(ri::RIntegerVector, force_nullable::Bool)
-    !isfactor(ri) && return _julia_vector(ri, force_nullable) # not a factor
+    !isfactor(ri) && return _julia_vector(eltype(ri.data), ri, force_nullable) # not a factor
 
     # convert factor into [Nullable]CategoricalArray
     rlevels = getattr(ri, "levels", emptystrvec)

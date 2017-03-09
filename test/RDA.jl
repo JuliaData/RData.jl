@@ -23,10 +23,14 @@ module TestRDA
     df[:int] = Int32[1, 2]
     df[:logi] = [true, false]
     df[:chr] = ["ab", "c"]
-    df[:factor] = categorical(df[:chr])
+    df[:factor] = categorical(df[:chr], true)
     df[:cplx] = Complex128[1.1+0.5im, 1.0im]
-    @test isequal(sexp2julia(load("$testdir/data/types.rda",convert=false)["df"]), df)
-    @test isequal(sexp2julia(load("$testdir/data/types_ascii.rda",convert=false)["df"]), df)
+    rdf = sexp2julia(load("$testdir/data/types.rda",convert=false)["df"])
+    @test eltypes(rdf) == eltypes(df)
+    @test isequal(rdf, df)
+    rdf_ascii = sexp2julia(load("$testdir/data/types_ascii.rda",convert=false)["df"])
+    @test eltypes(rdf_ascii) == eltypes(df)
+    @test isequal(rdf_ascii, df)
 
     df[2, :] = Nullable()
     append!(df, df[2, :])
