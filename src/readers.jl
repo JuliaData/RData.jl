@@ -231,7 +231,7 @@ function readbytecodeconsts(bctx::BytecodeContext)
             readitem(bctx.ctx)
         end
     end
-    return RList(v)
+    return RList(v, Hash())
 end
 
 function readbytecodecontents(bctx::BytecodeContext)
