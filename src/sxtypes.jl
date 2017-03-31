@@ -68,7 +68,7 @@ const ATTRLISTSXP =       0xEF
 ##
 ##############################################################################
 
-typealias RDATag UInt32
+const RDATag = UInt32
 
 isobj(fl::RDATag) = (fl & 0x00000100) != 0
 hasattr(fl::RDATag) = (fl & 0x00000200) != 0
@@ -85,7 +85,7 @@ sxtype(fl::RDATag) = fl % UInt8
     Base class for RData internal representation of all R types.
     `SEXPREC` stands for S (R predecessor) expression record.
 """
-abstract RSEXPREC{S}
+@compat abstract type RSEXPREC{S} end
 
 """
     R symbol.
@@ -98,12 +98,12 @@ end
 """
     Base class for all R types (objects) that can have attributes.
 """
-abstract ROBJ{S} <: RSEXPREC{S}
+@compat abstract type ROBJ{S} <: RSEXPREC{S} end
 
 """
    Base class for all R vector-like objects.
 """
-abstract RVEC{T, S} <: ROBJ{S}
+@compat abstract type RVEC{T, S} <: ROBJ{S} end
 
 """
     R vector object.
@@ -111,14 +111,13 @@ abstract RVEC{T, S} <: ROBJ{S}
 type RVector{T, S} <: RVEC{T, S}
     data::Vector{T}
     attr::Hash                   # collection of R object attributes
-
-    RVector(v::Vector{T} = T[], attr::Hash = Hash()) = new(v, attr)
 end
+RVector{T}(v::Vector{T} = T[]) = RVector(v, Hash())
 
-typealias RLogicalVector RVector{Int32, LGLSXP}
-typealias RIntegerVector RVector{Int32, INTSXP}
-typealias RNumericVector RVector{Float64, REALSXP}
-typealias RComplexVector RVector{Complex128, CPLXSXP}
+const RLogicalVector = RVector{Int32, LGLSXP}
+const RIntegerVector = RVector{Int32, INTSXP}
+const RNumericVector = RVector{Float64, REALSXP}
+const RComplexVector = RVector{Complex128, CPLXSXP}
 
 """
     R vector object with explicit NA values.
@@ -129,12 +128,12 @@ immutable RNullableVector{T, S} <: RVEC{T, S}
     attr::Hash                   # collection of R object attributes
 end
 
-typealias RStringVector RNullableVector{RString,STRSXP}
-typealias RList RVector{RSEXPREC,VECSXP}  # "list" in R == Julia cell array
+const RStringVector = RNullableVector{RString,STRSXP}
+const RList = RVector{RSEXPREC,VECSXP}  # "list" in R == Julia cell array
 
 """
     Representation of R's paired list-like structures (`LISTSXP`, `LANGSXP`).
-    Unlike R that represents it as singly-linked list,
+    Unlike R which represents these as singly-linked list,
     `RPairList` uses vector representation.
 """
 immutable RPairList <: ROBJ{LISTSXP}

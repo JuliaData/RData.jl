@@ -30,14 +30,10 @@ const R_NA_STRING = "NA"
 
 const LONG_VECTOR_SUPPORT = (Sys.WORD_SIZE > 32) # disable long vectors support on 32-bit machines
 
-if LONG_VECTOR_SUPPORT
-    typealias RVecLength Int64
-else
-    typealias RVecLength Int
-end
+const RVecLength = LONG_VECTOR_SUPPORT ? Int64 : Int
 
-typealias RString UTF8String     # default String container for R string
-typealias Hash Dict{RString, Any}
+const RString = UTF8String     # default String container for R string
+const Hash = Dict{RString, Any}
 
 const emptyhash = Hash()
 const emptyhashkey = RString("\0")
