@@ -112,7 +112,7 @@ type RVector{T, S} <: RVEC{T, S}
     data::Vector{T}
     attr::Hash                   # collection of R object attributes
 
-    @compat RVector{T,S}(v::Vector{T} = T[], attr::Hash = Hash()) where {T,S} = new(v, attr)
+    RVector(v::Vector{T} = T[], attr::Hash = Hash()) = new(v, attr)
 
 end
 
