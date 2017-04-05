@@ -231,7 +231,7 @@ function readbytecodeconsts(bctx::BytecodeContext)
             readitem(bctx.ctx)
         end
     end
-    return RList(v, Hash())
+    return RList(v)
 end
 
 function readbytecodecontents(bctx::BytecodeContext)
@@ -254,7 +254,7 @@ end
     Definition of R type.
 """
 immutable SXTypeInfo
-    name::UTF8String     # R type name
+    name::String         # R type name
     reader::Function     # function to deserialize R type from RDA stream
 end
 

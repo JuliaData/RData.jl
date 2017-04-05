@@ -111,8 +111,10 @@ end
 type RVector{T, S} <: RVEC{T, S}
     data::Vector{T}
     attr::Hash                   # collection of R object attributes
+
+    @compat RVector{T,S}(v::Vector{T} = T[], attr::Hash = Hash()) where {T,S} = new(v, attr)
+
 end
-RVector{T}(v::Vector{T} = T[]) = RVector(v, Hash())
 
 const RLogicalVector = RVector{Int32, LGLSXP}
 const RIntegerVector = RVector{Int32, INTSXP}

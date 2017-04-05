@@ -32,7 +32,7 @@ const LONG_VECTOR_SUPPORT = (Sys.WORD_SIZE > 32) # disable long vectors support 
 
 const RVecLength = LONG_VECTOR_SUPPORT ? Int64 : Int
 
-const RString = UTF8String     # default String container for R string
+const RString = String     # default String container for R string
 const Hash = Dict{RString, Any}
 
 const emptyhash = Hash()
