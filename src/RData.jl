@@ -5,7 +5,7 @@ module RData
 using Compat, DataFrames, GZip, FileIO
 import DataArrays: data
 import DataFrames: identifier
-import Compat: UTF8String, unsafe_string
+import Compat: unsafe_string
 import FileIO: load
 
 export
@@ -19,7 +19,7 @@ include("sxtypes.jl")
 """
 Abstract RDA format IO stream wrapper.
 """
-abstract RDAIO
+@compat abstract type RDAIO end
 
 include("io/XDRIO.jl")
 include("io/ASCIIIO.jl")

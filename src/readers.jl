@@ -184,7 +184,7 @@ immutable BytecodeContext
     ctx::RDAContext         # parent RDA context
     ref_tab::Vector{Any}    # table of bytecode references
 
-    BytecodeContext(ctx::RDAContext, nrefs::Int32) = new(ctx, Array(Any, Int(nrefs)))
+    BytecodeContext(ctx::RDAContext, nrefs::Int32) = new(ctx, Vector{Any}(Int(nrefs)))
 end
 
 const BYTECODELANG_Types = Set([BCREPREF, BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP])
@@ -254,7 +254,7 @@ end
     Definition of R type.
 """
 immutable SXTypeInfo
-    name::UTF8String     # R type name
+    name::String         # R type name
     reader::Function     # function to deserialize R type from RDA stream
 end
 
