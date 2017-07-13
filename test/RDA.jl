@@ -15,32 +15,33 @@ module TestRDA
 
     testdir = dirname(@__FILE__)
 
-    df = DataTable(num = [1.1, 2.2])
-    @test isequal(sexp2julia(load("$testdir/data/minimal.rda",convert=false)["df"]), df)
-    @test isequal(load("$testdir/data/minimal.rda",convert=true)["df"], df)
-    @test isequal(load("$testdir/data/minimal_ascii.rda")["df"], df)
+    df = DataTable(num = NullableArray([1.1, 2.2]))
+    @test sexp2julia(load("$testdir/data/minimal.rda",convert=false)["df"]) == df
+    @test load("$testdir/data/minimal.rda",convert=true)["df"] == df
+    @test load("$testdir/data/minimal_ascii.rda")["df"] == df
 
-    df[:int] = Int32[1, 2]
-    df[:logi] = [true, false]
-    df[:chr] = ["ab", "c"]
-    df[:factor] = categorical(df[:chr], true)
-    df[:cplx] = Complex128[1.1+0.5im, 1.0im]
+    df = DataTable(num = NullableArray([1.1, 2.2]),
+                   int = NullableArray(Int32[1, 2]),
+                   logi = NullableArray([true, false]),
+                   chr = NullableArray(["ab", "c"]),
+                   factor = categorical(NullableArray(["ab", "c"]), true),
+                   cplx = NullableArray(Complex128[1.1+0.5im, 1.0im]))
     rdf = sexp2julia(load("$testdir/data/types.rda",convert=false)["df"])
     @test eltypes(rdf) == eltypes(df)
-    @test isequal(rdf, df)
+    @test rdf == df
     rdf_ascii = sexp2julia(load("$testdir/data/types_ascii.rda",convert=false)["df"])
     @test eltypes(rdf_ascii) == eltypes(df)
-    @test isequal(rdf_ascii, df)
+    @test rdf_ascii == df
 
     df[2, :] = Nullable()
     append!(df, df[2, :])
     df[3, :num] = NaN
-    df[:, :cplx] = NullableVector([Nullable(), Complex128(1,NaN), NaN])
+    df[:, :cplx] = NullableArray([Nullable(), Complex128(1,NaN), NaN])
     @test isequal(sexp2julia(load("$testdir/data/NAs.rda",convert=false)["df"]), df)
     # ASCII format saves NaN as NA
     df[3, :num] = Nullable()
-    df[:, :cplx] = NullableVector{Complex128}(3)
-    @test isequal(sexp2julia(load("$testdir/data/NAs_ascii.rda",convert=false)["df"]), df)
+    df[:, :cplx] = NullableArray{Complex128}(3)
+    @test sexp2julia(load("$testdir/data/NAs_ascii.rda",convert=false)["df"]) == df
 
     rda_names = names(sexp2julia(load("$testdir/data/names.rda",convert=false)["df"]))
     expected_names = [:_end, :x!, :x1, :_B_C_, :x, :x_1]
