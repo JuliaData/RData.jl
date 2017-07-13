@@ -11,33 +11,48 @@ end
 
 ##############################################################################
 ##
-## Conversion of intermediate R objects into DataArray and DataFrame objects
+## Conversion of intermediate R objects into NullableArray and DataTable objects
 ##
 ##############################################################################
 
-namask(rl::RLogicalVector) = BitArray(rl.data .== R_NA_INT32)
-namask(ri::RIntegerVector) = BitArray(ri.data .== R_NA_INT32)
-namask(rn::RNumericVector) = BitArray(map(isna_float64, reinterpret(UInt64, rn.data)))
+namask(rl::RLogicalVector) = [flag == R_NA_INT32 for flag in rl.data]
+namask(ri::RIntegerVector) = [flag == R_NA_INT32 for flag in ri.data]
+namask(rn::RNumericVector) = map(isna_float64, reinterpret(UInt64, rn.data))
 # if re or im is NA, the whole complex number is NA
 # FIXME avoid temporary Vector{Bool}
-namask(rc::RComplexVector) = BitArray([isna_float64(v.re) || isna_float64(v.im) for v in reinterpret(Complex{UInt64}, rc.data)])
+namask(rc::RComplexVector) = [isna_float64(v.re) || isna_float64(v.im) for v in reinterpret(Complex{UInt64}, rc.data)]
 namask(rv::RNullableVector) = rv.na
 
-DataArrays.data(rv::RVEC) = DataArray(rv.data, namask(rv))
+function _julia_vector(rv::RVEC, force_nullable::Bool)
+    na_mask = namask(rv)
+    (force_nullable || any(na_mask)) ? NullableArray(rv.data, na_mask) : rv.data
+end
 
-function DataArrays.data(ri::RIntegerVector)
-    if !isfactor(ri) return DataArray(ri.data, namask(ri)) end
-    # convert factor into PooledDataArray
-    pool = getattr(ri, "levels", emptystrvec)
-    sz = length(pool)
+# convert R vector into either NullableArray
+# or Array if force_nullable=false and there are no NAs
+julia_vector(rv::RVEC, force_nullable::Bool) = _julia_vector(rv, force_nullable)
+
+# converts Vector{Int32} into Vector{R} replacing R_NA_INT32 with 0
+na2zero{R}(::Type{R}, v::Vector{Int32}) = [x != R_NA_INT32 ? R(x) : zero(R) for x in v]
+
+# convert to [Nullable]CategoricalArray{String} if `ri`is a factor,
+# or to [Nullable]Array{Int32} otherwise
+function julia_vector(ri::RIntegerVector, force_nullable::Bool)
+    !isfactor(ri) && return _julia_vector(ri, force_nullable) # not a factor
+
+    # convert factor into [Nullable]CategoricalArray
+    rlevels = getattr(ri, "levels", emptystrvec)
+    sz = length(rlevels)
     REFTYPE = sz <= typemax(UInt8)  ? UInt8 :
               sz <= typemax(UInt16) ? UInt16 :
               sz <= typemax(UInt32) ? UInt32 :
                                       UInt64
-    dd = ri.data
-    dd[namask(ri)] = 0
-    refs = convert(Vector{REFTYPE}, dd)
-    return PooledDataArray(DataArrays.RefArray(refs), pool)
+    # FIXME set ordered flag
+    refs = na2zero(REFTYPE, ri.data)
+    pool = CategoricalPool{String, REFTYPE}(rlevels)
+    (force_nullable || (findfirst(refs, zero(REFTYPE)) > 0)) ?
+        NullableCategoricalArray{String, 1, REFTYPE}(refs, pool) :
+        CategoricalArray{String, 1, REFTYPE}(refs, pool)
 end
 
 function sexp2julia(rex::RSEXPREC)
@@ -46,36 +61,32 @@ function sexp2julia(rex::RSEXPREC)
 end
 
 function sexp2julia(rv::RVEC)
-    # FIXME dimnames
-    # FIXME forceDataArrays option to always convert to DataArray
-    nas = namask(rv)
-    hasna = any(nas)
+    # TODO dimnames?
+    # FIXME forceNullable option to always convert to NullableArray
+    jv = julia_vector(rv, false)
     if hasnames(rv)
         # if data has no NA, convert to simple Vector
-        return DictoVec(hasna ? DataArray(rv.data, nas) : rv.data, names(rv))
+        return DictoVec(jv, names(rv))
     else
         hasdims = hasdim(rv)
         if !hasdims && length(rv.data)==1
             # scalar
-            # FIXME handle NAs
-            # if hasna
-            return rv.data[1]
+            return jv[1]
         elseif !hasdims
             # vectors
-            return hasna ? DataArray(rv.data, nas) : rv.data
+            return jv
         else
             # matrices and so on
-            dims = tuple(convert(Vector{Int64}, getattr(rv, "dim"))...)
-            return hasna ? DataArray(reshape(rv.data, dims), reshape(nas, dims)) :
-                         reshape(rv.data, dims)
+            dims = tuple(convert(Vector{Int}, getattr(rv, "dim"))...)
+            return reshape(jv, dims)
         end
     end
 end
 
 function sexp2julia(rl::RList)
     if isdataframe(rl)
-        # FIXME remove Any type assertion workaround
-        DataFrame(Any[data(col) for col in rl.data], map(identifier, names(rl)))
+        # FIXME forceNullable option to always convert to NullableArray
+        DataTable(Any[julia_vector(col, true) for col in rl.data], map(identifier, names(rl)))
     elseif hasnames(rl)
         DictoVec(Any[sexp2julia(item) for item in rl.data], names(rl))
     else

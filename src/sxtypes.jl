@@ -125,7 +125,7 @@ const RComplexVector = RVector{Complex128, CPLXSXP}
 """
 immutable RNullableVector{T, S} <: RVEC{T, S}
     data::Vector{T}
-    na::BitVector                # mask of NA elements
+    na::Vector{Bool}             # mask of NA elements
     attr::Hash                   # collection of R object attributes
 end
 

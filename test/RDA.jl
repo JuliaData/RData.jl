@@ -1,6 +1,6 @@
 module TestRDA
     using Base.Test
-    using DataFrames
+    using DataTables
     using RData
     using Compat
 
@@ -15,7 +15,7 @@ module TestRDA
 
     testdir = dirname(@__FILE__)
 
-    df = DataFrame(num = [1.1, 2.2])
+    df = DataTable(num = [1.1, 2.2])
     @test isequal(sexp2julia(load("$testdir/data/minimal.rda",convert=false)["df"]), df)
     @test isequal(load("$testdir/data/minimal.rda",convert=true)["df"], df)
     @test isequal(load("$testdir/data/minimal_ascii.rda")["df"], df)
@@ -23,19 +23,19 @@ module TestRDA
     df[:int] = Int32[1, 2]
     df[:logi] = [true, false]
     df[:chr] = ["ab", "c"]
-    df[:factor] = pool(df[:chr])
+    df[:factor] = categorical(df[:chr])
     df[:cplx] = Complex128[1.1+0.5im, 1.0im]
     @test isequal(sexp2julia(load("$testdir/data/types.rda",convert=false)["df"]), df)
     @test isequal(sexp2julia(load("$testdir/data/types_ascii.rda",convert=false)["df"]), df)
 
-    df[2, :] = NA
+    df[2, :] = Nullable()
     append!(df, df[2, :])
     df[3, :num] = NaN
-    df[:, :cplx] = @data [NA, @compat(Complex128(1,NaN)), NaN]
+    df[:, :cplx] = NullableVector([Nullable(), Complex128(1,NaN), NaN])
     @test isequal(sexp2julia(load("$testdir/data/NAs.rda",convert=false)["df"]), df)
     # ASCII format saves NaN as NA
-    df[3, :num] = NA
-    df[:, :cplx] = @data [NA, NA, NA]
+    df[3, :num] = Nullable()
+    df[:, :cplx] = NullableVector{Complex128}(3)
     @test isequal(sexp2julia(load("$testdir/data/NAs_ascii.rda",convert=false)["df"]), df)
 
     rda_names = names(sexp2julia(load("$testdir/data/names.rda",convert=false)["df"]))
