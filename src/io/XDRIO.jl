@@ -25,7 +25,7 @@ function readfloatorNA(io::XDRIO, n::RVecLength)
     reinterpret(Float64, map!(ntoh, v, v))
 end
 
-readuint8(io::XDRIO, n::RVecLength) = readbytes(io.sub, n)
+readuint8(io::XDRIO, n::RVecLength) = read(io.sub, UInt8, n)
 
 function readnchars(io::XDRIO, n::Int32)  # a single character string
     readbytes!(io.sub, io.buf, n)
