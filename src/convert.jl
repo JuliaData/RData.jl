@@ -18,7 +18,6 @@ end
 namask(ri::RVector{Int32}) = [i == R_NA_INT32 for i in ri.data]
 namask(rn::RNumericVector) = map(isna_float64, reinterpret(UInt64, rn.data))
 # if re or im is NA, the whole complex number is NA
-# FIXME avoid temporary Vector{Bool}
 namask(rc::RComplexVector) = [isna_float64(v.re) || isna_float64(v.im) for v in reinterpret(Complex{UInt64}, rc.data)]
 namask(rv::RNullableVector) = rv.na
 
@@ -38,12 +37,13 @@ function julia_vector(rl::RLogicalVector, force_nullable::Bool)
 end
 
 # converts Vector{Int32} into Vector{R} replacing R_NA_INT32 with 0
-na2zero{R}(::Type{R}, v::Vector{Int32}) = [x != R_NA_INT32 ? R(x) : zero(R) for x in v]
+# it's assumed that v fits into R
+na2zero{R}(::Type{R}, v::Vector{Int32}) = [ifelse(x != R_NA_INT32, x % R, zero(R)) for x in v]
 
-# convert to [Nullable]CategoricalArray{String} if `ri`is a factor,
+# convert to [Nullable]CategoricalArray{String} if `ri` is a factor,
 # or to [Nullable]Array{Int32} otherwise
 function julia_vector(ri::RIntegerVector, force_nullable::Bool)
-    !isfactor(ri) && return _julia_vector(eltype(ri.data), ri, force_nullable) # not a factor
+    isfactor(ri) || return _julia_vector(eltype(ri.data), ri, force_nullable)
 
     # convert factor into [Nullable]CategoricalArray
     rlevels = getattr(ri, "levels", emptystrvec)
@@ -55,9 +55,11 @@ function julia_vector(ri::RIntegerVector, force_nullable::Bool)
     # FIXME set ordered flag
     refs = na2zero(REFTYPE, ri.data)
     pool = CategoricalPool{String, REFTYPE}(rlevels)
-    (force_nullable || (findfirst(refs, zero(REFTYPE)) > 0)) ?
-        NullableCategoricalArray{String, 1, REFTYPE}(refs, pool) :
-        CategoricalArray{String, 1, REFTYPE}(refs, pool)
+    if force_nullable || (findfirst(refs, zero(REFTYPE)) > 0)
+        return NullableCategoricalArray{String, 1, REFTYPE}(refs, pool)
+    else
+        return CategoricalArray{String, 1, REFTYPE}(refs, pool)
+    end
 end
 
 function sexp2julia(rex::RSEXPREC)
