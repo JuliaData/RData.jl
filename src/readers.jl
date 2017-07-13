@@ -178,7 +178,7 @@ function readextptr(ctx::RDAContext, fl::RDATag)
 end
 
 """
-    Context for reading R bytecode.
+Context for reading R bytecode.
 """
 immutable BytecodeContext
     ctx::RDAContext         # parent RDA context
@@ -251,7 +251,7 @@ function readunsupported(ctx::RDAContext, fl::RDATag)
 end
 
 """
-    Definition of R type.
+Definition of R type.
 """
 immutable SXTypeInfo
     name::String         # R type name
@@ -259,7 +259,7 @@ immutable SXTypeInfo
 end
 
 """
-    Maps R type id (`SXType`) to its `SXTypeInfo`.
+Maps R type id (`SXType`) to its `SXTypeInfo`.
 """
 const SXTypes = Dict{SXType, SXTypeInfo}(
     NILSXP     => SXTypeInfo("NULL",readdummy),

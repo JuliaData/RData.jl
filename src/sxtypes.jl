@@ -82,31 +82,31 @@ sxtype(fl::RDATag) = fl % UInt8
 ##############################################################################
 
 """
-    Base class for RData internal representation of all R types.
-    `SEXPREC` stands for S (R predecessor) expression record.
+Base class for RData internal representation of all R types.
+`SEXPREC` stands for S (R predecessor) expression record.
 """
 @compat abstract type RSEXPREC{S} end
 
 """
-    R symbol.
-    Not quite the same as a Julia symbol.
+R symbol.
+Not quite the same as a Julia symbol.
 """
 immutable RSymbol <: RSEXPREC{SYMSXP}
     displayname::RString
 end
 
 """
-    Base class for all R types (objects) that can have attributes.
+Base class for all R types (objects) that can have attributes.
 """
 @compat abstract type ROBJ{S} <: RSEXPREC{S} end
 
 """
-   Base class for all R vector-like objects.
+Base class for all R vector-like objects.
 """
 @compat abstract type RVEC{T, S} <: ROBJ{S} end
 
 """
-    R vector object.
+R vector object.
 """
 type RVector{T, S} <: RVEC{T, S}
     data::Vector{T}
@@ -121,7 +121,7 @@ const RNumericVector = RVector{Float64, REALSXP}
 const RComplexVector = RVector{Complex128, CPLXSXP}
 
 """
-    R vector object with explicit NA values.
+R vector object with explicit NA values.
 """
 immutable RNullableVector{T, S} <: RVEC{T, S}
     data::Vector{T}
@@ -133,9 +133,9 @@ const RStringVector = RNullableVector{RString,STRSXP}
 const RList = RVector{RSEXPREC,VECSXP}  # "list" in R == Julia cell array
 
 """
-    Representation of R's paired list-like structures (`LISTSXP`, `LANGSXP`).
-    Unlike R which represents these as singly-linked list,
-    `RPairList` uses vector representation.
+Representation of R's paired list-like structures (`LISTSXP`, `LANGSXP`).
+Unlike R which represents these as singly-linked list,
+`RPairList` uses vector representation.
 """
 immutable RPairList <: ROBJ{LISTSXP}
     items::Vector{RSEXPREC}
