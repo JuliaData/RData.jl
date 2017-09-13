@@ -65,7 +65,7 @@ end
 
 function readsymbol(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == SYMSXP
-    registerref(ctx, RSymbol(readcharacter(ctx.io)))
+    registerref!(ctx, RSymbol(readcharacter(ctx.io)))
 end
 
 function readS4(ctx::RDAContext, fl::RDATag)
@@ -78,7 +78,7 @@ end
 function readenv(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == ENVSXP
     is_locked = readint32(ctx.io)
-    res = registerref(ctx, REnvironment()) # registering before reading the contents
+    res = registerref!(ctx, REnvironment()) # registering before reading the contents
     res.enclosed = readitem(ctx)
     res.frame = readitem(ctx)
     res.hashtab = readitem(ctx)
@@ -98,12 +98,12 @@ end
 
 function readnamespace(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == NAMESPACESXP
-    registerref(ctx, RNamespace(readname(ctx)))
+    registerref!(ctx, RNamespace(readname(ctx)))
 end
 
 function readpackage(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == PACKAGESXP
-    registerref(ctx, RPackage(readname(ctx)))
+    registerref!(ctx, RPackage(readname(ctx)))
 end
 
 # reads single-linked lists R objects
@@ -170,7 +170,7 @@ end
 
 function readextptr(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == EXTPTRSXP
-    res = registerref(ctx, RExtPtr()) # registering before reading the contents
+    res = registerref!(ctx, RExtPtr()) # registering before reading the contents
     res.protected = readitem(ctx)
     res.tag = readitem(ctx)
     res.attr = readattrs(ctx, fl)

@@ -32,7 +32,7 @@ end
 Register R object, so that it could be referenced later
 (by its index in the reference table).
 """
-function registerref(ctx::RDAContext, obj::RSEXPREC)
+function registerref!(ctx::RDAContext, obj::RSEXPREC)
     push!(ctx.ref_tab, obj)
     obj
 end
