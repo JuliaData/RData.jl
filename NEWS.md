@@ -1,3 +1,12 @@
+## RData v0.1.0 Release Notes
+
+Updated to Julia v0.6 (older versions not supported).
+
+##### Changes
+* dropped compatibility with Julia versions prior v0.6 [#32]
+
+[#32]: https://github.com/JuliaStats/RData.jl/issues/32
+
 ## RData v0.0.4 Release Notes
 
 Now the recommended way to load `.RData`/`.rda` files is by `FileIO.load()`.

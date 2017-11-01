@@ -41,9 +41,9 @@ else
     end
 end
 
-immutable CHARSXProps # RDA CHARSXP properties
-  levs::UInt32       # level flags (encoding etc) TODO process
-  nchar::Int32       # string length, -1 for NA strings
+struct CHARSXProps # RDA CHARSXP properties
+    levs::UInt32       # level flags (encoding etc) TODO process
+    nchar::Int32       # string length, -1 for NA strings
 end
 
 function readcharsxprops(io::RDAIO) # read character string encoding and length

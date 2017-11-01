@@ -15,12 +15,12 @@ Container that mimics R vector behaviour.
 Elements could be accessed either by indices as a normal vector,
 or (optionally) by string keys as a dictionary.
 """
-immutable DictoVec{T}
+struct DictoVec{T}
     data::T
     name2index::Dict{RString, Int}
     index2name::Dict{Int, RString}
 
-    @compat function (::Type{DictoVec}){T}(data::T, names::Vector{RString} = Vector{RString}())
+    function (::Type{DictoVec})(data::T, names::Vector{RString} = Vector{RString}()) where T
         n2i, i2n = name2index(names)
         new{T}(data, n2i, i2n)
     end

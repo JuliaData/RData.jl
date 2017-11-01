@@ -180,7 +180,7 @@ end
 """
 Context for reading R bytecode.
 """
-immutable BytecodeContext
+struct BytecodeContext
     ctx::RDAContext         # parent RDA context
     ref_tab::Vector{Any}    # table of bytecode references
 
@@ -253,7 +253,7 @@ end
 """
 Definition of R type.
 """
-immutable SXTypeInfo
+struct SXTypeInfo
     name::String         # R type name
     reader::Function     # function to deserialize R type from RDA stream
 end

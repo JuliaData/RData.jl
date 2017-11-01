@@ -4,7 +4,7 @@ RDA (R data archive) reading context.
 * Stores flags that define how R objects are read and converted into Julia objects.
 * Maintains the list of R objects that could be referenced later in the RDA stream.
 """
-type RDAContext{T<:RDAIO}
+struct RDAContext{T<:RDAIO}
     io::T                      # RDA input stream
 
     # RDA format properties
@@ -20,7 +20,7 @@ end
 
 int2ver(v::Integer) = VersionNumber(v >> 16, (v >> 8) & 0xff, v & 0xff)
 
-function RDAContext{T<:RDAIO}(io::T, kwoptions::Vector{Any}=Any[])
+function RDAContext(io::RDAIO, kwoptions::Vector{Any}=Any[])
     fmtver = readuint32(io)
     rver = int2ver(readint32(io))
     rminver = int2ver(readint32(io))
