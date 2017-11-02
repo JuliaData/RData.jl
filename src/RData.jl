@@ -87,14 +87,14 @@ load(s::Stream{format"RData"}; kwoptions...) = load(s, kwoptions)
 # * load stuff (e.g. FileIO req on detect_rdata)
 # * maybe return tuple of (object, attribute_dict) for
 #   https://github.com/JuliaStats/RData.jl/issues/30
-function readRDS(f::AbstractString)
+function readRDS(f::AbstractString; kwoptions...)
     obj = gzopen(f) do io
-        ctx = RDAContext(rdaio(io, chomp(readline(io)))) #, kwoptions)
+        ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
         @assert ctx.fmtver == 2    # format version
-        #convert2julia = get(ctx.kwdict,:convert,true)
-        return readitem(ctx)
+        convert2julia = get(ctx.kwdict,:convert,true)
+        return convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
     end
-    return sexp2julia(obj)
+    return obj
 end
 
 end # module
