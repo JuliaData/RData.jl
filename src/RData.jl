@@ -11,7 +11,8 @@ import FileIO: load
 export
     sexp2julia,
     DictoVec,
-    load # export FileIO.load()
+    load, # export FileIO.load()
+    readRDS
 
 include("config.jl")
 include("sxtypes.jl")
@@ -79,5 +80,21 @@ function load(s::Stream{format"RData"}, kwoptions::Vector{Any})
 end
 
 load(s::Stream{format"RData"}; kwoptions...) = load(s, kwoptions)
+
+# TODO:
+# * maybe throw error instead of warning on conversion?
+# * tests
+# * load stuff (e.g. FileIO req on detect_rdata)
+# * maybe return tuple of (object, attribute_dict) for
+#   https://github.com/JuliaStats/RData.jl/issues/30
+function readRDS(f::AbstractString)
+    obj = gzopen(f) do io
+        ctx = RDAContext(rdaio(io, chomp(readline(io)))) #, kwoptions)
+        @assert ctx.fmtver == 2    # format version
+        #convert2julia = get(ctx.kwdict,:convert,true)
+        return readitem(ctx)
+    end
+    return sexp2julia(obj)
+end
 
 end # module
