@@ -2,4 +2,4 @@ julia 0.6
 DataFrames 0.9
 DataArrays 0.4
 FileIO 0.1.2
-GZip 0.2
+CodecZlib 0.4

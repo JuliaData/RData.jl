@@ -2,7 +2,7 @@ __precompile__()
 
 module RData
 
-using DataFrames, DataArrays, GZip, FileIO
+using DataFrames, DataArrays, CodecZlib, FileIO
 import DataFrames: identifier
 import FileIO: load
 
@@ -41,8 +41,17 @@ include("readers.jl")
 ##############################################################################
 
 function load(f::File{format"RData"}; kwoptions...)
-    gzopen(filename(f)) do s
-        load(Stream(f, s), kwoptions)
+    io = open(filename(f), "r")
+    try
+        gzipped = read(io, UInt8) == 0x1F && read(io, UInt8) == 0x8B # check GZip magic number
+        seekstart(io)
+        # if compressed, transcode gzipped stream
+        gzipped && (io = GzipDecompressorStream(io))
+        return load(Stream(f, io), kwoptions)
+    catch
+        rethrow()
+    finally
+        close(io)
     end
 end
 
