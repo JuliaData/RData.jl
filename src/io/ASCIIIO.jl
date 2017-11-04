@@ -1,10 +1,10 @@
 """
-    ASCII RData format IO stream wrapper.
+ASCII RData format IO stream wrapper.
 """
-type ASCIIIO{T<:IO} <: RDAIO
+struct ASCIIIO{T<:IO} <: RDAIO
     sub::T              # underlying IO stream
 
-    (::Type{ASCIIIO}){T<:IO}(io::T) = new{T}(io)
+    (::Type{ASCIIIO})(io::T) where {T<:IO} = new{T}(io)
 end
 
 readint32(io::ASCIIIO) = parse(Int32, readline(io.sub))

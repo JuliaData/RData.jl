@@ -40,6 +40,10 @@ function DataArrays.data(ri::RIntegerVector)
     return PooledDataArray(DataArrays.RefArray(refs), pool)
 end
 
+# convert R logical vector (uses Int32 to store values) into DataVector{Bool}
+DataArrays.data(rl::RLogicalVector) =
+    return DataArray(Bool[x != 0 for x in rl.data], namask(rl))
+
 function sexp2julia(rex::RSEXPREC)
     warn("Conversion of $(typeof(rex)) to Julia is not implemented")
     return nothing

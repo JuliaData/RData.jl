@@ -1,10 +1,10 @@
 """
-    XDR (machine-independent binary) RData format IO stream wrapper.
+XDR (machine-independent binary) RData format IO stream wrapper.
 """
-type XDRIO{T<:IO} <: RDAIO
+struct XDRIO{T<:IO} <: RDAIO
     sub::T             # underlying IO stream
     buf::Vector{UInt8} # buffer for strings
-    @compat (::Type{XDRIO}){T <: IO}(io::T) = new{T}(io, Vector{UInt8}(1024))
+    (::Type{XDRIO})(io::T) where {T <: IO} = new{T}(io, Vector{UInt8}(1024))
 end
 
 readint32(io::XDRIO) = ntoh(read(io.sub, Int32))
@@ -25,7 +25,7 @@ function readfloatorNA(io::XDRIO, n::RVecLength)
     reinterpret(Float64, map!(ntoh, v, v))
 end
 
-readuint8(io::XDRIO, n::RVecLength) = readbytes(io.sub, n)
+readuint8(io::XDRIO, n::RVecLength) = read(io.sub, UInt8, n)
 
 function readnchars(io::XDRIO, n::Int32)  # a single character string
     readbytes!(io.sub, io.buf, n)
