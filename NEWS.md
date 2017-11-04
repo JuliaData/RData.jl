@@ -1,4 +1,4 @@
-## RData v0.1.0 Release Notes
+## RData v0.1.1 Release Notes
 
 Updated to Julia v0.6 (older versions not supported).
 
@@ -9,6 +9,15 @@ Updated to Julia v0.6 (older versions not supported).
 
 [#31]: https://github.com/JuliaStats/RData.jl/issues/31
 [#32]: https://github.com/JuliaStats/RData.jl/issues/32
+
+## RData v0.1.0 Release Notes
+
+Support Julia v0.6
+
+##### Changes
+* suppress warnings on Julia v0.6 [#26]
+
+[#26]: https://github.com/JuliaStats/RData.jl/issues/26
 
 ## RData v0.0.4 Release Notes
 
