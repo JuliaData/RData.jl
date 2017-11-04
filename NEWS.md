@@ -1,4 +1,4 @@
-## RData v0.1.1 Release Notes
+## RData v0.2.0 Release Notes
 
 Updated to Julia v0.6 (older versions not supported).
 
