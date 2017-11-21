@@ -48,3 +48,15 @@ test.cmpfun0 <- cmpfun( test.fun0 )
 test.cmpfun1 <- cmpfun( test.fun1 )
 test.cmpfun2 <- cmpfun( test.fun2 )
 save(test.cmpfun0, test.cmpfun1, test.cmpfun2, file = "data/cmpfun.rda")
+
+
+# for converting rda files to rds
+rdafiles = list.files("data/", pattern="*.rda", full.names=T)
+for (rdafile in rdafiles) {
+    en = new.env()
+    load(rdafile, envir=en)
+    lst = as.list(en)
+    rdsfile = gsub("\\.rda$", ".rds", rdafile)
+    saveRDS(lst, file=rdsfile)
+}
+
