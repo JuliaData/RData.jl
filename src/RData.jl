@@ -95,13 +95,21 @@ load(s::Stream{format"RData"}; kwoptions...) = load(s, kwoptions)
 # * maybe return tuple of (object, attribute_dict) for
 #   https://github.com/JuliaStats/RData.jl/issues/30
 function readRDS(f::AbstractString; kwoptions...)
-    obj = gzopen(f) do io
+    io = open(f, "r")
+    try
+        gzipped = read(io, UInt8) == 0x1F && read(io, UInt8) == 0x8B # check GZip magic number
+        seekstart(io)
+        # if compressed, transcode gzipped stream
+        gzipped && (io = GzipDecompressorStream(io))
         ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
         @assert ctx.fmtver == 2    # format version
         convert2julia = get(ctx.kwdict,:convert,true)
         return convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
+    catch
+        rethrow()
+    finally
+        close(io)
     end
-    return obj
 end
 
 end # module
