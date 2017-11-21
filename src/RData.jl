@@ -88,12 +88,6 @@ end
 
 load(s::Stream{format"RData"}; kwoptions...) = load(s, kwoptions)
 
-# TODO:
-# * maybe throw error instead of warning on conversion?
-# * tests
-# * load stuff (e.g. FileIO req on detect_rdata)
-# * maybe return tuple of (object, attribute_dict) for
-#   https://github.com/JuliaStats/RData.jl/issues/30
 function readRDS(f::AbstractString; kwoptions...)
     io = open(f, "r")
     try
