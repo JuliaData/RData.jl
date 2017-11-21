@@ -1,4 +1,4 @@
-# R script to generate test .rda files
+# R script to generate test .rda and .rds files
 
 df <- data.frame(num = c(1.1, 2.2))
 save(df, file = "data/minimal.rda")
@@ -50,7 +50,7 @@ test.cmpfun2 <- cmpfun( test.fun2 )
 save(test.cmpfun0, test.cmpfun1, test.cmpfun2, file = "data/cmpfun.rda")
 
 
-# for converting rda files to rds
+# for converting rda files to rds to test with readRDS
 rdafiles = list.files("data/", pattern="*.rda", full.names=T)
 for (rdafile in rdafiles) {
     en = new.env()
