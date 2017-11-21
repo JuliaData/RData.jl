@@ -5,9 +5,9 @@
 ##############################################################################
 
 """
-    Non-standard addition to NaN bit pattern to discriminate NA from NaN.
-    0x000007a2 == UInt32(1954)
-    (I assume 1954 is the year of Ross's birth or something like that.)
+Non-standard addition to NaN bit pattern to discriminate NA from NaN.
+0x000007a2 == UInt32(1954)
+(I assume 1954 is the year of Ross's birth or something like that.)
 """
 const R_NA_FLOAT64_LOW = 0x000007a2
 

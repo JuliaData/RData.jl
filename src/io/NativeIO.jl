@@ -1,9 +1,9 @@
 """
-    Native binary RData format IO stream wrapper.
+Native binary RData format IO stream wrapper.
 
-    TODO write readers
+TODO write readers
 """
-type NativeIO{T<:IO} <: RDAIO
+struct NativeIO{T<:IO} <: RDAIO
     sub::T               # underlying IO stream
-    (::Type{NativeIO}){T<:IO}(io::T) = new{T}(io)
+    (::Type{NativeIO})(io::T) where {T<:IO} = new{T}(io)
 end

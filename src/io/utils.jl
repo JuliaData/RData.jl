@@ -1,12 +1,12 @@
 """
-    Creates `RDAIO` wrapper for `io` stream depending on its format
-    specified by `formatcode`.
+Creates `RDAIO` wrapper for `io` stream depending on its format
+specified by `formatcode`.
 """
 function rdaio(io::IO, formatcode::AbstractString)
     if formatcode == "X" XDRIO(io)
     elseif formatcode == "A" ASCIIIO(io)
     elseif formatcode == "B" NativeIO(io)
-    else error("Unrecognized RDA format \"$formatcode\"")
+    else throw(ArgumentError("Unrecognized RDA format \"$formatcode\""))
     end
 end
 
@@ -41,9 +41,9 @@ else
     end
 end
 
-immutable CHARSXProps # RDA CHARSXP properties
-  levs::UInt32       # level flags (encoding etc) TODO process
-  nchar::Int32       # string length, -1 for NA strings
+struct CHARSXProps # RDA CHARSXP properties
+    levs::UInt32       # level flags (encoding etc) TODO process
+    nchar::Int32       # string length, -1 for NA strings
 end
 
 function readcharsxprops(io::RDAIO) # read character string encoding and length
