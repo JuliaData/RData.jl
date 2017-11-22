@@ -12,6 +12,9 @@ df["cplx"] <- complex( real = c(1.1, 0.0), imaginary = c(0.5, 1.0) )
 #utf<-c("Ж", "∰")) R handles it, RData doesn"t.
 save(df, file = "data/types.rda")
 save(df, file = "data/types_ascii.rda", ascii = TRUE)
+saveRDS(df, file = "data/types.rds")
+saveRDS(df, file = "data/types_ascii.rds", ascii = TRUE)
+saveRDS(df, file = "data/types_decomp.rds", compress = FALSE)
 
 df[2, ] <- NA
 df[3, ] <- df[2, ]
@@ -48,15 +51,4 @@ test.cmpfun0 <- cmpfun( test.fun0 )
 test.cmpfun1 <- cmpfun( test.fun1 )
 test.cmpfun2 <- cmpfun( test.fun2 )
 save(test.cmpfun0, test.cmpfun1, test.cmpfun2, file = "data/cmpfun.rda")
-
-
-# for converting rda files to rds to test with readRDS
-rdafiles = list.files("data/", pattern="*.rda", full.names=T)
-for (rdafile in rdafiles) {
-    en = new.env()
-    load(rdafile, envir=en)
-    lst = as.list(en)
-    rdsfile = gsub("\\.rda$", ".rds", rdafile)
-    saveRDS(lst, file=rdsfile)
-}
 
