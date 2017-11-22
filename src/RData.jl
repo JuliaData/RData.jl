@@ -95,19 +95,28 @@ end
 
 load(s::Stream{format"RData"}; kwoptions...) = load(s, kwoptions)
 
-function readRDS(f::AbstractString; kwoptions...)
-    io = open(f, "r")
+
+function load(f::File{format"RDataSingle"}; kwoptions...)
+    io = open(filename(f), "r")
     try
         io = decompress(io)
-        ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
-        @assert ctx.fmtver == 2    # format version
-        convert2julia = get(ctx.kwdict,:convert,true)
-        return convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
+        return load(Stream(f, io), kwoptions)
     catch
         rethrow()
     finally
         close(io)
     end
 end
+
+function load(s::Stream{format"RDataSingle"}, kwoptions::Vector{Any})
+    io = stream(s)
+    @assert FileIO.detect_rdata_single(io)
+    ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
+    @assert ctx.fmtver == 2    # format version
+    convert2julia = get(ctx.kwdict,:convert,true)
+    return convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
+end
+
+load(s::Stream{format"RDataSingle"}; kwoptions...) = load(s, kwoptions)
 
 end # module

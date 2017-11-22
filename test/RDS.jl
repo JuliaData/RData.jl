@@ -12,13 +12,13 @@ module TestRDS
                        chr = ["ab", "c"],
                        factor = pool(["ab", "c"]),
                        cplx = Complex128[1.1+0.5im, 1.0im])
-        rdf = sexp2julia(readRDS("$testdir/data/types.rds",convert=false))
+        rdf = sexp2julia(load("$testdir/data/types.rds",convert=false))
         @test eltypes(rdf) == eltypes(df)
         @test isequal(rdf, df)
-        rdf_ascii = sexp2julia(readRDS("$testdir/data/types_ascii.rds",convert=false))
+        rdf_ascii = sexp2julia(load("$testdir/data/types_ascii.rds",convert=false))
         @test eltypes(rdf_ascii) == eltypes(df)
         @test isequal(rdf_ascii, df)
-        rdf_decomp = sexp2julia(readRDS("$testdir/data/types_decomp.rds",convert=false))
+        rdf_decomp = sexp2julia(load("$testdir/data/types_decomp.rds",convert=false))
         @test eltypes(rdf_decomp) == eltypes(df)
         @test isequal(rdf_decomp, df)
     end
