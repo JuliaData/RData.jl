@@ -1,3 +1,11 @@
+## RData v0.3.0 Release Notes
+
+##### Changes
+* add support for rds files (single object data files from R) [#22], [#33]
+
+[#22]: https://github.com/JuliaStats/RData.jl/issues/22
+[#33]: https://github.com/JuliaStats/RData.jl/issues/33
+
 ## RData v0.2.0 Release Notes
 
 Updated to Julia v0.6 (older versions not supported).
