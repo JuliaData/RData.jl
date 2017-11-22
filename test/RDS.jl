@@ -21,6 +21,16 @@ module TestRDS
         rdf_decomp = sexp2julia(load("$testdir/data/types_decomp.rds",convert=false))
         @test eltypes(rdf_decomp) == eltypes(df)
         @test isequal(rdf_decomp, df)
+
+        rdf = load("$testdir/data/types.rds")
+        @test eltypes(rdf) == eltypes(df)
+        @test isequal(rdf, df)
+        rdf_ascii = load("$testdir/data/types_ascii.rds")
+        @test eltypes(rdf_ascii) == eltypes(df)
+        @test isequal(rdf_ascii, df)
+        rdf_decomp = load("$testdir/data/types_decomp.rds")
+        @test eltypes(rdf_decomp) == eltypes(df)
+        @test isequal(rdf_decomp, df)
     end
 end
 
