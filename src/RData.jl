@@ -9,8 +9,7 @@ import FileIO: load
 export
     sexp2julia,
     DictoVec,
-    load, # export FileIO.load()
-    readRDS
+    load # export FileIO.load()
 
 include("config.jl")
 include("sxtypes.jl")
