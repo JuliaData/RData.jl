@@ -41,13 +41,20 @@ include("readers.jl")
 ##
 ##############################################################################
 
+function decompress(io)
+    # check GZip magic number
+    gzipped = read(io, UInt8) == 0x1F && read(io, UInt8) == 0x8B
+    seekstart(io)
+    if gzipped
+        io = GzipDecompressorStream(io)
+    end
+    return io
+end
+
 function load(f::File{format"RData"}; kwoptions...)
     io = open(filename(f), "r")
     try
-        gzipped = read(io, UInt8) == 0x1F && read(io, UInt8) == 0x8B # check GZip magic number
-        seekstart(io)
-        # if compressed, transcode gzipped stream
-        gzipped && (io = GzipDecompressorStream(io))
+        io = decompress(io)
         return load(Stream(f, io), kwoptions)
     catch
         rethrow()
@@ -91,10 +98,7 @@ load(s::Stream{format"RData"}; kwoptions...) = load(s, kwoptions)
 function readRDS(f::AbstractString; kwoptions...)
     io = open(f, "r")
     try
-        gzipped = read(io, UInt8) == 0x1F && read(io, UInt8) == 0x8B # check GZip magic number
-        seekstart(io)
-        # if compressed, transcode gzipped stream
-        gzipped && (io = GzipDecompressorStream(io))
+        io = decompress(io)
         ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
         @assert ctx.fmtver == 2    # format version
         convert2julia = get(ctx.kwdict,:convert,true)
