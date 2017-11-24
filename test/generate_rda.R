@@ -52,3 +52,16 @@ test.cmpfun1 <- cmpfun( test.fun1 )
 test.cmpfun2 <- cmpfun( test.fun2 )
 save(test.cmpfun0, test.cmpfun1, test.cmpfun2, file = "data/cmpfun.rda")
 
+dates = as.Date("2017-01-01") + 1:4
+datetimes = as.POSIXct("2017-01-01 13:23", tz="GMT") + 1:4
+dateNAs = list(c(dates, NA), c(datetimes, NA))
+saveRDS(dateNAs, file="data/datesNA.rds")
+datelst = list(dates, dates[1])
+names(dates) = LETTERS[1:length(dates)]
+datelst = c(datelst, list(dates), list(dates[1]))
+saveRDS(datelst, file="data/dates.rds")
+dtlst = list(datetimes, datetimes[1])
+names(datetimes) = LETTERS[1:length(datetimes)]
+dtlst = c(dtlst, list(datetimes), list(datetimes[1]))
+saveRDS(dtlst, file="data/datetimes.rds")
+

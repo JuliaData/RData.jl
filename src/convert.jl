@@ -54,7 +54,11 @@ function sexp2julia(rv::RVEC)
     # FIXME forceDataArrays option to always convert to DataArray
     nas = namask(rv)
     hasna = any(nas)
-    if hasnames(rv)
+    if class(rv) == ["Date"]
+        return date2julia(rv, hasna, nas)
+    elseif class(rv) == ["POSIXct"; "POSIXt"]
+        return datetime2julia(rv, hasna, nas)
+    elseif hasnames(rv)
         # if data has no NA, convert to simple Vector
         return DictoVec(hasna ? DataArray(rv.data, nas) : rv.data, names(rv))
     else
@@ -87,3 +91,39 @@ function sexp2julia(rl::RList)
         map(sexp2julia, rl.data)
     end
 end
+
+function date2julia(rv, hasna, nas)
+    @assert class(rv) == ["Date"]
+    epoch_conv = 719528 # Dates.date2epochdays(Date("1970-01-01"))
+    if hasna
+        warn("Date contains NA, not representable in Julia, replacing with 0001-01-01")
+        dates = [isna ? Date() : Dates.epochdays2date(dtfloat + epoch_conv)
+                 for (isna, dtfloat) in zip(nas, rv.data)]
+    else
+        dates = Dates.epochdays2date.(rv.data .+ epoch_conv)
+    end
+    if hasnames(rv)
+        dates = DictoVec(dates, names(rv))
+    end
+    return length(dates) == 1 & !hasnames(rv) ? dates[1] : dates
+end
+
+# does not handle timezone differences because R stores the timezone in the "Z"
+# format, but this is ambiguous therefore TimeZones.jl can't convert would be
+# nice if there was an option to be more specific about the timezone
+# ref: http://timezonesjl.readthedocs.io/en/latest/conversions/
+function datetime2julia(rv, hasna, nas)
+    @assert class(rv) == ["POSIXct"; "POSIXt"]
+    if hasna
+        warn("DateTime contains NA, not representable in Julia, replacing with 0001-01-01T00:00:00")
+        datetimes = [isna ? DateTime() : Dates.unix2datetime(dtfloat)
+                    for (isna, dtfloat) in zip(nas, rv.data)]
+    else
+        datetimes =  Dates.unix2datetime.(rv.data)
+    end
+    if hasnames(rv)
+        datetimes = DictoVec(datetimes, names(rv))
+    end
+    return length(datetimes) == 1 & !hasnames(rv) ? datetimes[1] : datetimes
+end
+
