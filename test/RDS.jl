@@ -68,12 +68,16 @@ module TestRDS
     end
 
     @testset "Test NA Date and DateTime conversion" begin
-        @test_warn ("Date contains NA, not representable in Julia, replacing with 0001-01-01",
-                    "DateTime contains NA, not representable in Julia, replacing with 0001-01-01T00:00:00") begin
-            dates = load("$testdir/data/datesNA.rds")
-            @test dates[1] == [Date("2017-01-01") + Dates.Day.(1:4); Date()]
-            @test dates[2] == [DateTime("2017-01-01T13:23") + Dates.Second.(1:4); Date()]
-        end
+        dates = load("$testdir/data/datesNA.rds")
+        testdates = RData.DataArray([Date("2017-01-01") + Dates.Day.(1:4); Date()],
+                                    BitArray([false, false, false, false, true]))
+        @test dates[1][1:4] == testdates[1:4]
+        @test RData.isna(dates[1][5])
+
+        testdts = RData.DataArray([DateTime("2017-01-01T13:23") + Dates.Second.(1:4); Date()],
+                                  BitArray([false, false, false, false, true]))
+        @test dates[2][1:4] == testdts[1:4]
+        @test RData.isna(dates[2][5])
     end
 end
 

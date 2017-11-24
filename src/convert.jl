@@ -96,9 +96,9 @@ function date2julia(rv, hasna, nas)
     @assert class(rv) == ["Date"]
     epoch_conv = 719528 # Dates.date2epochdays(Date("1970-01-01"))
     if hasna
-        warn("Date contains NA, not representable in Julia, replacing with 0001-01-01")
-        dates = [isna ? Date() : Dates.epochdays2date(dtfloat + epoch_conv)
-                 for (isna, dtfloat) in zip(nas, rv.data)]
+        dates = DataArray([isna ? Date() : Dates.epochdays2date(dtfloat + epoch_conv)
+                           for (isna, dtfloat) in zip(nas, rv.data)],
+                          nas)
     else
         dates = Dates.epochdays2date.(rv.data .+ epoch_conv)
     end
@@ -115,9 +115,9 @@ end
 function datetime2julia(rv, hasna, nas)
     @assert class(rv) == ["POSIXct"; "POSIXt"]
     if hasna
-        warn("DateTime contains NA, not representable in Julia, replacing with 0001-01-01T00:00:00")
-        datetimes = [isna ? DateTime() : Dates.unix2datetime(dtfloat)
-                    for (isna, dtfloat) in zip(nas, rv.data)]
+        datetimes = DataArray([isna ? DateTime() : Dates.unix2datetime(dtfloat)
+                               for (isna, dtfloat) in zip(nas, rv.data)],
+                              nas)
     else
         datetimes =  Dates.unix2datetime.(rv.data)
     end
