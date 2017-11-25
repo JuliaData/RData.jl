@@ -10,7 +10,7 @@ end
 
 readint32(io::XDRIO) = ntoh(read(io.sub, Int32))
 readuint32(io::XDRIO) = ntoh(read(io.sub, UInt32))
-readfloat64(io::XDRIO) = reinterpret(Float64, ntoh(read(io.sub, Int64)))
+readfloat64(io::XDRIO) = ntoh(read(io.sub, Float64))
 
 readintorNA(io::XDRIO) = readint32(io)
 function readintorNA(io::XDRIO, n::RVecLength)
@@ -22,8 +22,8 @@ end
 # R's NA is silently converted to NaN when the value is loaded in the register(?)
 #readfloatorNA(io::XDRIO) = readfloat64(io)
 function readfloatorNA(io::XDRIO, n::RVecLength)
-    v = read(io.sub, UInt64, n)
-    reinterpret(Float64, map!(ntoh, v, v))
+    v = read(io.sub, Float64, n)
+    map!(ntoh, v, v)
 end
 
 readuint8(io::XDRIO, n::RVecLength) = read(io.sub, UInt8, n)
