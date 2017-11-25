@@ -37,3 +37,7 @@ const Hash = Dict{RString, Any}
 
 const emptyhash = Hash()
 const emptyhashkey = RString("\0")
+
+const R_Date_Class = ["Date"]
+const R_POSIXct_Class = ["POSIXct", "POSIXt"]
+

@@ -54,9 +54,9 @@ function sexp2julia(rv::RVEC)
     # FIXME forceDataArrays option to always convert to DataArray
     nas = namask(rv)
     hasna = any(nas)
-    if class(rv) == ["Date"]
+    if class(rv) == R_Date_Class
         return date2julia(rv, hasna, nas)
-    elseif class(rv) == ["POSIXct"; "POSIXt"]
+    elseif class(rv) == R_POSIXct_Class
         return datetime2julia(rv, hasna, nas)
     elseif hasnames(rv)
         # if data has no NA, convert to simple Vector
@@ -93,7 +93,7 @@ function sexp2julia(rl::RList)
 end
 
 function date2julia(rv, hasna, nas)
-    @assert class(rv) == ["Date"]
+    @assert class(rv) == R_Date_Class
     epoch_conv = 719528 # Dates.date2epochdays(Date("1970-01-01"))
     if hasna
         dates = DataArray([isna ? Date() : Dates.epochdays2date(dtfloat + epoch_conv)
@@ -113,7 +113,7 @@ end
 # nice if there was an option to be more specific about the timezone
 # ref: http://timezonesjl.readthedocs.io/en/latest/conversions/
 function datetime2julia(rv, hasna, nas)
-    @assert class(rv) == ["POSIXct"; "POSIXt"]
+    @assert class(rv) == R_POSIXct_Class
     if hasna
         datetimes = DataArray([isna ? DateTime() : Dates.unix2datetime(dtfloat)
                                for (isna, dtfloat) in zip(nas, rv.data)],
