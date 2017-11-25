@@ -4,7 +4,7 @@ ASCII RData format IO stream wrapper.
 struct ASCIIIO{T<:IO} <: RDAIO
     sub::T              # underlying IO stream
 
-    (::Type{ASCIIIO})(io::T) where {T<:IO} = new{T}(io)
+    ASCIIIO(io::T) where {T<:IO} = new{T}(io)
 end
 
 readint32(io::ASCIIIO) = parse(Int32, readline(io.sub))
