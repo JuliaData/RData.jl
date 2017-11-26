@@ -6,10 +6,11 @@ module TestRDA
     # check for Float64 NA
     @testset "Detect R floating-point NAs" begin
         @test !RData.isna_float64(reinterpret(UInt64, 1.0))
-        @test !RData.isna_float64(reinterpret(UInt64, NaN))
-        @test !RData.isna_float64(reinterpret(UInt64, Inf))
-        @test !RData.isna_float64(reinterpret(UInt64, -Inf))
-        @test RData.isna_float64(reinterpret(UInt64, RData.R_NA_FLOAT64))
+        @test !RData.isna(1.0)
+        @test !RData.isna(NaN)
+        @test !RData.isna(Inf)
+        @test !RData.isna(-Inf)
+        @test RData.isna_float64(RData.R_NA_FLOAT64)
         # check that alternative NA is also recognized (#10)
         @test RData.isna_float64(reinterpret(UInt64, RData.R_NA_FLOAT64 | ((Base.significand_mask(Float64) + 1) >> 1)))
     end
@@ -17,9 +18,9 @@ module TestRDA
     testdir = dirname(@__FILE__)
     @testset "Reading minimal RData" begin
         df = DataFrame(num = [1.1, 2.2])
-        @test isequal(sexp2julia(load("$testdir/data/minimal.rda",convert=false)["df"]), df)
-        @test isequal(load("$testdir/data/minimal.rda",convert=true)["df"], df)
-        @test isequal(load("$testdir/data/minimal_ascii.rda")["df"], df)
+        @test sexp2julia(load("$testdir/data/minimal.rda",convert=false)["df"]) == df
+        @test load("$testdir/data/minimal.rda",convert=true)["df"] == df
+        @test load("$testdir/data/minimal_ascii.rda")["df"] == df
     end
 
     @testset "Conversion to Julia types" begin
@@ -27,32 +28,32 @@ module TestRDA
                        int = Int32[1, 2],
                        logi = [true, false],
                        chr = ["ab", "c"],
-                       factor = pool(["ab", "c"]),
-                       cplx = Complex128[1.1+0.5im, 1.0im])
+                       factor = categorical(["ab", "c"], true),
+                       cplx = [1.1+0.5im, 1.0im])
         rdf = sexp2julia(load("$testdir/data/types.rda",convert=false)["df"])
         @test eltypes(rdf) == eltypes(df)
-        @test isequal(rdf, df)
+        @test rdf == df
         rdf_ascii = sexp2julia(load("$testdir/data/types_ascii.rda",convert=false)["df"])
         @test eltypes(rdf_ascii) == eltypes(df)
-        @test isequal(rdf_ascii, df)
+        @test rdf_ascii == df
     end
 
     @testset "NAs conversion" begin
-        df = DataFrame(num = [1.1, 2.2],
-                       int = Int32[1, 2],
-                       logi = [true, false],
-                       chr = ["ab", "c"],
-                       factor = pool(["ab", "c"]),
-                       cplx = Complex128[1.1+0.5im, 1.0im])
+        df = DataFrame(num = Union{Float64, Missing}[1.1, 2.2],
+                       int = Union{Int32, Missing}[1, 2],
+                       logi = Union{Bool, Missing}[true, false],
+                       chr = Union{String, Missing}["ab", "c"],
+                       factor = categorical(Union{String, Missing}["ab", "c"], true),
+                       cplx = Union{Complex128, Missing}[1.1+0.5im, 1.0im])
 
-        df[2, :] = NA
+        df[2, :] = missing
         append!(df, df[2, :])
         df[3, :num] = NaN
-        df[:, :cplx] = @data [NA, Complex128(1,NaN), NaN]
+        df[:, :cplx] = [missing, Complex128(1,NaN), NaN]
         @test isequal(sexp2julia(load("$testdir/data/NAs.rda",convert=false)["df"]), df)
         # ASCII format saves NaN as NA
-        df[3, :num] = NA
-        df[:, :cplx] = @data [NA, NA, NA]
+        df[3, :num] = missing
+        df[:, :cplx] = missing
         @test isequal(sexp2julia(load("$testdir/data/NAs_ascii.rda",convert=false)["df"]), df)
     end
 

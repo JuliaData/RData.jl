@@ -1,3 +1,14 @@
+## RData v0.3.0 Release Notes
+
+Updated to DataFrames v0.11, switched from [DataArrays](https://github.com/JuliaData/DataArrays.jl) to [Missings](https://github.com/JuliaData/Missings.jl) and [CategoricalArrays](https://github.com/JuliaData/CategoricalArrays.jl).
+
+##### Changes
+* updated to DataFrames v0.11 [#28]
+* switched from `DataVector` to `Vector{Union{T, Missing}}` for NAs [#28]
+* R factors converted into `CategoricalVector` (instead of `PooledDataArray`) [#28]
+
+[#28]: https://github.com/JuliaStats/RData.jl/issues/28
+
 ## RData v0.2.0 Release Notes
 
 Updated to Julia v0.6 (older versions not supported).
