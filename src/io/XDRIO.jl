@@ -26,6 +26,11 @@ function readfloatorNA(io::XDRIO, n::RVecLength)
     map!(ntoh, v, v)
 end
 
+function readfloatorNA!(io::XDRIO, v::AbstractVector{Float64})
+    readbytes!(io.sub, reinterpret(UInt8, v))
+    map!(ntoh, v, v)
+end
+
 readuint8(io::XDRIO, n::RVecLength) = read(io.sub, UInt8, n)
 
 function readnchars(io::XDRIO, n::Int32)  # a single character string
