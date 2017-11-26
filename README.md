@@ -1,4 +1,4 @@
-# RData
+# RData.jl
 
 [![Julia 0.6 Status](http://pkg.julialang.org/badges/RData_0.6.svg)](http://pkg.julialang.org/?pkg=RData&ver=0.6)
 
