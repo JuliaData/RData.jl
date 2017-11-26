@@ -10,6 +10,8 @@ Read R data files (.rda, .RData) and optionally convert the contents into Julia 
 
 Can read any R data archive, although not all R types could be converted into Julia.
 
+For running R code from Julia see [RCall.jl](https://github.com/JuliaInterop/RCall.jl).
+
 Usage
 -----
 
