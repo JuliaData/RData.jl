@@ -38,8 +38,9 @@ end
 function readcomplex(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == CPLXSXP
     n = readlength(ctx.io)
-    RComplexVector(reinterpret(Complex128, readfloatorNA(ctx.io, 2n)),
-                   readattrs(ctx, fl))
+    v = Vector{Complex128}(n)
+    readfloatorNA!(ctx.io, reinterpret(Float64, v))
+    RComplexVector(v, readattrs(ctx, fl))
 end
 
 function readstring(ctx::RDAContext, fl::RDATag)

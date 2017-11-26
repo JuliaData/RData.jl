@@ -4,7 +4,7 @@ ASCII RData format IO stream wrapper.
 struct ASCIIIO{T<:IO} <: RDAIO
     sub::T              # underlying IO stream
 
-    (::Type{ASCIIIO})(io::T) where {T<:IO} = new{T}(io)
+    ASCIIIO(io::T) where {T<:IO} = new{T}(io)
 end
 
 readint32(io::ASCIIIO) = parse(Int32, readline(io.sub))
@@ -24,19 +24,20 @@ readintorNA(io::ASCIIIO, n::RVecLength) = Int32[readintorNA(io) for i in 1:n]
 #    str == R_NA_STRING ? R_NA_FLOAT64 : parse(Float64, str)
 #end
 
-function readfloatorNA(io::ASCIIIO, n::RVecLength)
-    res = Vector{Float64}(n)
-    res_uint = reinterpret(UInt64, res) # alias of res for setting NA
-    @inbounds for i in 1:n
+function readfloatorNA!(io::ASCIIIO, v::AbstractVector{Float64})
+    v_uint = reinterpret(UInt64, v) # alias of res for setting NA
+    @inbounds for i in eachindex(v)
         str = chomp(readline(io.sub))
         if str != R_NA_STRING
-            res[i] = parse(Float64, str)
+            v[i] = parse(Float64, str)
         else
-            res_uint[i] = R_NA_FLOAT64 # see JuliaStats/RData.jl#5
+            v_uint[i] = R_NA_FLOAT64 # see JuliaStats/RData.jl#5
         end
     end
-    res
+    v
 end
+
+readfloatorNA(io::ASCIIIO, n::RVecLength) = readfloatorNA!(io, Vector{Float64}(n))
 
 readuint8(io::ASCIIIO, n::RVecLength) = UInt8[hex2bytes(chomp(readline(io.sub)))[1] for i in 1:n] # FIXME optimize for speed
 
