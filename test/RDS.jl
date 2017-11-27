@@ -1,7 +1,9 @@
 module TestRDS
     using Base.Test
+    using DataArrays
     using DataFrames
     using RData
+    using TimeZones
 
     testdir = dirname(@__FILE__)
 
@@ -57,27 +59,42 @@ module TestRDS
 
     @testset "Test DateTime conversion" begin
         datetimes = load("$testdir/data/datetimes.rds")
-        @test datetimes[1] == DateTime("2017-01-01T13:23") + Dates.Second.(1:4)
-        @test datetimes[2] == DateTime("2017-01-01T13:23:01")
+        testdts = ZonedDateTime.(DateTime("2017-01-01T13:23") + Dates.Second.(1:4),
+                                 TimeZone("UTC"))
+        @test datetimes[1] == testdts
+        @test datetimes[2] == testdts[1]
         @test datetimes[3] isa DictoVec
-        @test datetimes[3].data == DateTime("2017-01-01T13:23") + Dates.Second.(1:4)
+        @test datetimes[3].data == testdts
         @test [datetimes[3].index2name[i] for i in 1:length(datetimes[3])] == ["A", "B", "C", "D"]
         @test datetimes[4] isa DictoVec
-        @test datetimes[4].data == [DateTime("2017-01-01T13:23:01")]
+        @test datetimes[4].data == [testdts[1]]
         @test datetimes[4].index2name[1] == "A"
     end
 
     @testset "Test NA Date and DateTime conversion" begin
         dates = load("$testdir/data/datesNA.rds")
-        testdates = RData.DataArray([Date("2017-01-01") + Dates.Day.(1:4); Date()],
+
+        testdates = DataArray([Date("2017-01-01") + Dates.Day.(1:4); Date()],
                                     BitArray([false, false, false, false, true]))
         @test dates[1][1:4] == testdates[1:4]
-        @test RData.isna(dates[1][5])
+        @test isna(dates[1][5])
 
-        testdts = RData.DataArray([DateTime("2017-01-01T13:23") + Dates.Second.(1:4); Date()],
-                                  BitArray([false, false, false, false, true]))
+        testdts = DataArray([ZonedDateTime.(DateTime("2017-01-01T13:23") + Dates.Second.(1:4),
+                                 tz"UTC"); ZonedDateTime(tz"UTC")],
+                            BitArray([false, false, false, false, true]))
         @test dates[2][1:4] == testdts[1:4]
-        @test RData.isna(dates[2][5])
+        @test isna(dates[2][5])
+    end
+
+    @testset "Test DateTime timezones" begin
+        # when this warning can go away, uncomment test_broken below, should work now
+        datetimes = @test_warn "Could not determine timezone of 'CST', treating as if UTC." begin
+            load("$testdir/data/datetimes_tz.rds")
+        end
+        # assumes generate_rda.R was generated on system set to PST!
+        @test datetimes[1] == ZonedDateTime(DateTime("2017-01-01T21:23"), tz"UTC")
+        #@test_broken datetimes[2] == ZonedDateTime(DateTime("2017-01-01T13:23"), tz"CST")
+        @test datetimes[3] == ZonedDateTime(DateTime("2017-01-01T13:23"), tz"America/Chicago")
     end
 end
 

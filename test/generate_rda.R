@@ -65,3 +65,12 @@ names(datetimes) = LETTERS[1:length(datetimes)]
 dtlst = c(dtlst, list(datetimes), list(datetimes[1]))
 saveRDS(dtlst, file="data/datetimes.rds")
 
+# the first element here is assumed to be in the local timezone but is saved in
+# UTC time, without any timezone attribute. When R reads it, it assumes local time.
+# So the test associated with this first datapoint is going to assume which timezone
+# the data is generated in! (PST/-8)
+saveRDS(list(as.POSIXct("2017-01-01 13:23"),
+             as.POSIXct("2017-01-01 13:23", tz="CST"),
+             as.POSIXct("2017-01-01 13:23", tz="America/Chicago")),
+        file="data/datetimes_tz.rds")
+

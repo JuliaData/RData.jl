@@ -2,7 +2,7 @@ __precompile__()
 
 module RData
 
-using DataFrames, DataArrays, CodecZlib, FileIO
+using DataFrames, DataArrays, CodecZlib, FileIO, TimeZones
 import DataFrames: identifier
 import FileIO: load
 

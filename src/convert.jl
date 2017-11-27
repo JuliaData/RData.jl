@@ -1,6 +1,8 @@
 # converters from selected RSEXPREC to Hash
 # They are used to translate SEXPREC attributes into Hash
 
+import TimeZones: unix2zdt
+
 function Base.convert(::Type{Hash}, pl::RPairList)
     res = Hash()
     for i in 1:length(pl.items)
@@ -108,18 +110,33 @@ function date2julia(rv, hasna, nas)
     return length(dates) == 1 & !hasnames(rv) ? dates[1] : dates
 end
 
-# does not handle timezone differences because R stores the timezone in the "Z"
-# format, but this is ambiguous therefore TimeZones.jl can't convert would be
-# nice if there was an option to be more specific about the timezone
-# ref: http://timezonesjl.readthedocs.io/en/latest/conversions/
+# return tuple is true/false status of whether tzattr was successfully interpreted
+# then the tz itself. when not successfully interpreted, tz is always localzone()
+function gettz(tzattr)
+    try
+        return true, TimeZone(tzattr)
+    catch ArgumentError
+        warn("Could not determine timezone of '$(tzattr)', treating as if UTC.")
+        return false, tz"UTC"
+    end
+end
+
+function unix2zdt(seconds::Real; tz::TimeZone=tz"UTC")
+    ZonedDateTime(Dates.unix2datetime(seconds), tz, from_utc=true)
+end
+
 function datetime2julia(rv, hasna, nas)
     @assert class(rv) == R_POSIXct_Class
+    tzattr = getattr(rv, "tzone", ["UTC"])[1]
+    tzattr = tzattr == "" ? "UTC" : tzattr # R will store a blank for tzone
+    goodtz, tz = gettz(tzattr)
     if hasna
-        datetimes = DataArray([isna ? DateTime() : Dates.unix2datetime(dtfloat)
+        nadt = ZonedDateTime(DateTime(), tz)
+        datetimes = DataArray([isna ? nadt : unix2zdt(dtfloat, tz=tz)
                                for (isna, dtfloat) in zip(nas, rv.data)],
                               nas)
     else
-        datetimes =  Dates.unix2datetime.(rv.data)
+        datetimes =  unix2zdt.(rv.data, tz=tz)
     end
     if hasnames(rv)
         datetimes = DictoVec(datetimes, names(rv))
