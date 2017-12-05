@@ -12,6 +12,14 @@ Can read any R data archive, although not all R types could be converted into Ju
 
 For running R code from Julia see [RCall.jl](https://github.com/JuliaInterop/RCall.jl).
 
+Installation
+------------
+
+From Julia REPL:
+```julia
+Pkg.add("RData")
+```
+
 Usage
 -----
 
