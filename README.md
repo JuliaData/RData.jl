@@ -4,7 +4,7 @@
 
 [![Coverage Status](https://coveralls.io/repos/github/JuliaData/RData.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaData/RData.jl?branch=master)
 [![Build Status](https://travis-ci.org/JuliaData/RData.jl.svg?branch=master)](https://travis-ci.org/JuliaData/RData.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/github/JuliaData/RData.jl?svg=true&branch=master)](https://ci.appveyor.com/project/alyst/rdata-jl/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/kc2s5kmvyew4w8in/branch/master?svg=true)](https://ci.appveyor.com/project/alyst/rdata-jl/branch/master)
 
 Read R data files (.rda, .RData) and optionally convert the contents into Julia equivalents.
 
