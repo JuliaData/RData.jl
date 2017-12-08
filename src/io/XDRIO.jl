@@ -18,7 +18,7 @@ function readintorNA(io::XDRIO, n::RVecLength)
     map!(ntoh, v, v)
 end
 
-# this method have Win32 ABI issues, see JuliaStats/RData.jl#5
+# this method have Win32 ABI issues, see JuliaData/RData.jl#5
 # R's NA is silently converted to NaN when the value is loaded in the register(?)
 #readfloatorNA(io::XDRIO) = readfloat64(io)
 function readfloatorNA(io::XDRIO, n::RVecLength)
