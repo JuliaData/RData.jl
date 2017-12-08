@@ -2,7 +2,7 @@
 
 [![Julia 0.6 Status](http://pkg.julialang.org/badges/RData_0.6.svg)](http://pkg.julialang.org/?pkg=RData&ver=0.6)
 
-[![Coverage Status](https://coveralls.io/repos/github/JuliaData/RData.jl/badge.svg)](https://coveralls.io/github/JuliaData/RData.jl)
+[![Coverage Status](https://coveralls.io/repos/JuliaData/RData.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaData/RData.jl?branch=master)
 [![Build Status](https://travis-ci.org/JuliaData/RData.jl.svg?branch=master)](https://travis-ci.org/JuliaData/RData.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/github/JuliaData/RData.jl?svg=true&branch=master)](https://ci.appveyor.com/project/alyst/rdata-jl/branch/master)
 
