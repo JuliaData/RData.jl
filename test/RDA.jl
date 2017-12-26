@@ -71,4 +71,13 @@ module TestRDA
         rda_closures = load("$testdir/data/closures.rda",convert=false)
         rda_cmpfuns = load("$testdir/data/cmpfun.rda",convert=false)
     end
+
+    @testset "Proper handling of factor and ordered" begin
+        f = load("$testdir/data/ord.rda")
+        @test !isordered(f["x"])
+        @test levels(f["x"]) == ["a", "b", "c"]
+        @test isordered(f["y"])
+        @test levels(f["y"]) == ["b", "a", "c"]
+        @test f["x"] == f["y"] == ["a", "b", "c"]
+    end
 end
