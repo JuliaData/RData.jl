@@ -79,10 +79,9 @@ function jlvec(ri::RIntegerVector, force_missing::Bool=true)
               sz <= typemax(UInt16) ? UInt16 :
               sz <= typemax(UInt32) ? UInt32 :
                                       UInt64
-    # FIXME set ordered flag
     refs = na2zero(REFTYPE, ri.data)
     anyna = any(iszero, refs)
-    pool = CategoricalPool{String, REFTYPE}(rlevels)
+    pool = CategoricalPool{String, REFTYPE}(rlevels, inherits(ri, "ordered"))
     if force_missing || anyna
         return CategoricalArray{Union{String, Missing}, 1}(refs, pool)
     else
