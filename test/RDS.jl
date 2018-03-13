@@ -10,7 +10,7 @@ module TestRDS
                        int = Int32[1, 2],
                        logi = [true, false],
                        chr = ["ab", "c"],
-                       factor = pool(["ab", "c"]),
+                       factor = categorical(["ab", "c"], true),
                        cplx = Complex128[1.1+0.5im, 1.0im])
         rdf = sexp2julia(load("$testdir/data/types.rds",convert=false))
         @test rdf isa DataFrame
