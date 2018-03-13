@@ -52,3 +52,6 @@ test.cmpfun1 <- cmpfun( test.fun1 )
 test.cmpfun2 <- cmpfun( test.fun2 )
 save(test.cmpfun0, test.cmpfun1, test.cmpfun2, file = "data/cmpfun.rda")
 
+x <- factor(c("a", "b", "c"))
+y <- ordered(x, levels=c("b", "a", "c"))
+save(x, y, file="data/ord.rda")
