@@ -70,7 +70,7 @@ function load(s::Stream{format"RData"}, kwoptions::Vector{Any})
 #    println("Written by R version $(ctx.Rver)")
 #    println("Minimal R version: $(ctx.Rmin)")
 
-    convert2julia = get(ctx.kwdict,:convert,true)
+    convert2julia = get(ctx.kwdict, :convert, true)
 
     # top level read -- must be a paired list of objects
     # we read it here to be able to convert to julia objects inplace
@@ -112,7 +112,7 @@ function load(s::Stream{format"RDataSingle"}, kwoptions::Vector{Any})
     @assert FileIO.detect_rdata_single(io)
     ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
     @assert ctx.fmtver == 2    # format version
-    convert2julia = get(ctx.kwdict,:convert,true)
+    convert2julia = get(ctx.kwdict, :convert, true)
     return convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
 end
 
