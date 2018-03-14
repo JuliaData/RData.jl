@@ -1,6 +1,7 @@
 ## RData v0.4.0 Release Notes
+
 ##### Changes
-* add support for rds files (single object data files from R) [#22], [#33]
+* add support for `.rds` files (single object data files from R) [#22], [#33]
 
 [#22]: https://github.com/JuliaStats/RData.jl/issues/22
 [#33]: https://github.com/JuliaStats/RData.jl/issues/33
