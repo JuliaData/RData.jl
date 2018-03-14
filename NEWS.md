@@ -1,3 +1,11 @@
+## RData v0.4.0 Release Notes
+
+##### Changes
+* add support for `.rds` files (single object data files from R) [#22], [#33]
+
+[#22]: https://github.com/JuliaStats/RData.jl/issues/22
+[#33]: https://github.com/JuliaStats/RData.jl/issues/33
+
 ## RData v0.3.0 Release Notes
 
 Updated to DataFrames v0.11, switched from [DataArrays](https://github.com/JuliaData/DataArrays.jl) to [Missings](https://github.com/JuliaData/Missings.jl) and [CategoricalArrays](https://github.com/JuliaData/CategoricalArrays.jl).

@@ -40,13 +40,20 @@ include("readers.jl")
 ##
 ##############################################################################
 
+function decompress(io)
+    # check GZip magic number
+    gzipped = read(io, UInt8) == 0x1F && read(io, UInt8) == 0x8B
+    seekstart(io)
+    if gzipped
+        io = GzipDecompressorStream(io)
+    end
+    return io
+end
+
 function load(f::File{format"RData"}; kwoptions...)
     io = open(filename(f), "r")
     try
-        gzipped = read(io, UInt8) == 0x1F && read(io, UInt8) == 0x8B # check GZip magic number
-        seekstart(io)
-        # if compressed, transcode gzipped stream
-        gzipped && (io = GzipDecompressorStream(io))
+        io = decompress(io)
         return load(Stream(f, io), kwoptions)
     catch
         rethrow()
@@ -63,7 +70,7 @@ function load(s::Stream{format"RData"}, kwoptions::Vector{Any})
 #    println("Written by R version $(ctx.Rver)")
 #    println("Minimal R version: $(ctx.Rmin)")
 
-    convert2julia = get(ctx.kwdict,:convert,true)
+    convert2julia = get(ctx.kwdict, :convert, true)
 
     # top level read -- must be a paired list of objects
     # we read it here to be able to convert to julia objects inplace
@@ -86,5 +93,29 @@ function load(s::Stream{format"RData"}, kwoptions::Vector{Any})
 end
 
 load(s::Stream{format"RData"}; kwoptions...) = load(s, kwoptions)
+
+
+function load(f::File{format"RDataSingle"}; kwoptions...)
+    io = open(filename(f), "r")
+    try
+        io = decompress(io)
+        return load(Stream(f, io), kwoptions)
+    catch
+        rethrow()
+    finally
+        close(io)
+    end
+end
+
+function load(s::Stream{format"RDataSingle"}, kwoptions::Vector{Any})
+    io = stream(s)
+    @assert FileIO.detect_rdata_single(io)
+    ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
+    @assert ctx.fmtver == 2    # format version
+    convert2julia = get(ctx.kwdict, :convert, true)
+    return convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
+end
+
+load(s::Stream{format"RDataSingle"}; kwoptions...) = load(s, kwoptions)
 
 end # module
