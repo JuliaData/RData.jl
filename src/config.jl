@@ -12,7 +12,7 @@ Non-standard addition to NaN bit pattern to discriminate NA from NaN.
 const R_NA_FLOAT64_LOW = 0x000007a2
 
 ## Note that float NA are defined as UInt64 to workaround the win32 ABI
-## issue (see JuliaStats/RData.jl#5 and JuliaLang/julia#17195).
+## issue (see JuliaData/RData.jl#5 and JuliaLang/julia#17195).
 if ENDIAN_BOM == 0x01020304
     const R_NA_FLOAT64 = (R_NA_FLOAT64_LOW % UInt64 << 32) | (Base.exponent_mask(Float64) >> 32)
 else

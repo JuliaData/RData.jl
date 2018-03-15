@@ -112,7 +112,7 @@ struct RVector{T, S} <: RVEC{T, S}
     data::Vector{T}
     attr::Hash                   # collection of R object attributes
 
-    (::Type{RVector{T,S}})(v::Vector{T}=T[], attr::Hash=Hash()) where {T,S} =
+    RVector{T,S}(v::Vector{T}=T[], attr::Hash=Hash()) where {T,S} =
         new{T,S}(v, attr)
 end
 

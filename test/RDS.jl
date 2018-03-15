@@ -7,24 +7,24 @@ module TestRDS
 
     testdir = dirname(@__FILE__)
 
-    @testset "RDS: Conversion to Julia types" begin
+    @testset "Loading RDS files" begin
         df = DataFrame(num = [1.1, 2.2],
                        int = Int32[1, 2],
                        logi = [true, false],
                        chr = ["ab", "c"],
-                       factor = pool(["ab", "c"]),
+                       factor = categorical(["ab", "c"], true),
                        cplx = Complex128[1.1+0.5im, 1.0im])
-        rdf = sexp2julia(load("$testdir/data/types.rds",convert=false))
+        rdf = sexp2julia(load("$testdir/data/types.rds", convert=false))
         @test rdf isa DataFrame
         @test eltypes(rdf) == eltypes(df)
         @test isequal(rdf, df)
 
-        rdf_ascii = sexp2julia(load("$testdir/data/types_ascii.rds",convert=false))
+        rdf_ascii = sexp2julia(load("$testdir/data/types_ascii.rds", convert=false))
         @test rdf_ascii isa DataFrame
         @test eltypes(rdf_ascii) == eltypes(df)
         @test isequal(rdf_ascii, df)
 
-        rdf_decomp = sexp2julia(load("$testdir/data/types_decomp.rds",convert=false))
+        rdf_decomp = sexp2julia(load("$testdir/data/types_decomp.rds", convert=false))
         @test rdf_decomp isa DataFrame
         @test eltypes(rdf_decomp) == eltypes(df)
         @test isequal(rdf_decomp, df)
@@ -77,13 +77,13 @@ module TestRDS
         testdates = DataArray([Date("2017-01-01") + Dates.Day.(1:4); Date()],
                                     BitArray([false, false, false, false, true]))
         @test dates[1][1:4] == testdates[1:4]
-        @test isna(dates[1][5])
+        @test ismissing(dates[1][5])
 
         testdts = DataArray([ZonedDateTime.(DateTime("2017-01-01T13:23") + Dates.Second.(1:4),
                                  tz"UTC"); ZonedDateTime(tz"UTC")],
                             BitArray([false, false, false, false, true]))
         @test dates[2][1:4] == testdts[1:4]
-        @test isna(dates[2][5])
+        @test ismissing(dates[2][5])
     end
 
     @testset "Test DateTime timezones" begin
@@ -93,6 +93,8 @@ module TestRDS
         end
         # assumes generate_rda.R was generated on system set to PST!
         @test datetimes[1] == ZonedDateTime(DateTime("2017-01-01T21:23"), tz"UTC")
+        # tz"CST" is invalid, but if TimeZones ever enables support for these 3
+        # letter codes, a test would be useful. For now, intentionally not testing
         #@test_broken datetimes[2] == ZonedDateTime(DateTime("2017-01-01T13:23"), tz"CST")
         @test datetimes[3] == ZonedDateTime(DateTime("2017-01-01T13:23"), tz"America/Chicago")
     end
