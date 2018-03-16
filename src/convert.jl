@@ -1,7 +1,7 @@
 # converters from selected RSEXPREC to Hash
 # They are used to translate SEXPREC attributes into Hash
 
-import TimeZones: unix2zdt, ZonedDateTime
+import TimeZones: istimezone, unix2zdt, ZonedDateTime
 
 function Base.convert(::Type{Hash}, pl::RPairList)
     res = Hash()
@@ -176,7 +176,7 @@ end
 # return tuple is true/false status of whether tzattr was successfully interpreted
 # then the tz itself. when not successfully interpreted, tz defaults to UTC
 function r2juliatz(tzattr)
-    valid = haskey(TimeZones.TIME_ZONES, tzattr)
+    valid = istimezone(tzattr)
     if !valid
         warn("Could not determine timezone of '$(tzattr)', treating as if UTC.")
         return false, tz"UTC"
