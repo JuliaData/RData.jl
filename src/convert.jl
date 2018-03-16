@@ -116,9 +116,7 @@ end
 # convert to ZonedDateTime
 function jlvec(::Type{ZonedDateTime}, rv::RVEC, force_missing::Bool=true)
     @assert class(rv) == R_POSIXct_Class
-    tzattr = getattr(rv, "tzone", ["UTC"])[1]
-    tzattr = tzattr == "" ? "UTC" : tzattr # R will store a blank for tzone
-    goodtz, tz = r2juliatz(tzattr)
+    goodtz, tz = r2juliatz(rv)
     nas = isnan.(rv.data)
     if force_missing || any(nas)
         datetimes = Union{ZonedDateTime, Missing}[isna ? missing : unix2zdt(dtfloat, tz=tz)
@@ -139,6 +137,7 @@ function sexp2julia(rv::RVEC)
     # FIXME add force_missing option to control whether always convert to Union{T, Missing}
     jv = jlvec(rv, false)
     if hasnames(rv)
+        # if data has no NA, convert to simple Vector
         return DictoVec(jv, names(rv))
     else
         hasdims = hasdim(rv)
@@ -175,7 +174,13 @@ end
 
 # return tuple is true/false status of whether tzattr was successfully interpreted
 # then the tz itself. when not successfully interpreted, tz defaults to UTC
-function r2juliatz(tzattr)
+function r2juliatz(rv::RVEC)
+    tzattr = getattr(rv, "tzone", ["UTC"])[1]
+    tzattr = tzattr == "" ? "UTC" : tzattr # R will store a blank for tzone
+    return r2juliatz(tzattr)
+end
+
+function r2juliatz(tzattr::AbstractString)
     valid = istimezone(tzattr)
     if !valid
         warn("Could not determine timezone of '$(tzattr)', treating as if UTC.")
