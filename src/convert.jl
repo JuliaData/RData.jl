@@ -100,6 +100,35 @@ function jlvec(ri::RIntegerVector, force_missing::Bool=true)
     end
 end
 
+# convert to Date
+function jlvec(::Type{Dates.Date}, rv::RVEC, force_missing::Bool=true)
+    @assert class(rv) == R_Date_Class
+    nas = isnan.(rv.data)
+    if force_missing || any(nas)
+        dates = Union{Dates.Date, Missing}[isna ? missing : rdays2date(dtfloat)
+                 for (isna, dtfloat) in zip(nas, rv.data)]
+    else
+        dates = rdays2date.(rv.data)
+    end
+    return dates
+end
+
+# convert to ZonedDateTime
+function jlvec(::Type{ZonedDateTime}, rv::RVEC, force_missing::Bool=true)
+    @assert class(rv) == R_POSIXct_Class
+    tzattr = getattr(rv, "tzone", ["UTC"])[1]
+    tzattr = tzattr == "" ? "UTC" : tzattr # R will store a blank for tzone
+    goodtz, tz = r2juliatz(tzattr)
+    nas = isnan.(rv.data)
+    if force_missing || any(nas)
+        datetimes = Union{ZonedDateTime, Missing}[isna ? missing : unix2zdt(dtfloat, tz=tz)
+                     for (isna, dtfloat) in zip(nas, rv.data)]
+    else
+        datetimes =  unix2zdt.(rv.data, tz=tz)
+    end
+    return datetimes
+end
+
 function sexp2julia(rex::RSEXPREC)
     warn("Conversion of $(typeof(rex)) to Julia is not implemented")
     return nothing
@@ -144,19 +173,6 @@ function rdays2date(days::Real)
     Dates.epochdays2date(days + epoch_conv)
 end
 
-
-function jlvec(::Type{Dates.Date}, rv::RVEC, force_missing::Bool=true)
-    @assert class(rv) == R_Date_Class
-    nas = isnan.(rv.data)
-    if force_missing || any(nas)
-        dates = Union{Dates.Date, Missing}[isna ? missing : rdays2date(dtfloat)
-                 for (isna, dtfloat) in zip(nas, rv.data)]
-    else
-        dates = rdays2date.(rv.data)
-    end
-    return dates
-end
-
 # return tuple is true/false status of whether tzattr was successfully interpreted
 # then the tz itself. when not successfully interpreted, tz defaults to UTC
 function r2juliatz(tzattr)
@@ -171,20 +187,5 @@ end
 
 function unix2zdt(seconds::Real; tz::TimeZone=tz"UTC")
     ZonedDateTime(Dates.unix2datetime(seconds), tz, from_utc=true)
-end
-
-function jlvec(::Type{ZonedDateTime}, rv::RVEC, force_missing::Bool=true)
-    @assert class(rv) == R_POSIXct_Class
-    tzattr = getattr(rv, "tzone", ["UTC"])[1]
-    tzattr = tzattr == "" ? "UTC" : tzattr # R will store a blank for tzone
-    goodtz, tz = r2juliatz(tzattr)
-    nas = isnan.(rv.data)
-    if force_missing || any(nas)
-        datetimes = Union{ZonedDateTime, Missing}[isna ? missing : unix2zdt(dtfloat, tz=tz)
-                     for (isna, dtfloat) in zip(nas, rv.data)]
-    else
-        datetimes =  unix2zdt.(rv.data, tz=tz)
-    end
-    return datetimes
 end
 
