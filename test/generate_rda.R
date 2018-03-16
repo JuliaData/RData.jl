@@ -57,7 +57,7 @@ y <- ordered(x, levels=c("b", "a", "c"))
 save(x, y, file="data/ord.rda")
 
 dates = as.Date("2017-01-01") + 1:4
-datetimes = as.POSIXct("2017-01-01 13:23", tz="GMT") + 1:4
+datetimes = as.POSIXct("2017-01-01 13:23", tz="UTC") + 1:4
 dateNAs = list(c(dates, NA), c(datetimes, NA))
 saveRDS(dateNAs, file="data/datesNA.rds")
 datelst = list(dates, dates[1])
@@ -68,6 +68,9 @@ dtlst = list(datetimes, datetimes[1])
 names(datetimes) = LETTERS[1:length(datetimes)]
 dtlst = c(dtlst, list(datetimes), list(datetimes[1]))
 saveRDS(dtlst, file="data/datetimes.rds")
+datedfs = list(data.frame(date=dates[1], datetime=datetimes[1]),
+               data.frame(date=dates, datetime=datetimes))
+saveRDS(datedfs, file="data/datedfs.rds")
 
 # the first element here is assumed to be in the local timezone but is saved in
 # UTC time, without any timezone attribute. When R reads it, it assumes local time.

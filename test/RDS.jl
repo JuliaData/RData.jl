@@ -1,6 +1,5 @@
 module TestRDS
     using Base.Test
-    using DataArrays
     using DataFrames
     using RData
     using TimeZones
@@ -71,19 +70,29 @@ module TestRDS
         @test datetimes[4].index2name[1] == "A"
     end
 
+    @testset "Test Date and DateTime in a DataFrame" begin
+        rdfs = load("$testdir/data/datedfs.rds")
+        df = DataFrame(date=Date("2017-01-01") + Dates.Day.(1:4),
+                       datetime=ZonedDateTime.(DateTime("2017-01-01T13:23") + Dates.Second.(1:4),
+                                               tz"UTC"))
+        @test length(rdfs) == 2
+        @test rdfs[1] isa DataFrame
+        @test rdfs[2] isa DataFrame
+        @test eltypes(df) == eltypes(rdfs[1])
+        @test eltypes(df) == eltypes(rdfs[2])
+        @test isequal(df[1, :], rdfs[1])
+        @test isequal(df, rdfs[2])
+    end
+
     @testset "Test NA Date and DateTime conversion" begin
         dates = load("$testdir/data/datesNA.rds")
 
-        testdates = DataArray([Date("2017-01-01") + Dates.Day.(1:4); Date()],
-                                    BitArray([false, false, false, false, true]))
-        @test dates[1][1:4] == testdates[1:4]
-        @test ismissing(dates[1][5])
+        testdates = [Date("2017-01-01") + Dates.Day.(1:4); missing]
+        @test all(dates[1] .=== testdates)
 
-        testdts = DataArray([ZonedDateTime.(DateTime("2017-01-01T13:23") + Dates.Second.(1:4),
-                                 tz"UTC"); ZonedDateTime(tz"UTC")],
-                            BitArray([false, false, false, false, true]))
-        @test dates[2][1:4] == testdts[1:4]
-        @test ismissing(dates[2][5])
+        testdts = [ZonedDateTime.(DateTime("2017-01-01T13:23") + Dates.Second.(1:4), tz"UTC");
+                   missing]
+        @test all(dates[2] .=== testdts)
     end
 
     @testset "Test DateTime timezones" begin

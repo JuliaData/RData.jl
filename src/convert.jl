@@ -1,8 +1,7 @@
 # converters from selected RSEXPREC to Hash
 # They are used to translate SEXPREC attributes into Hash
 
-import TimeZones: unix2zdt
-import DataArrays: @data
+import TimeZones: unix2zdt, ZonedDateTime
 
 function Base.convert(::Type{Hash}, pl::RPairList)
     res = Hash()
@@ -54,7 +53,16 @@ function jlvec(::Type{T}, rv::RNullableVector{R}, force_missing::Bool=true) wher
 end
 
 # convert R vector into Vector of appropriate type
-jlvec(rv::RVEC, force_missing::Bool=true) = jlvec(eltype(rv.data), rv, force_missing)
+function jlvec(rv::RVEC, force_missing::Bool=true)
+    cls = class(rv)
+    if cls == R_Date_Class
+        return jlvec(Dates.Date, rv, force_missing)
+    elseif cls == R_POSIXct_Class
+        return jlvec(ZonedDateTime, rv, force_missing)
+    else
+        return jlvec(eltype(rv.data), rv, force_missing)
+    end
+end
 
 # convert R logical vector (uses Int32 to store values) into Vector{Bool[?]}
 function jlvec(rl::RLogicalVector, force_missing::Bool=true)
@@ -101,11 +109,7 @@ function sexp2julia(rv::RVEC)
     # TODO dimnames?
     # FIXME add force_missing option to control whether always convert to Union{T, Missing}
     jv = jlvec(rv, false)
-    if class(rv) == R_Date_Class
-        return date2julia(rv)
-    elseif class(rv) == R_POSIXct_Class
-        return datetime2julia(rv)
-    elseif hasnames(rv)
+    if hasnames(rv)
         return DictoVec(jv, names(rv))
     else
         hasdims = hasdim(rv)
@@ -135,30 +139,33 @@ function sexp2julia(rl::RList)
     end
 end
 
-function date2julia(rv)
-    @assert class(rv) == R_Date_Class
+function rdays2date(days::Real)
     epoch_conv = 719528 # Dates.date2epochdays(Date("1970-01-01"))
+    Dates.epochdays2date(days + epoch_conv)
+end
+
+
+function jlvec(::Type{Dates.Date}, rv::RVEC, force_missing::Bool=true)
+    @assert class(rv) == R_Date_Class
     nas = isnan.(rv.data)
-    if any(nas)
-        dates = @data([isna ? missing : Dates.epochdays2date(dtfloat + epoch_conv)
-                      for (isna, dtfloat) in zip(nas, rv.data)])
+    if force_missing || any(nas)
+        dates = Union{Dates.Date, Missing}[isna ? missing : rdays2date(dtfloat)
+                 for (isna, dtfloat) in zip(nas, rv.data)]
     else
-        dates = Dates.epochdays2date.(rv.data .+ epoch_conv)
+        dates = rdays2date.(rv.data)
     end
-    if hasnames(rv)
-        dates = DictoVec(dates, names(rv))
-    end
-    return length(dates) == 1 & !hasnames(rv) ? dates[1] : dates
+    return dates
 end
 
 # return tuple is true/false status of whether tzattr was successfully interpreted
 # then the tz itself. when not successfully interpreted, tz defaults to UTC
-function gettz(tzattr)
-    try
-        return true, TimeZone(tzattr)
-    catch ArgumentError
+function r2juliatz(tzattr)
+    valid = haskey(TimeZones.TIME_ZONES, tzattr)
+    if !valid
         warn("Could not determine timezone of '$(tzattr)', treating as if UTC.")
         return false, tz"UTC"
+    else
+        return true, TimeZone(tzattr)
     end
 end
 
@@ -166,21 +173,18 @@ function unix2zdt(seconds::Real; tz::TimeZone=tz"UTC")
     ZonedDateTime(Dates.unix2datetime(seconds), tz, from_utc=true)
 end
 
-function datetime2julia(rv)
+function jlvec(::Type{ZonedDateTime}, rv::RVEC, force_missing::Bool=true)
     @assert class(rv) == R_POSIXct_Class
     tzattr = getattr(rv, "tzone", ["UTC"])[1]
     tzattr = tzattr == "" ? "UTC" : tzattr # R will store a blank for tzone
-    goodtz, tz = gettz(tzattr)
+    goodtz, tz = r2juliatz(tzattr)
     nas = isnan.(rv.data)
-    if any(nas)
-        datetimes = @data([isna ? missing : unix2zdt(dtfloat, tz=tz)
-                           for (isna, dtfloat) in zip(nas, rv.data)])
+    if force_missing || any(nas)
+        datetimes = Union{ZonedDateTime, Missing}[isna ? missing : unix2zdt(dtfloat, tz=tz)
+                     for (isna, dtfloat) in zip(nas, rv.data)]
     else
         datetimes =  unix2zdt.(rv.data, tz=tz)
     end
-    if hasnames(rv)
-        datetimes = DictoVec(datetimes, names(rv))
-    end
-    return length(datetimes) == 1 & !hasnames(rv) ? datetimes[1] : datetimes
+    return datetimes
 end
 
