@@ -4,3 +4,4 @@ Missings 0.2
 CategoricalArrays 0.3
 FileIO 0.1.2
 CodecZlib 0.4
+TimeZones

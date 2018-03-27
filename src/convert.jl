@@ -1,6 +1,8 @@
 # converters from selected RSEXPREC to Hash
 # They are used to translate SEXPREC attributes into Hash
 
+import TimeZones: istimezone, unix2zdt, ZonedDateTime
+
 function Base.convert(::Type{Hash}, pl::RPairList)
     res = Hash()
     for i in eachindex(pl.items)
@@ -51,7 +53,16 @@ function jlvec(::Type{T}, rv::RNullableVector{R}, force_missing::Bool=true) wher
 end
 
 # convert R vector into Vector of appropriate type
-jlvec(rv::RVEC, force_missing::Bool=true) = jlvec(eltype(rv.data), rv, force_missing)
+function jlvec(rv::RVEC, force_missing::Bool=true)
+    cls = class(rv)
+    if cls == R_Date_Class
+        return jlvec(Dates.Date, rv, force_missing)
+    elseif cls == R_POSIXct_Class
+        return jlvec(ZonedDateTime, rv, force_missing)
+    else
+        return jlvec(eltype(rv.data), rv, force_missing)
+    end
+end
 
 # convert R logical vector (uses Int32 to store values) into Vector{Bool[?]}
 function jlvec(rl::RLogicalVector, force_missing::Bool=true)
@@ -87,6 +98,33 @@ function jlvec(ri::RIntegerVector, force_missing::Bool=true)
     else
         return CategoricalArray{String, 1}(refs, pool)
     end
+end
+
+# convert R Date to Dates.Date
+function jlvec(::Type{Dates.Date}, rv::RVEC, force_missing::Bool=true)
+    @assert class(rv) == R_Date_Class
+    nas = isnan.(rv.data)
+    if force_missing || any(nas)
+        dates = Union{Dates.Date, Missing}[isna ? missing : rdays2date(dtfloat)
+                 for (isna, dtfloat) in zip(nas, rv.data)]
+    else
+        dates = rdays2date.(rv.data)
+    end
+    return dates
+end
+
+# convert R POSIXct to ZonedDateTime
+function jlvec(::Type{ZonedDateTime}, rv::RVEC, force_missing::Bool=true)
+    @assert class(rv) == R_POSIXct_Class
+    tz, validtz = getjuliatz(rv)
+    nas = isnan.(rv.data)
+    if force_missing || any(nas)
+        datetimes = Union{ZonedDateTime, Missing}[isna ? missing : unix2zdt(dtfloat, tz=tz)
+                     for (isna, dtfloat) in zip(nas, rv.data)]
+    else
+        datetimes =  unix2zdt.(rv.data, tz=tz)
+    end
+    return datetimes
 end
 
 function sexp2julia(rex::RSEXPREC)
@@ -127,4 +165,38 @@ function sexp2julia(rl::RList)
         # FIXME return DictoVec if forceDictoVec is on
         map(sexp2julia, rl.data)
     end
+end
+
+function rdays2date(days::Real)
+    const epoch_conv = 719528 # Dates.date2epochdays(Date("1970-01-01"))
+    Dates.epochdays2date(days + epoch_conv)
+end
+
+# gets R timezone from the data attribute and converts it to TimeZones.TimeZone
+# see r2juliatz()
+function getjuliatz(rv::RVEC, deftz=tz"UTC")
+    tzattr = getattr(rv, "tzone", [""])[1]
+    if tzattr == ""
+        return deftz, true # R will store a blank for tzone
+    else
+        return r2juliatz(tzattr, deftz)
+    end
+end
+
+# converts R timezone code to TimeZones.TimeZone
+# returns a tuple:
+#  - timezone (or `deftz` if `rtz` is not recognized as a valid time zone)
+#  - boolean flag: true if `rtz` is not recognized, false otherwise
+function r2juliatz(rtz::AbstractString, deftz=tz"UTC")
+    valid = istimezone(rtz)
+    if !valid
+        warn("Could not determine the timezone of '$(rtz)', treating as $deftz.")
+        return deftz, false
+    else
+        return TimeZone(rtz), true
+    end
+end
+
+function unix2zdt(seconds::Real; tz::TimeZone=tz"UTC")
+    ZonedDateTime(Dates.unix2datetime(seconds), tz, from_utc=true)
 end

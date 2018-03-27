@@ -2,9 +2,12 @@
 
 ##### Changes
 * add support for `.rds` files (single object data files from R) [#22], [#33]
+* add support for `Date` and `POSIXct` (only for timezone codes supported by [TimeZones](https://github.com/JuliaTime/TimeZones.jl)) data [#34], [#35]
 
 [#22]: https://github.com/JuliaStats/RData.jl/issues/22
 [#33]: https://github.com/JuliaStats/RData.jl/issues/33
+[#34]: https://github.com/JuliaStats/RData.jl/issues/34
+[#35]: https://github.com/JuliaStats/RData.jl/issues/35
 
 ## RData v0.3.0 Release Notes
 
