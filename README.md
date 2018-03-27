@@ -40,6 +40,8 @@ convert R objects into Julia equivalents:
 | named vector, list | `DictoVec` | `DictoVec` allows indexing both by element index and by its name, just as R vectors and lists |
 | vector    | `Vector{T}` | `T` is the appropriate Julia type. If R vector contains `NA` values, they are converted to [`missing`](https://github.com/JuliaData/Missings.jl), and the elements type of the resulting `Vector` is `Union{T, Missing}`.
 | factor     | `CategoricalArray` | [CategoricalArrays.jl](https://github.com/JuliaData/CategoricalArrays.jl) |
+| `Date`     | `Dates.Date` | |
+| `POSIXct` date time | `ZonedDateTime` | [TimeZones.jl](https://github.com/JuliaTime/TimeZones.jl) |
 | data frame | `DataFrame` | [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl) |
 
 If conversion to the Julia type is not supported (e.g. R closure or language expression), `load()` will return the internal RData representation of the object (`RSEXPREC` subtype).
