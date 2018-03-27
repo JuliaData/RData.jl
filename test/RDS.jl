@@ -96,16 +96,15 @@ module TestRDS
     end
 
     @testset "Test DateTime timezones" begin
-        # when this warning can go away, uncomment test_broken below, should work now
-        datetimes = @test_warn "Could not determine timezone of 'CST', treating as if UTC." begin
+        # tz"CST" is not supported by TimeZones.jl
+        datetimes = @test_warn "Could not determine the timezone of 'CST', treating as UTC." begin
             load("$testdir/data/datetimes_tz.rds")
         end
         # assumes generate_rda.R was generated on system set to PST!
         @test datetimes[1] == ZonedDateTime(DateTime("2017-01-01T21:23"), tz"UTC")
-        # tz"CST" is invalid, but if TimeZones ever enables support for these 3
-        # letter codes, a test would be useful. For now, intentionally not testing
-        #@test_broken datetimes[2] == ZonedDateTime(DateTime("2017-01-01T13:23"), tz"CST")
+        # should be tz"CST", but gets substituted to tz"UTC"
+        # FIXME update the test when CST is supported
+        @test datetimes[2] == ZonedDateTime(DateTime("2017-01-01T13:23"), tz"UTC")
         @test datetimes[3] == ZonedDateTime(DateTime("2017-01-01T13:23"), tz"America/Chicago")
     end
 end
-

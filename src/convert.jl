@@ -100,7 +100,7 @@ function jlvec(ri::RIntegerVector, force_missing::Bool=true)
     end
 end
 
-# convert to Date
+# convert R Date to Dates.Date
 function jlvec(::Type{Dates.Date}, rv::RVEC, force_missing::Bool=true)
     @assert class(rv) == R_Date_Class
     nas = isnan.(rv.data)
@@ -113,10 +113,10 @@ function jlvec(::Type{Dates.Date}, rv::RVEC, force_missing::Bool=true)
     return dates
 end
 
-# convert to ZonedDateTime
+# convert R POSIXct to ZonedDateTime
 function jlvec(::Type{ZonedDateTime}, rv::RVEC, force_missing::Bool=true)
     @assert class(rv) == R_POSIXct_Class
-    goodtz, tz = r2juliatz(rv)
+    tz, validtz = getjuliatz(rv)
     nas = isnan.(rv.data)
     if force_missing || any(nas)
         datetimes = Union{ZonedDateTime, Missing}[isna ? missing : unix2zdt(dtfloat, tz=tz)
@@ -168,29 +168,35 @@ function sexp2julia(rl::RList)
 end
 
 function rdays2date(days::Real)
-    epoch_conv = 719528 # Dates.date2epochdays(Date("1970-01-01"))
+    const epoch_conv = 719528 # Dates.date2epochdays(Date("1970-01-01"))
     Dates.epochdays2date(days + epoch_conv)
 end
 
-# return tuple is true/false status of whether tzattr was successfully interpreted
-# then the tz itself. when not successfully interpreted, tz defaults to UTC
-function r2juliatz(rv::RVEC)
-    tzattr = getattr(rv, "tzone", ["UTC"])[1]
-    tzattr = tzattr == "" ? "UTC" : tzattr # R will store a blank for tzone
-    return r2juliatz(tzattr)
+# gets R timezone from the data attribute and converts it to TimeZones.TimeZone
+# see r2juliatz()
+function getjuliatz(rv::RVEC, deftz=tz"UTC")
+    tzattr = getattr(rv, "tzone", [""])[1]
+    if tzattr == ""
+        return deftz, true # R will store a blank for tzone
+    else
+        return r2juliatz(tzattr, deftz)
+    end
 end
 
-function r2juliatz(tzattr::AbstractString)
-    valid = istimezone(tzattr)
+# converts R timezone code to TimeZones.TimeZone
+# returns a tuple:
+#  - timezone (or `deftz` if `rtz` is not recognized as a valid time zone)
+#  - boolean flag: true if `rtz` is not recognized, false otherwise
+function r2juliatz(rtz::AbstractString, deftz=tz"UTC")
+    valid = istimezone(rtz)
     if !valid
-        warn("Could not determine timezone of '$(tzattr)', treating as if UTC.")
-        return false, tz"UTC"
+        warn("Could not determine the timezone of '$(rtz)', treating as $deftz.")
+        return deftz, false
     else
-        return true, TimeZone(tzattr)
+        return TimeZone(rtz), true
     end
 end
 
 function unix2zdt(seconds::Real; tz::TimeZone=tz"UTC")
     ZonedDateTime(Dates.unix2datetime(seconds), tz, from_utc=true)
 end
-
