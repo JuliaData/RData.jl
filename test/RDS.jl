@@ -1,8 +1,5 @@
 module TestRDS
-    using Base.Test
-    using DataFrames
-    using RData
-    using TimeZones
+    using DataFrames, RData, Test, TimeZones
 
     testdir = dirname(@__FILE__)
 

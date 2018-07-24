@@ -1,7 +1,5 @@
 module TestRDA
-    using Base.Test
-    using DataFrames
-    using RData
+    using DataFrames, Test, RData
 
     # check for Float64 NA
     @testset "Detect R floating-point NAs" begin
