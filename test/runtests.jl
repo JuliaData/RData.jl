@@ -1,5 +1,4 @@
-using RData
-using Base.Test
+using RData, Test
 
 include("RDA.jl")
 include("RDS.jl")

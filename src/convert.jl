@@ -20,7 +20,7 @@ end
 isna(x::Int32) = x == R_NA_INT32
 isna(x::Float64) = isna_float64(reinterpret(UInt64, x))
 # if re or im is NA, the whole complex number is NA
-isna(x::Complex128) = isna(real(x)) || isna(imag(x))
+isna(x::ComplexF64) = isna(real(x)) || isna(imag(x))
 
 # convert R vector into Vector holding elements of type T
 # if force_missing is true, the result is always Vector{Union{T,Missing}},
@@ -45,7 +45,7 @@ function jlvec(::Type{T}, rv::RNullableVector{R}, force_missing::Bool=true) wher
     anyna = any(rv.na)
     if force_missing || anyna
         res = convert(Vector{Union{T,Missing}}, rv.data)
-        anyna && @inbounds res[rv.na] = missing
+        anyna && @inbounds res[rv.na] .= missing
         return res
     else
         return convert(Vector{T}, rv.data)
@@ -101,7 +101,7 @@ function jlvec(ri::RIntegerVector, force_missing::Bool=true)
 end
 
 # convert R Date to Dates.Date
-function jlvec(::Type{Dates.Date}, rv::RVEC, force_missing::Bool=true)
+function jlvec(::Type{Date}, rv::RVEC, force_missing::Bool=true)
     @assert class(rv) == R_Date_Class
     nas = isnan.(rv.data)
     if force_missing || any(nas)
@@ -168,7 +168,7 @@ function sexp2julia(rl::RList)
 end
 
 function rdays2date(days::Real)
-    const epoch_conv = 719528 # Dates.date2epochdays(Date("1970-01-01"))
+    epoch_conv = 719528 # Dates.date2epochdays(Date("1970-01-01"))
     Dates.epochdays2date(days + epoch_conv)
 end
 

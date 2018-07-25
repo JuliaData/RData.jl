@@ -1,7 +1,10 @@
-julia 0.6
+julia 0.7.0-beta2
 DataFrames 0.11
 Missings 0.2
 CategoricalArrays 0.3
-FileIO 0.1.2
+FileIO
+CodecBzip2 0.4
+CodecXz 0.4
 CodecZlib 0.4
 TimeZones
+Dates
