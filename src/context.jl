@@ -28,8 +28,29 @@ function RDAContext(io::RDAIO, kwoptions::Vector{Any}=Any[])
     RDAContext(io, fmtver, rver, rminver, kwdict, RSEXPREC[])
 end
 
+function contextify(io::IO, fname::AbstractString, RData::Bool=true)
+    sig = read(io, 2)
+    seekstart(io)
+                # create the appropriate decompressed stream
+    st = sig == [0x1f,0x8b] ? GzipDecompressorStream(io) :
+         sig == [0x42,0x5a] ? Bzip2DecompressorStream(io) :
+         sig == [0xfd,0x37] ? XzDecompressorStream(io) : io
+                # for RData format files, check the header
+    RData && ((m = match(r"^RD[A,B,X]2$", readline(st))) ≠ nothing ||
+        throw(ArgumentError("File $fname not in .rda format")))
+    ch = readline(st)
+    ctx = RDAContext(ch == "X" ? XDRIO(st) : ch == "A" ? ASCIIIO(st) :
+                     ch == "B" ? NativeIO(st) : error("Unrecognized code $ch"))
+                     
+    @assert ctx.fmtver == 2    # format version
+
+    ctx
+end
+
 """
-Register R object, so that it could be referenced later
+    registerref!(ctx::RDAContext, obj::RSEXPEC)
+
+Register a reference to `obj` in `ctx`, so that it could be referenced later
 (by its index in the reference table).
 """
 function registerref!(ctx::RDAContext, obj::RSEXPREC)

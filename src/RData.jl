@@ -2,14 +2,14 @@ __precompile__()
 
 module RData
 
-using DataFrames, CategoricalArrays, Missings, CodecZlib, FileIO, TimeZones
+using DataFrames, CategoricalArrays, Dates, Missings, CodecBzip2, CodecXz, CodecZlib, TimeZones
 import DataFrames: identifier
-import FileIO: load
 
 export
     sexp2julia,
     DictoVec,
-    load # export FileIO.load()
+    load,
+    readRDS
 
 include("config.jl")
 include("sxtypes.jl")
@@ -30,6 +30,37 @@ include("convert.jl")
 include("context.jl")
 include("readers.jl")
 
+function load(fname::AbstractString, convert2julia::Bool=true)
+    open(fname, "r") do io
+        ctx = contextify(io, fname)
+
+        # top level read -- must be a paired list of objects
+        # we read it here to be able to convert to julia objects inplace
+        fl = readuint32(ctx.io)
+        sxtype(fl) == LISTSXP || error("Top level R object is not a paired list")
+        !hasattr(fl) || error("Top level R paired list should have no attributes")
+
+        res = Dict{RString,Any}()
+        while sxtype(fl) != NILVALUE_SXP
+            hastag(fl) || error("Top level list element has no name")
+            tag = readitem(ctx)
+            obj_name = convert(RString, isa(tag, RSymbol) ? tag.displayname : "\0")
+            obj = readitem(ctx)
+            setindex!(res, (convert2julia ? sexp2julia(obj) : obj), obj_name)
+            fl = readuint32(ctx.io)
+            readattrs(ctx, fl)
+        end
+        res
+    end
+end
+
+function readRDS(fname::AbstractString, convert2julia::Bool=true)
+    open(fname, "r") do io
+        ctx = contextify(io, fname, false)
+        convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
+    end
+end
+
 ##############################################################################
 ##
 ## FileIO integration.
@@ -39,7 +70,7 @@ include("readers.jl")
 ## TODO option for disabling names checking (e.g. column names)
 ##
 ##############################################################################
-
+#=
 function decompress(io)
     # check GZip magic number
     gzipped = read(io, UInt8) == 0x1F && read(io, UInt8) == 0x8B
@@ -65,7 +96,7 @@ end
 function load(s::Stream{format"RData"}, kwoptions::Vector{Any})
     io = stream(s)
     @assert FileIO.detect_rdata(io)
-    ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
+    ctx = RDAContext(rdaio(io, readline(io)), kwoptions)
     @assert ctx.fmtver == 2    # format version
 #    println("Written by R version $(ctx.Rver)")
 #    println("Minimal R version: $(ctx.Rmin)")
@@ -94,7 +125,6 @@ end
 
 load(s::Stream{format"RData"}; kwoptions...) = load(s, kwoptions)
 
-
 function load(f::File{format"RDataSingle"}; kwoptions...)
     io = open(filename(f), "r")
     try
@@ -117,5 +147,6 @@ function load(s::Stream{format"RDataSingle"}, kwoptions::Vector{Any})
 end
 
 load(s::Stream{format"RDataSingle"}; kwoptions...) = load(s, kwoptions)
+=#
 
 end # module

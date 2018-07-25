@@ -119,7 +119,7 @@ end
 const RLogicalVector = RVector{Int32, LGLSXP}
 const RIntegerVector = RVector{Int32, INTSXP}
 const RNumericVector = RVector{Float64, REALSXP}
-const RComplexVector = RVector{Complex128, CPLXSXP}
+const RComplexVector = RVector{ComplexF64, CPLXSXP}
 
 """
 R vector object with explicit NA values.

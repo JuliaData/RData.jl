@@ -37,7 +37,7 @@ function readfloatorNA!(io::ASCIIIO, v::AbstractVector{Float64})
     v
 end
 
-readfloatorNA(io::ASCIIIO, n::RVecLength) = readfloatorNA!(io, Vector{Float64}(n))
+readfloatorNA(io::ASCIIIO, n::RVecLength) = readfloatorNA!(io, Vector{Float64}(undef, n))
 
 readuint8(io::ASCIIIO, n::RVecLength) = UInt8[hex2bytes(chomp(readline(io.sub)))[1] for i in 1:n] # FIXME optimize for speed
 
