@@ -2,14 +2,12 @@ __precompile__()
 
 module RData
 
-using DataFrames, CategoricalArrays, Dates, Missings, CodecBzip2, CodecXz, CodecZlib, TimeZones
+using CategoricalArrays, CodecBzip2, CodecXz, CodecZlib, DataFrames, Dates, FileIO, Missings, TimeZones
 import DataFrames: identifier
 
 export
     sexp2julia,
-    DictoVec,
-    load,
-    readRDS
+    DictoVec
 
 include("config.jl")
 include("sxtypes.jl")
@@ -30,10 +28,11 @@ include("convert.jl")
 include("context.jl")
 include("readers.jl")
 
-function load(fname::AbstractString, convert2julia::Bool=true)
-    open(fname, "r") do io
-        ctx = contextify(io, fname)
+function load(f::File{format"RData"}, kwoptions::AbstractDict=Dict{Symbol,Any}())
+    open(filename(f), "r") do io
+        ctx = contextify(io, filename(f), true, kwoptions)
 
+        convert2julia = get(ctx.kwdict, :convert, true)
         # top level read -- must be a paired list of objects
         # we read it here to be able to convert to julia objects inplace
         fl = readuint32(ctx.io)
@@ -54,10 +53,10 @@ function load(fname::AbstractString, convert2julia::Bool=true)
     end
 end
 
-function readRDS(fname::AbstractString, convert2julia::Bool=true)
-    open(fname, "r") do io
-        ctx = contextify(io, fname, false)
-        convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
+function load(f::File{format"RDataSingle"}, kwoptions::AbstractDict=Dict{Symbol,Any}())
+    open(filename(f), "r") do io
+        ctx = contextify(io, filename(f), false, kwoptions)
+        get(ctx.kwdict, :convert, true) ? sexp2julia(readitem(ctx)) : readitem(ctx)
     end
 end
 
