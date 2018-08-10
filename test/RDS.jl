@@ -1,5 +1,6 @@
 module TestRDS
-    using Base.Test
+    using Test
+    using Dates
     using DataFrames
     using RData
     using TimeZones
@@ -12,7 +13,7 @@ module TestRDS
                        logi = [true, false],
                        chr = ["ab", "c"],
                        factor = categorical(["ab", "c"], true),
-                       cplx = Complex128[1.1+0.5im, 1.0im])
+                       cplx = ComplexF64[1.1+0.5im, 1.0im])
         rdf = sexp2julia(load("$testdir/data/types.rds", convert=false))
         @test rdf isa DataFrame
         @test eltypes(rdf) == eltypes(df)
@@ -58,8 +59,8 @@ module TestRDS
 
     @testset "Test DateTime conversion" begin
         datetimes = load("$testdir/data/datetimes.rds")
-        testdts = ZonedDateTime.(DateTime("2017-01-01T13:23") + Dates.Second.(1:4),
-                                 TimeZone("UTC"))
+        testdts = map(i -> ZonedDateTime(DateTime("2017-01-01T13:23") + Dates.Second(i),
+                                 TimeZone("UTC")), 1:4)
         @test datetimes[1] == testdts
         @test datetimes[2] == testdts[1]
         @test datetimes[3] isa DictoVec
@@ -72,9 +73,8 @@ module TestRDS
 
     @testset "Test Date and DateTime in a DataFrame" begin
         rdfs = load("$testdir/data/datedfs.rds")
-        df = DataFrame(date=Date("2017-01-01") + Dates.Day.(1:4),
-                       datetime=ZonedDateTime.(DateTime("2017-01-01T13:23") + Dates.Second.(1:4),
-                                               tz"UTC"))
+        df = DataFrame(date=map(i -> Date("2017-01-01") + Dates.Day(i), 1:4),
+                       datetime=map(i -> ZonedDateTime(DateTime("2017-01-01T13:23") + Dates.Second(i), tz"UTC"), 1:4))
         @test length(rdfs) == 2
         @test rdfs[1] isa DataFrame
         @test rdfs[2] isa DataFrame
@@ -90,14 +90,14 @@ module TestRDS
         testdates = [Date("2017-01-01") + Dates.Day.(1:4); missing]
         @test all(dates[1] .=== testdates)
 
-        testdts = [ZonedDateTime.(DateTime("2017-01-01T13:23") + Dates.Second.(1:4), tz"UTC");
+        testdts = [map(i -> ZonedDateTime(DateTime("2017-01-01T13:23") + Dates.Second(i), tz"UTC"), 1:4);
                    missing]
         @test all(dates[2] .=== testdts)
     end
 
     @testset "Test DateTime timezones" begin
         # tz"CST" is not supported by TimeZones.jl
-        datetimes = @test_warn "Could not determine the timezone of 'CST', treating as UTC." begin
+        datetimes = @test_logs (:warn, "Could not determine the timezone of 'CST', treating as UTC.") begin
             load("$testdir/data/datetimes_tz.rds")
         end
         # assumes generate_rda.R was generated on system set to PST!

@@ -1,5 +1,3 @@
-__precompile__()
-
 module RData
 
 using DataFrames, CategoricalArrays, Missings, CodecZlib, FileIO, TimeZones
@@ -54,7 +52,7 @@ function load(f::File{format"RData"}; kwoptions...)
     io = open(filename(f), "r")
     try
         io = decompress(io)
-        return load(Stream(f, io), kwoptions)
+        return load(Stream(f, io), collect(kwoptions))
     catch
         rethrow()
     finally
@@ -62,7 +60,7 @@ function load(f::File{format"RData"}; kwoptions...)
     end
 end
 
-function load(s::Stream{format"RData"}, kwoptions::Vector{Any})
+function load(s::Stream{format"RData"}, kwoptions::Vector)
     io = stream(s)
     @assert FileIO.detect_rdata(io)
     ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
@@ -92,14 +90,14 @@ function load(s::Stream{format"RData"}, kwoptions::Vector{Any})
     return res
 end
 
-load(s::Stream{format"RData"}; kwoptions...) = load(s, kwoptions)
+load(s::Stream{format"RData"}; kwoptions...) = load(s, collect(kwoptions))
 
 
 function load(f::File{format"RDataSingle"}; kwoptions...)
     io = open(filename(f), "r")
     try
         io = decompress(io)
-        return load(Stream(f, io), kwoptions)
+        return load(Stream(f, io), collect(kwoptions))
     catch
         rethrow()
     finally
@@ -107,7 +105,7 @@ function load(f::File{format"RDataSingle"}; kwoptions...)
     end
 end
 
-function load(s::Stream{format"RDataSingle"}, kwoptions::Vector{Any})
+function load(s::Stream{format"RDataSingle"}, kwoptions::Vector)
     io = stream(s)
     @assert FileIO.detect_rdata_single(io)
     ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
@@ -116,6 +114,6 @@ function load(s::Stream{format"RDataSingle"}, kwoptions::Vector{Any})
     return convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
 end
 
-load(s::Stream{format"RDataSingle"}; kwoptions...) = load(s, kwoptions)
+load(s::Stream{format"RDataSingle"}; kwoptions...) = load(s, collect(kwoptions))
 
 end # module
