@@ -1,5 +1,5 @@
 module TestRDA
-    using Base.Test
+    using Test
     using DataFrames
     using RData
 
@@ -44,12 +44,12 @@ module TestRDA
                        logi = Union{Bool, Missing}[true, false],
                        chr = Union{String, Missing}["ab", "c"],
                        factor = categorical(Union{String, Missing}["ab", "c"], true),
-                       cplx = Union{Complex128, Missing}[1.1+0.5im, 1.0im])
+                       cplx = Union{ComplexF64, Missing}[1.1+0.5im, 1.0im])
 
         df[2, :] = missing
         append!(df, df[2, :])
         df[3, :num] = NaN
-        df[:, :cplx] = [missing, Complex128(1,NaN), NaN]
+        df[:, :cplx] = [missing, ComplexF64(1,NaN), NaN]
         @test isequal(sexp2julia(load("$testdir/data/NAs.rda",convert=false)["df"]), df)
         # ASCII format saves NaN as NA
         df[3, :num] = missing

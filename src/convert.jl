@@ -1,6 +1,8 @@
 # converters from selected RSEXPREC to Hash
 # They are used to translate SEXPREC attributes into Hash
 
+using Dates
+
 import TimeZones: istimezone, unix2zdt, ZonedDateTime
 
 function Base.convert(::Type{Hash}, pl::RPairList)
@@ -20,7 +22,7 @@ end
 isna(x::Int32) = x == R_NA_INT32
 isna(x::Float64) = isna_float64(reinterpret(UInt64, x))
 # if re or im is NA, the whole complex number is NA
-isna(x::Complex128) = isna(real(x)) || isna(imag(x))
+isna(x::ComplexF64) = isna(real(x)) || isna(imag(x))
 
 # convert R vector into Vector holding elements of type T
 # if force_missing is true, the result is always Vector{Union{T,Missing}},
@@ -45,7 +47,7 @@ function jlvec(::Type{T}, rv::RNullableVector{R}, force_missing::Bool=true) wher
     anyna = any(rv.na)
     if force_missing || anyna
         res = convert(Vector{Union{T,Missing}}, rv.data)
-        anyna && @inbounds res[rv.na] = missing
+        anyna && @inbounds res[rv.na] .= missing
         return res
     else
         return convert(Vector{T}, rv.data)
@@ -128,7 +130,7 @@ function jlvec(::Type{ZonedDateTime}, rv::RVEC, force_missing::Bool=true)
 end
 
 function sexp2julia(rex::RSEXPREC)
-    warn("Conversion of $(typeof(rex)) to Julia is not implemented")
+    @warn "Conversion of $(typeof(rex)) to Julia is not implemented"
     return nothing
 end
 
@@ -158,7 +160,7 @@ end
 function sexp2julia(rl::RList)
     if isdataframe(rl)
         # FIXME add force_missing option to control whether always convert to Union{T, Missing}
-        DataFrame(Any[jlvec(col, false) for col in rl.data], identifier.(names(rl)))
+        DataFrame(Any[jlvec(col, false) for col in rl.data], identifier.(names(rl)), makeunique=true)
     elseif hasnames(rl)
         DictoVec(Any[sexp2julia(item) for item in rl.data], names(rl))
     else
@@ -168,7 +170,7 @@ function sexp2julia(rl::RList)
 end
 
 function rdays2date(days::Real)
-    const epoch_conv = 719528 # Dates.date2epochdays(Date("1970-01-01"))
+    epoch_conv = 719528 # Dates.date2epochdays(Date("1970-01-01"))
     Dates.epochdays2date(days + epoch_conv)
 end
 
@@ -190,7 +192,7 @@ end
 function r2juliatz(rtz::AbstractString, deftz=tz"UTC")
     valid = istimezone(rtz)
     if !valid
-        warn("Could not determine the timezone of '$(rtz)', treating as $deftz.")
+        @warn "Could not determine the timezone of '$(rtz)', treating as $deftz."
         return deftz, false
     else
         return TimeZone(rtz), true

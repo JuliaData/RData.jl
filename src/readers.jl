@@ -38,7 +38,7 @@ end
 function readcomplex(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == CPLXSXP
     n = readlength(ctx.io)
-    v = Vector{Complex128}(n)
+    v = Vector{ComplexF64}(undef, n)
     readfloatorNA!(ctx.io, reinterpret(Float64, v))
     RComplexVector(v, readattrs(ctx, fl))
 end
@@ -182,10 +182,11 @@ end
 Context for reading R bytecode.
 """
 struct BytecodeContext
-    ctx::RDAContext         # parent RDA context
-    ref_tab::Vector{Any}    # table of bytecode references
+    ctx::RDAContext                            # parent RDA context
+    ref_tab::Vector{Union{RBytecode, Missing}} # table of bytecode references
 
-    BytecodeContext(ctx::RDAContext, nrefs::Int32) = new(ctx, Vector{Any}(Int(nrefs)))
+    BytecodeContext(ctx::RDAContext, nrefs::Int32) =
+        new(ctx, Vector{Union{RBytecode, Missing}}(missing, nrefs))
 end
 
 const BYTECODELANG_Types = Set([BCREPREF, BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSXP, ATTRLISTSXP])
@@ -221,7 +222,7 @@ end
 
 function readbytecodeconsts(bctx::BytecodeContext)
     nconsts = readint32(bctx.ctx.io)
-    v = Vector{RSEXPREC}(nconsts)
+    v = fill!(Vector{RSEXPREC}(undef, nconsts), RDummy{NILVALUE_SXP}())
     @inbounds for i = 1:nconsts
         bctype = readint32(bctx.ctx.io)
         v[i] = if bctype == BCODESXP

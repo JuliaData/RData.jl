@@ -1,3 +1,13 @@
+## RData v0.5.0 Release Notes
+
+Updated to Julia v0.7 (older versions not supported)
+
+##### Changes
+* update to Julia v0.7+ and drop support for older versions [#42], [#44]
+
+[#42]: https://github.com/JuliaStats/RData.jl/issues/42
+[#44]: https://github.com/JuliaStats/RData.jl/issues/44
+
 ## RData v0.4.0 Release Notes
 
 ##### Changes
