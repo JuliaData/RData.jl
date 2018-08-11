@@ -1,6 +1,6 @@
 RData.jl is licensed under the MIT License:
 
-> Copyright (c) 2013-2016: Douglas Bates, John Myles White, Alexey Stukalov,
+> Copyright (c) 2013-2018: Douglas Bates, John Myles White, Alexey Stukalov,
 > and other contributors.
 >
 > Permission is hereby granted, free of charge, to any person obtaining
