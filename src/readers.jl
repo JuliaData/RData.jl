@@ -193,7 +193,9 @@ const BYTECODELANG_Types = Set([BCREPREF, BCREPDEF, LANGSXP, LISTSXP, ATTRLANGSX
 
 function readbytecodelang(bctx::BytecodeContext, bctype::Int32)
     if bctype == BCREPREF # refer to an already defined bytecode
-        return bctx.ref_tab[readint32(bctx.ctx.io)+1]
+        res = bctx.ref_tab[readint32(bctx.ctx.io)+1]
+        @assert !ismissing(res)
+        return res
     elseif bctype ∈ BYTECODELANG_Types
         pos = 0
         hasattr = false
