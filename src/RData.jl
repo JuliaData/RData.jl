@@ -2,12 +2,11 @@ module RData
 
 using DataFrames, CategoricalArrays, Missings, CodecZlib, FileIO, TimeZones
 import DataFrames: identifier
-import FileIO: load
 
 export
     sexp2julia,
     DictoVec,
-    load # export FileIO.load()
+    load # reexport FileIO.load()
 
 include("config.jl")
 include("sxtypes.jl")
@@ -48,22 +47,10 @@ function decompress(io)
     return io
 end
 
-function load(f::File{format"RData"}; kwoptions...)
-    io = open(filename(f), "r")
-    try
-        io = decompress(io)
-        return load(Stream(f, io), collect(kwoptions))
-    catch
-        rethrow()
-    finally
-        close(io)
-    end
-end
-
-function load(s::Stream{format"RData"}, kwoptions::Vector)
+function fileio_load(s::Stream{format"RData"}; kwoptions...)
     io = stream(s)
     @assert FileIO.detect_rdata(io)
-    ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
+    ctx = RDAContext(rdaio(io, chomp(readline(io))); kwoptions...)
     @assert ctx.fmtver == 2    # format version
 #    println("Written by R version $(ctx.Rver)")
 #    println("Minimal R version: $(ctx.Rmin)")
@@ -90,30 +77,26 @@ function load(s::Stream{format"RData"}, kwoptions::Vector)
     return res
 end
 
-load(s::Stream{format"RData"}; kwoptions...) = load(s, collect(kwoptions))
+function fileio_load(s::Stream{format"RDataSingle"}; kwoptions...)
+    io = stream(s)
+    @assert FileIO.detect_rdata_single(io)
+    ctx = RDAContext(rdaio(io, chomp(readline(io))); kwoptions...)
+    @assert ctx.fmtver == 2    # format version
+    convert2julia = get(ctx.kwdict, :convert, true)
+    return convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
+end
 
-
-function load(f::File{format"RDataSingle"}; kwoptions...)
+function fileio_load(f::Union{File{format"RData"}, File{format"RDataSingle"}};
+                     kwoptions...)
     io = open(filename(f), "r")
     try
         io = decompress(io)
-        return load(Stream(f, io), collect(kwoptions))
+        return fileio_load(Stream(f, io); kwoptions...)
     catch
         rethrow()
     finally
         close(io)
     end
 end
-
-function load(s::Stream{format"RDataSingle"}, kwoptions::Vector)
-    io = stream(s)
-    @assert FileIO.detect_rdata_single(io)
-    ctx = RDAContext(rdaio(io, chomp(readline(io))), kwoptions)
-    @assert ctx.fmtver == 2    # format version
-    convert2julia = get(ctx.kwdict, :convert, true)
-    return convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
-end
-
-load(s::Stream{format"RDataSingle"}; kwoptions...) = load(s, collect(kwoptions))
 
 end # module
