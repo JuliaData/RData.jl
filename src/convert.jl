@@ -3,8 +3,6 @@
 
 using Dates
 
-import TimeZones: istimezone, unix2zdt, ZonedDateTime
-
 function Base.convert(::Type{Hash}, pl::RPairList)
     res = Hash()
     for i in eachindex(pl.items)
@@ -121,10 +119,10 @@ function jlvec(::Type{ZonedDateTime}, rv::RVEC, force_missing::Bool=true)
     tz, validtz = getjuliatz(rv)
     nas = isnan.(rv.data)
     if force_missing || any(nas)
-        datetimes = Union{ZonedDateTime, Missing}[isna ? missing : unix2zdt(dtfloat, tz=tz)
+        datetimes = Union{ZonedDateTime, Missing}[isna ? missing : _unix2zdt(dtfloat, tz=tz)
                      for (isna, dtfloat) in zip(nas, rv.data)]
     else
-        datetimes =  unix2zdt.(rv.data, tz=tz)
+        datetimes = _unix2zdt.(rv.data, tz=tz)
     end
     return datetimes
 end
@@ -199,6 +197,6 @@ function r2juliatz(rtz::AbstractString, deftz=tz"UTC")
     end
 end
 
-function unix2zdt(seconds::Real; tz::TimeZone=tz"UTC")
+# version with user-specified tz (unix2zdt(seconds) is fixed to tz"UTZ")
+_unix2zdt(seconds::Real; tz::TimeZone=tz"UTC") =
     ZonedDateTime(Dates.unix2datetime(seconds), tz, from_utc=true)
-end

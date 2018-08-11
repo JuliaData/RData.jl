@@ -5,10 +5,13 @@ Updated to Julia v0.7 (older versions not supported)
 ##### Changes
 * update to Julia v0.7+ and drop support for older versions [#42], [#44]
 * improve FileIO integration [#46]
+* fix `unix2zdt()` overwritten method warning [#41], [#47]
 
+[#41]: https://github.com/JuliaStats/RData.jl/issues/41
 [#42]: https://github.com/JuliaStats/RData.jl/issues/42
 [#44]: https://github.com/JuliaStats/RData.jl/issues/44
 [#46]: https://github.com/JuliaStats/RData.jl/issues/46
+[#47]: https://github.com/JuliaStats/RData.jl/issues/47
 
 ## RData v0.4.0 Release Notes
 
