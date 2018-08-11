@@ -20,7 +20,7 @@ end
 
 int2ver(v::Integer) = VersionNumber(v >> 16, (v >> 8) & 0xff, v & 0xff)
 
-function RDAContext(io::RDAIO, kwoptions::Vector=Any[])
+function RDAContext(io::RDAIO; kwoptions...)
     fmtver = readuint32(io)
     rver = int2ver(readint32(io))
     rminver = int2ver(readint32(io))
