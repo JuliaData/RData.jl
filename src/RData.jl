@@ -1,6 +1,6 @@
 module RData
 
-using DataFrames, CategoricalArrays, Missings, CodecZlib, FileIO, TimeZones
+using DataFrames, CategoricalArrays, CodecZlib, FileIO, TimeZones
 import DataFrames: identifier
 
 export
