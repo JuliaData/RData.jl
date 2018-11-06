@@ -195,7 +195,7 @@ function jlvec(::Type{T}, rv::RVEC, force_missing::Bool=true) where T
 end
 
 function sexp2julia(rex::RSEXPREC)
-    @warn "Conversion of $(typeof(rex)) to Julia is not implemented"
+    @warn "Conversion of $(typeof(rex)) to Julia is not implemented" maxlog=1
     return nothing
 end
 
@@ -263,7 +263,7 @@ end
 function r2juliatz(rtz::AbstractString, deftz=tz"UTC")
     valid = istimezone(rtz)
     if !valid
-        @warn "Could not determine the timezone of '$(rtz)', treating as $deftz."
+        @warn "Could not determine the timezone of '$(rtz)', treating as '$deftz'" maxlog=1
         return deftz, false
     else
         return TimeZone(rtz), true
