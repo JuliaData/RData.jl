@@ -82,21 +82,26 @@ na2zero(::Type{R}, v::Vector{Int32}) where R =
 # convert to CategoricalVector{String[?]} if `ri` is a factor,
 # or to Vector{Int32[?]} otherwise
 function jlvec(ri::RIntegerVector, force_missing::Bool=true)
-    isfactor(ri) || return jlvec(eltype(ri.data), ri, force_missing)
-
-    rlevels = getattr(ri, "levels", emptystrvec)
-    sz = length(rlevels)
-    REFTYPE = sz <= typemax(UInt8)  ? UInt8 :
-              sz <= typemax(UInt16) ? UInt16 :
-              sz <= typemax(UInt32) ? UInt32 :
-                                      UInt64
-    refs = na2zero(REFTYPE, ri.data)
-    anyna = any(iszero, refs)
-    pool = CategoricalPool{String, REFTYPE}(rlevels, inherits(ri, "ordered"))
-    if force_missing || anyna
-        return CategoricalArray{Union{String, Missing}, 1}(refs, pool)
+    cls = class(ri)
+    if cls == R_Date_Class
+        return jlvec(Dates.Date, ri, force_missing)
+    elseif isfactor(ri)
+        rlevels = getattr(ri, "levels", emptystrvec)
+        sz = length(rlevels)
+        REFTYPE = sz <= typemax(UInt8)  ? UInt8 :
+        sz <= typemax(UInt16) ? UInt16 :
+        sz <= typemax(UInt32) ? UInt32 :
+        UInt64
+        refs = na2zero(REFTYPE, ri.data)
+        anyna = any(iszero, refs)
+        pool = CategoricalPool{String, REFTYPE}(rlevels, inherits(ri, "ordered"))
+        if force_missing || anyna
+            return CategoricalArray{Union{String, Missing}, 1}(refs, pool)
+        else
+            return CategoricalArray{String, 1}(refs, pool)
+        end
     else
-        return CategoricalArray{String, 1}(refs, pool)
+        return jlvec(eltype(ri.data), ri, force_missing)
     end
 end
 
