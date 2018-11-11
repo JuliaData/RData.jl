@@ -1,4 +1,4 @@
-SXType = UInt8 # stores the type of SEXPREC
+const SXType = UInt8 # stores the type of SEXPREC
 
 ##############################################################################
 ##
