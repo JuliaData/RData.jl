@@ -54,10 +54,9 @@ end
 
 # convert R vector into Vector of appropriate type
 function jlvec(rv::RVEC, force_missing::Bool=true)
-    cls = class(rv)
-    if cls == R_Date_Class
+    if inherits(rv, R_Date_Class)
         return jlvec(Dates.Date, rv, force_missing)
-    elseif cls == R_POSIXct_Class
+    elseif inherits(rv, R_POSIXct_Class)
         return jlvec(ZonedDateTime, rv, force_missing)
     else
         return jlvec(eltype(rv.data), rv, force_missing)
