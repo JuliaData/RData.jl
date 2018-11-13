@@ -18,7 +18,36 @@ module TestRDA
     testdir = dirname(@__FILE__)
     @testset "Reading minimal RData" begin
         df = DataFrame(num = [1.1, 2.2])
-        @test sexp2julia(load("$testdir/data/minimal.rda", convert=false)["df"]) == df
+        min_rda = load("$testdir/data/minimal.rda", convert=false)
+        rdf = min_rda["df"]
+        @test rdf isa RData.RList
+        @testset "class() and inherits()" begin
+            # not SEXP
+            @test_throws MethodError RData.class(5)
+            @test_throws MethodError RData.inherits(5, "number")
+            @test_throws MethodError RData.inherits(5, "number")
+            @test_throws MethodError RData.inherits(5, ["number"])
+
+            rnotobj = RData.RBuiltin("test") # not a ROBJ
+            @inferred RData.class(rnotobj)
+            @inferred RData.inherits(rnotobj, "dummy")
+            @test RData.class(rnotobj) === RData.emptystrvec
+            @test !RData.inherits(rnotobj, "dummy")
+
+            @inferred RData.class(rdf)
+            @inferred RData.inherits(rdf, "data.frame")
+            @inferred RData.inherits(rdf, ["data.frame"])
+            @test RData.class(rdf) == ["data.frame"]
+            @test RData.inherits(rdf, "data.frame")
+            @test RData.inherits(rdf, ["data.frame"])
+
+            rnumvec = rdf.data[1]
+            @test rnumvec isa RData.RNumericVector
+            @test RData.class(rnumvec) != ["data.frame"]
+            @test !RData.inherits(rnumvec, "data.frame")
+            @test !RData.inherits(rnumvec, ["data.frame"])
+        end
+        @test sexp2julia(min_rda["df"]) == df
         @test load("$testdir/data/minimal.rda", convert=true)["df"] == df
         @test load("$testdir/data/minimal_ascii.rda")["df"] == df
     end

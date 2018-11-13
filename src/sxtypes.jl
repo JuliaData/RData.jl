@@ -238,9 +238,16 @@ getattr(ro::ROBJ, attrnm, default) = hasattr(ro, attrnm) ? getindex(ro.attr, att
 
 Base.names(ro::ROBJ) = getattr(ro, "names")
 
-class(ro::ROBJ) = getattr(ro, "class", emptystrvec)
-class(x) = emptystrvec
-inherits(x, clnm) = any(class(x) .== clnm)
+# class of an R object
+class(x::RSEXPREC) = emptystrvec # not an object
+class(ro::ROBJ) = getattr(ro, "class", emptystrvec)::Vector{RString}
+
+# check if R object inherits from a given class
+inherits(x::RSEXPREC, classname) = false
+inherits(ro::ROBJ, classname::AbstractString) = any(isequal(classname), class(ro))
+# check if R object inherits from all given classes
+inherits(ro::ROBJ, classnames::AbstractVector{<:AbstractString}) =
+    all(classname -> any(isequal(classname), class(ro)), classnames)
 
 isdataframe(rl::RList) = inherits(rl, "data.frame")
 isfactor(ri::RIntegerVector) = inherits(ri, "factor")
