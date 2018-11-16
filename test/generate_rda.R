@@ -1,31 +1,50 @@
 # R script to generate test .rda and .rds files
 
-df <- data.frame(num = c(1.1, 2.2))
-save(df, file = "data/minimal.rda")
-save(df, file = "data/minimal_ascii.rda", ascii = TRUE)
+minimal <- data.frame(num = c(1.1, 2.2))
+save(minimal, file = "data/minimal.rda")
+save(minimal, file = "data/minimal_ascii.rda", ascii = TRUE)
 
-df["int"] <- c(1L, 2L)
-df["logi"] <- c(TRUE, FALSE)
-df["chr"] <- c("ab", "c")
-df["factor"] <- factor(df$chr)
-df["cplx"] <- complex( real = c(1.1, 0.0), imaginary = c(0.5, 1.0) )
+types.df <- data.frame(num=c(1.1, 2.2),
+                       int=c(1L, 2L),
+                       logi=c(TRUE, FALSE),
+                       chr=I(c("ab", "c")),
+                       factor=factor(c("ab", "c")),
+                       cplx=complex( real = c(1.1, 0.0), imaginary = c(0.5, 1.0) )
+                       )
 #utf<-c("Ж", "∰")) R handles it, RData doesn"t.
-save(df, file = "data/types.rda")
-save(df, file = "data/types_ascii.rda", ascii = TRUE)
-saveRDS(df, file = "data/types.rds")
-saveRDS(df, file = "data/types_ascii.rds", ascii = TRUE)
-saveRDS(df, file = "data/types_decomp.rds", compress = FALSE)
+save(types.df, file = "data/types.rda")
+save(types.df, file = "data/types_ascii.rda", ascii = TRUE)
+saveRDS(types.df, file = "data/types.rds")
+saveRDS(types.df, file = "data/types_ascii.rds", ascii = TRUE)
+saveRDS(types.df, file = "data/types_decomp.rds", compress = FALSE)
 
-df[2, ] <- NA
-df[3, ] <- df[2, ]
-df[3, "num"] <- NaN
-df[, "cplx"] <- complex( real = c(1.1, 1, NaN), imaginary = c(NA, NaN, 0) )
-save(df, file = "data/NAs.rda")
-save(df, file = "data/NAs_ascii.rda", ascii = TRUE)
+na.types <- data.frame(num=as.double(NA),
+                       int=as.integer(NA),
+                       logi=as.logical(NA),
+                       chr=I(as.character(NA)),
+                       factor=as.factor(NA),
+                       cplx=complex(real=NA,imaginary=NA)
+                       )
 
-names(df) <- c("end", "!", "1", "%_B*\tC*", NA, "x")
-save(df, file = "data/names.rda")
-save(df, file = "data/names_ascii.rda", ascii = TRUE)
+df.with.na <- rbind(types.df,na.types)
+save(df.with.na, file = "data/NAs.rda")
+save(df.with.na, file = "data/NAs_ascii.rda", ascii = TRUE)
+
+nan.types <- data.frame(num=as.double(NaN),
+                        int=as.integer(NaN),
+                        logi=as.logical(NaN),
+                        chr=I(as.character(NaN)),
+                        factor=as.factor(NaN),
+                        cplx=complex(real=NaN,imaginary=NaN)
+                       )
+df.with.nan <- rbind(types.df,nan.types)
+save(df.with.nan, file = "data/NaNs.rda")
+save(df.with.nan, file = "data/NaNs_ascii.rda", ascii = TRUE)
+
+df.with.new.names <- types.df
+names(df.with.new.names) <- c("end", "!", "1", "%_B*\tC*", NA, "x")
+save(df.with.new.names, file = "data/names.rda")
+save(df.with.new.names, file = "data/names_ascii.rda", ascii = TRUE)
 
 empty.env <- new.env(parent = emptyenv())
 empty_nohash.env <- new.env(parent = emptyenv())
@@ -76,7 +95,7 @@ saveRDS(datedfs, file="data/datedfs.rds")
 # UTC time, without any timezone attribute. When R reads it, it assumes local time.
 # So the test associated with this first datapoint is going to assume which timezone
 # the data is generated in! (PST/-8)
-saveRDS(list(as.POSIXct("2017-01-01 13:23"),
+saveRDS(list(as.POSIXct("2017-01-01 13:23", tz="America/Los_Angeles"),
              as.POSIXct("2017-01-01 13:23", tz="CST"),
              as.POSIXct("2017-01-01 13:23", tz="America/Chicago")),
         file="data/datetimes_tz.rds")
