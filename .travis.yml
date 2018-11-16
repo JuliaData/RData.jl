@@ -6,6 +6,8 @@ julia:
   - 0.7
   - 1.0
   - nightly
+before_install:
+  - sudo apt-get install -y --no-install-recommends r-base-dev r-recommended
 notifications:
   email: false
 # uncomment the following lines to override the default test script
