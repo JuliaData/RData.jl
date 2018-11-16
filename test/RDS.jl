@@ -100,7 +100,7 @@ module TestRDS
         datetimes = @test_logs (:warn, "Could not determine the timezone of 'CST', treating as UTC.") begin
             load("$testdir/data/datetimes_tz.rds")
         end
-        # assumes generate_rda.R was generated on system set to PST!
+        # assumes generate_rda.R was generated with tz=America/Los_Angeles
         @test datetimes[1] == ZonedDateTime(DateTime("2017-01-01T21:23"), tz"UTC")
         # should be tz"CST", but gets substituted to tz"UTC"
         # FIXME update the test when CST is supported
