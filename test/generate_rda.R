@@ -1,4 +1,5 @@
 # R script to generate test .rda and .rds files
+sys_tz = Sys.getenv("TZ") # remember System TimeZone
 
 df <- data.frame(num = c(1.1, 2.2))
 save(df, file = "data/minimal.rda")
@@ -76,8 +77,9 @@ saveRDS(datedfs, file="data/datedfs.rds")
 # UTC time, without any timezone attribute. When R reads it, it assumes local time.
 # So the test associated with this first datapoint is going to assume which timezone
 # the data is generated in! (PST/-8)
+Sys.setenv(TZ = "America/Los_Angeles")
 saveRDS(list(as.POSIXct("2017-01-01 13:23"),
              as.POSIXct("2017-01-01 13:23", tz="CST"),
              as.POSIXct("2017-01-01 13:23", tz="America/Chicago")),
         file="data/datetimes_tz.rds")
-
+Sys.setenv(TZ = sys_tz) # restore timezone
