@@ -79,9 +79,21 @@ na2zero(::Type{R}, v::Vector{Int32}) where R =
     [ifelse(!isna(x), x % R, zero(R)) for x in v]
 
 # convert to CategoricalVector{String[?]} if `ri` is a factor,
-# or to Vector{Int32[?]} otherwise
+# to Dates.Date is it's a vector of dates and
+# to Vector{Int32[?]} otherwise
 function jlvec(ri::RIntegerVector, force_missing::Bool=true)
-    isfactor(ri) || return jlvec(eltype(ri.data), ri, force_missing)
+    if isfactor(ri)
+        return jlvec(CategoricalArray, ri, force_missing)
+    elseif inherits(ri, R_Date_Class)
+        return jlvec(Dates.Date, ri, force_missing)
+    else
+        return jlvec(eltype(ri.data), ri, force_missing)
+    end
+end
+
+# convert R factor to CategoricalArray
+function jlvec(::Type{CategoricalArray}, ri::RVEC, force_missing::Bool=true)
+    @assert isfactor(ri)
 
     rlevels = getattr(ri, "levels", emptystrvec)
     sz = length(rlevels)
@@ -101,7 +113,7 @@ end
 
 # convert R Date to Dates.Date
 function jlvec(::Type{Dates.Date}, rv::RVEC, force_missing::Bool=true)
-    @assert class(rv) == R_Date_Class
+    @assert inherits(rv, R_Date_Class)
     nas = isnan.(rv.data)
     if force_missing || any(nas)
         dates = Union{Dates.Date, Missing}[isna ? missing : rdays2date(dtfloat)
