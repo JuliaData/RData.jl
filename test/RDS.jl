@@ -7,7 +7,7 @@ module TestRDS
 
     testdir = dirname(@__FILE__)
 
-    @testset "Loading RDS files" begin
+    @testset "loading/converting basic R types" begin
         df = DataFrame(num = [1.1, 2.2],
                        int = Int32[1, 2],
                        logi = [true, false],
@@ -45,7 +45,7 @@ module TestRDS
         @test isequal(rdf_decomp, df)
     end
 
-    @testset "Test Date conversion" begin
+    @testset "Date conversion" begin
         dates = load("$testdir/data/dates.rds")
         @test dates[1] == Date("2017-01-01") + Dates.Day.(1:4)
         @test dates[2] == Date("2017-01-02")
@@ -57,7 +57,7 @@ module TestRDS
         @test dates[4].index2name[1] == "A"
     end
 
-    @testset "Test DateTime conversion" begin
+    @testset "DateTime conversion" begin
         datetimes = load("$testdir/data/datetimes.rds")
         testdts = map(i -> ZonedDateTime(DateTime("2017-01-01T13:23") + Dates.Second(i),
                                  TimeZone("UTC")), 1:4)
@@ -71,7 +71,7 @@ module TestRDS
         @test datetimes[4].index2name[1] == "A"
     end
 
-    @testset "Test Date and DateTime in a DataFrame" begin
+    @testset "Date and DateTime in a DataFrame" begin
         rdfs = load("$testdir/data/datedfs.rds")
         df = DataFrame(date=map(i -> Date("2017-01-01") + Dates.Day(i), 1:4),
                        datetime=map(i -> ZonedDateTime(DateTime("2017-01-01T13:23") + Dates.Second(i), tz"UTC"), 1:4))
@@ -84,7 +84,7 @@ module TestRDS
         @test isequal(df, rdfs[2])
     end
 
-    @testset "Test NA Date and DateTime conversion" begin
+    @testset "NA Date and DateTime conversion" begin
         dates = load("$testdir/data/datesNA.rds")
 
         testdates = [Date("2017-01-01") + Dates.Day.(1:4); missing]
@@ -95,7 +95,7 @@ module TestRDS
         @test all(dates[2] .=== testdts)
     end
 
-    @testset "Test DateTime timezones" begin
+    @testset "DateTime timezones" begin
         # tz"CST" is not supported by TimeZones.jl
         datetimes = @test_logs (:warn, "Could not determine the timezone of 'CST', treating as UTC.") begin
             load("$testdir/data/datetimes_tz.rds")
