@@ -11,6 +11,7 @@ struct RDAContext{T<:RDAIO}
     fmtver::UInt32             # format version
     Rver::VersionNumber        # R version used to write the file
     Rmin::VersionNumber        # minimal R version to read the file
+    natenc::Union{String, Nothing} # native encoding at serialization time
 
     kwdict::Dict{Symbol,Any}   # options defining RDA deserialization behaviour
 
@@ -24,8 +25,9 @@ function RDAContext(io::RDAIO; kwoptions...)
     fmtver = readuint32(io)
     rver = int2ver(readint32(io))
     rminver = int2ver(readint32(io))
+    natenc = fmtver == 3 ? readnchars(io, readint32(io)) : nothing
     kwdict = Dict{Symbol,Any}(kwoptions)
-    RDAContext(io, fmtver, rver, rminver, kwdict, RSEXPREC[])
+    RDAContext(io, fmtver, rver, rminver, natenc, kwdict, RSEXPREC[])
 end
 
 """

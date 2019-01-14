@@ -51,9 +51,9 @@ function fileio_load(s::Stream{format"RData"}; kwoptions...)
     io = stream(s)
     @assert FileIO.detect_rdata(io)
     ctx = RDAContext(rdaio(io, chomp(readline(io))); kwoptions...)
-    @assert ctx.fmtver == 2    # format version
-#    println("Written by R version $(ctx.Rver)")
-#    println("Minimal R version: $(ctx.Rmin)")
+    @assert ctx.fmtver == 2 || ctx.fmtver == 3  # supported format versions
+    @debug "written by R version $(ctx.Rver)"
+    @debug "minimal R version: $(ctx.Rmin)"
 
     convert2julia = get(ctx.kwdict, :convert, true)
 
@@ -81,7 +81,7 @@ function fileio_load(s::Stream{format"RDataSingle"}; kwoptions...)
     io = stream(s)
     @assert FileIO.detect_rdata_single(io)
     ctx = RDAContext(rdaio(io, chomp(readline(io))); kwoptions...)
-    @assert ctx.fmtver == 2    # format version
+    @assert ctx.fmtver == 2 || ctx.fmtver == 3  # supported format versions
     convert2julia = get(ctx.kwdict, :convert, true)
     return convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
 end

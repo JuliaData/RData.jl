@@ -1,7 +1,10 @@
 module TestRDA
-    using Test
-    using DataFrames
-    using RData
+using Test
+using DataFrames
+using RData
+
+@testset "Loading RData files (version=$ver)" for ver in (2, 3)
+    rdata_path = joinpath(dirname(@__FILE__), "data_v$ver")
 
     # check for Float64 NA
     @testset "Detect R floating-point NAs" begin
@@ -15,10 +18,9 @@ module TestRDA
         @test RData.isna_float64(reinterpret(UInt64, RData.R_NA_FLOAT64 | ((Base.significand_mask(Float64) + 1) >> 1)))
     end
 
-    testdir = dirname(@__FILE__)
     @testset "Reading minimal RData" begin
         df = DataFrame(num = [1.1, 2.2])
-        min_rda = load("$testdir/data/minimal.rda", convert=false)
+        min_rda = load(joinpath(rdata_path, "minimal.rda"), convert=false)
         rdf = min_rda["df"]
         @test rdf isa RData.RList
         @testset "class() and inherits()" begin
@@ -48,8 +50,8 @@ module TestRDA
             @test !RData.inherits(rnumvec, ["data.frame"])
         end
         @test sexp2julia(min_rda["df"]) == df
-        @test load("$testdir/data/minimal.rda", convert=true)["df"] == df
-        @test load("$testdir/data/minimal_ascii.rda")["df"] == df
+        @test load(joinpath(rdata_path, "minimal.rda"), convert=true)["df"] == df
+        @test load(joinpath(rdata_path, "minimal_ascii.rda"))["df"] == df
     end
 
     @testset "Conversion to Julia types" begin
@@ -59,10 +61,10 @@ module TestRDA
                        chr = ["ab", "c"],
                        factor = categorical(["ab", "c"], true),
                        cplx = [1.1+0.5im, 1.0im])
-        rdf = sexp2julia(load("$testdir/data/types.rda", convert=false)["df"])
+        rdf = sexp2julia(load(joinpath(rdata_path, "types.rda"), convert=false)["df"])
         @test eltypes(rdf) == eltypes(df)
         @test rdf == df
-        rdf_ascii = sexp2julia(load("$testdir/data/types_ascii.rda", convert=false)["df"])
+        rdf_ascii = sexp2julia(load(joinpath(rdata_path, "types_ascii.rda"), convert=false)["df"])
         @test eltypes(rdf_ascii) == eltypes(df)
         @test rdf_ascii == df
     end
@@ -76,37 +78,37 @@ module TestRDA
                        cplx = Union{ComplexF64, Missing}[1.1+0.5im, 1.0im])
 
         df[2, :] = missing
-        append!(df, df[2, :])
+        push!(df, df[2, :]) # add another row
         df[3, :num] = NaN
-        df[:, :cplx] = [missing, ComplexF64(1,NaN), NaN]
-        @test isequal(sexp2julia(load("$testdir/data/NAs.rda", convert=false)["df"]), df)
-        # ASCII format saves NaN as NA
-        df[3, :num] = missing
-        df[:, :cplx] = missing
-        @test isequal(sexp2julia(load("$testdir/data/NAs_ascii.rda", convert=false)["df"]), df)
+        df[:, :cplx] = [missing, ComplexF64(1, NaN), NaN]
+        @test isequal(sexp2julia(load(joinpath(rdata_path, "NAs.rda"), convert=false)["df"]), df)
+        @test isequal(sexp2julia(load(joinpath(rdata_path, "NAs_ascii.rda"), convert=false)["df"]), df)
     end
 
     @testset "Column names conversion" begin
-        rda_names = names(sexp2julia(load("$testdir/data/names.rda", convert=false)["df"]))
+        rda_names = names(sexp2julia(load(joinpath(rdata_path, "names.rda"), convert=false)["df"]))
         expected_names = [:_end, :x!, :x1, :_B_C_, :x, :x_1]
         @test rda_names == expected_names
-        rda_names = names(sexp2julia(load("$testdir/data/names_ascii.rda", convert=false)["df"]))
+        rda_names = names(sexp2julia(load(joinpath(rdata_path, "names_ascii.rda"), convert=false)["df"]))
         @test rda_names == [:_end, :x!, :x1, :_B_C_, :x, :x_1]
     end
 
     @testset "Reading RDA with complex types (environments, closures etc)" begin
-        rda_envs = load("$testdir/data/envs.rda", convert=false)
-        rda_pairlists = load("$testdir/data/pairlists.rda", convert=false)
-        rda_closures = load("$testdir/data/closures.rda", convert=false)
-        rda_cmpfuns = load("$testdir/data/cmpfun.rda", convert=false)
+        rda_envs = load(joinpath(rdata_path, "envs.rda"), convert=false)
+        rda_pairlists = load(joinpath(rdata_path, "pairlists.rda"), convert=false)
+        rda_closures = load(joinpath(rdata_path, "closures.rda"), convert=false)
+        rda_cmpfuns = load(joinpath(rdata_path, "cmpfun.rda"), convert=false)
     end
 
     @testset "Proper handling of factor and ordered" begin
-        f = load("$testdir/data/ord.rda")
+        f = load(joinpath(rdata_path, "ord.rda"))
         @test !isordered(f["x"])
         @test levels(f["x"]) == ["a", "b", "c"]
         @test isordered(f["y"])
         @test levels(f["y"]) == ["b", "a", "c"]
         @test f["x"] == f["y"] == ["a", "b", "c"]
     end
-end
+
+end # for ver in ...
+
+end # module TestRDA
