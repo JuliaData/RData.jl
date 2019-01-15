@@ -1,3 +1,19 @@
+## RData v0.6.0 Release Notes
+
+Support RData version 3 serialization format (R ≥ 3.5)
+
+##### Changes
+* fix `readuint8()` and remove `Missings.jl` dependency [#49]
+* improve `class()` and `inherits()` methods [#51]
+* support RData version 3 [#53], [#54]
+* support integer R dates [#55]
+
+[#49]: https://github.com/JuliaData/RData.jl/issues/49
+[#51]: https://github.com/JuliaData/RData.jl/issues/51
+[#53]: https://github.com/JuliaData/RData.jl/issues/53
+[#54]: https://github.com/JuliaData/RData.jl/issues/54
+[#55]: https://github.com/JuliaData/RData.jl/issues/55
+
 ## RData v0.5.0 Release Notes
 
 Updated to Julia v0.7 (older versions not supported)
