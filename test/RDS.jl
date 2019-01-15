@@ -1,52 +1,53 @@
 module TestRDS
-    using Test
-    using Dates
-    using DataFrames
-    using RData
-    using TimeZones
+using Test
+using Dates
+using DataFrames
+using RData
+using TimeZones
 
-    testdir = dirname(@__FILE__)
+@testset "Loading RDS files (version=$ver)" for ver in (2, 3)
+    rdata_path = joinpath(dirname(@__FILE__), "data_v$ver")
 
-    @testset "Loading RDS files" begin
+    @testset "loading/converting basic R types" begin
         df = DataFrame(num = [1.1, 2.2],
                        int = Int32[1, 2],
                        logi = [true, false],
                        chr = ["ab", "c"],
                        factor = categorical(["ab", "c"], true),
                        cplx = ComplexF64[1.1+0.5im, 1.0im])
-        rdf = sexp2julia(load("$testdir/data/types.rds", convert=false))
+        rdf = sexp2julia(load(joinpath(rdata_path, "types.rds"), convert=false))
         @test rdf isa DataFrame
         @test eltypes(rdf) == eltypes(df)
         @test isequal(rdf, df)
 
-        rdf_ascii = sexp2julia(load("$testdir/data/types_ascii.rds", convert=false))
+        rdf_ascii = sexp2julia(load(joinpath(rdata_path, "types_ascii.rds"), convert=false))
         @test rdf_ascii isa DataFrame
         @test eltypes(rdf_ascii) == eltypes(df)
         @test isequal(rdf_ascii, df)
 
-        rdf_decomp = sexp2julia(load("$testdir/data/types_decomp.rds", convert=false))
+        rdf_decomp = sexp2julia(load(joinpath(rdata_path, "types_decomp.rds"), convert=false))
         @test rdf_decomp isa DataFrame
         @test eltypes(rdf_decomp) == eltypes(df)
         @test isequal(rdf_decomp, df)
 
-        rdf = load("$testdir/data/types.rds")
+        rdf = load(joinpath(rdata_path, "types.rds"))
         @test rdf isa DataFrame
         @test eltypes(rdf) == eltypes(df)
         @test isequal(rdf, df)
 
-        rdf_ascii = load("$testdir/data/types_ascii.rds")
+        rdf_ascii = load(joinpath(rdata_path, "types_ascii.rds"))
         @test rdf_ascii isa DataFrame
         @test eltypes(rdf_ascii) == eltypes(df)
         @test isequal(rdf_ascii, df)
 
-        rdf_decomp = load("$testdir/data/types_decomp.rds")
+        rdf_decomp = load(joinpath(rdata_path, "types_decomp.rds"))
         @test rdf_decomp isa DataFrame
         @test eltypes(rdf_decomp) == eltypes(df)
         @test isequal(rdf_decomp, df)
     end
 
-    @testset "Test Date conversion" begin
-        dates = load("$testdir/data/dates.rds")
+    @testset "Date conversion" begin
+        dates = load(joinpath(rdata_path, "dates.rds"))
         @test dates[1] == Date("2017-01-01") + Dates.Day.(1:4)
         @test dates[2] == Date("2017-01-02")
         @test dates[3] isa DictoVec
@@ -57,8 +58,8 @@ module TestRDS
         @test dates[4].index2name[1] == "A"
     end
 
-    @testset "Test DateTime conversion" begin
-        datetimes = load("$testdir/data/datetimes.rds")
+    @testset "DateTime conversion" begin
+        datetimes = load(joinpath(rdata_path, "datetimes.rds"))
         testdts = map(i -> ZonedDateTime(DateTime("2017-01-01T13:23") + Dates.Second(i),
                                  TimeZone("UTC")), 1:4)
         @test datetimes[1] == testdts
@@ -71,8 +72,8 @@ module TestRDS
         @test datetimes[4].index2name[1] == "A"
     end
 
-    @testset "Test Date and DateTime in a DataFrame" begin
-        rdfs = load("$testdir/data/datedfs.rds")
+    @testset "Date and DateTime in a DataFrame" begin
+        rdfs = load(joinpath(rdata_path, "datedfs.rds"))
         df = DataFrame(date=map(i -> Date("2017-01-01") + Dates.Day(i), 1:4),
                        datetime=map(i -> ZonedDateTime(DateTime("2017-01-01T13:23") + Dates.Second(i), tz"UTC"), 1:4))
         @test length(rdfs) == 2
@@ -80,12 +81,12 @@ module TestRDS
         @test rdfs[2] isa DataFrame
         @test eltypes(df) == eltypes(rdfs[1])
         @test eltypes(df) == eltypes(rdfs[2])
-        @test isequal(df[1, :], rdfs[1])
+        @test isequal(df[1:1, :], rdfs[1])
         @test isequal(df, rdfs[2])
     end
 
-    @testset "Test NA Date and DateTime conversion" begin
-        dates = load("$testdir/data/datesNA.rds")
+    @testset "NA Date and DateTime conversion" begin
+        dates = load(joinpath(rdata_path, "datesNA.rds"))
 
         testdates = [Date("2017-01-01") + Dates.Day.(1:4); missing]
         @test all(dates[1] .=== testdates)
@@ -95,10 +96,10 @@ module TestRDS
         @test all(dates[2] .=== testdts)
     end
 
-    @testset "Test DateTime timezones" begin
+    @testset "DateTime timezones" begin
         # tz"CST" is not supported by TimeZones.jl
         datetimes = @test_logs (:warn, "Could not determine the timezone of 'CST', treating as UTC.") begin
-            load("$testdir/data/datetimes_tz.rds")
+            load(joinpath(rdata_path, "datetimes_tz.rds"))
         end
         # assumes generate_rda.R was generated on system set to PST!
         @test datetimes[1] == ZonedDateTime(DateTime("2017-01-01T21:23"), tz"UTC")
@@ -107,4 +108,7 @@ module TestRDS
         @test datetimes[2] == ZonedDateTime(DateTime("2017-01-01T13:23"), tz"UTC")
         @test datetimes[3] == ZonedDateTime(DateTime("2017-01-01T13:23"), tz"America/Chicago")
     end
-end
+
+end # for ver in ...
+
+end # module TestRDS
