@@ -66,20 +66,26 @@ x <- factor(c("a", "b", "c"))
 y <- ordered(x, levels=c("b", "a", "c"))
 save(x, y, file=file.path(rdata_path, "ord.rda"), version=ver)
 
-dates = as.Date("2017-01-01") + 1:4
-datetimes = as.POSIXct("2017-01-01 13:23", tz="UTC") + 1:4
-dateNAs = list(c(dates, NA), c(datetimes, NA))
+numdates <- as.Date(as.numeric(1:4), origin="2017-01-01")
+intdates <- seq.Date(as.Date("2017-01-02"), by="day", length.out=4)
+if (typeof(intdates) != "integer") stop("intdates are not integer-backed dates: ", typeof(intdates))
+datetimes <- as.POSIXct("2017-01-01 13:23", tz="UTC") + 1:4
+
+dateNAs = list(c(numdates, NA), c(datetimes, NA))
 saveRDS(dateNAs, file=file.path(rdata_path, "datesNA.rds"), version=ver)
-datelst = list(dates, dates[1])
-names(dates) = LETTERS[1:length(dates)]
-datelst = c(datelst, list(dates), list(dates[1]))
-saveRDS(datelst, file=file.path(rdata_path, "dates.rds"), version=ver)
+
+saveRDS(numdates, file=file.path(rdata_path, "numdates.rds"), version=ver)
+saveRDS(intdates, file=file.path(rdata_path, "intdates.rds"), version=ver)
+saveRDS(numdates, file=file.path(rdata_path, "numdates_ascii.rds"), version=ver, ascii=TRUE)
+saveRDS(intdates, file=file.path(rdata_path, "intdates_ascii.rds"), version=ver, ascii=TRUE)
+
 dtlst = list(datetimes, datetimes[1])
 names(datetimes) = LETTERS[1:length(datetimes)]
 dtlst = c(dtlst, list(datetimes), list(datetimes[1]))
 saveRDS(dtlst, file=file.path(rdata_path, "datetimes.rds"), version=ver)
-datedfs = list(data.frame(date=dates[1], datetime=datetimes[1]),
-               data.frame(date=dates, datetime=datetimes))
+
+datedfs = list(data.frame(date=numdates[1], datetime=datetimes[1]),
+               data.frame(date=numdates, datetime=datetimes))
 saveRDS(datedfs, file=file.path(rdata_path, "datedfs.rds"), version=ver)
 
 # the first element here is assumed to be in the local timezone but is saved in

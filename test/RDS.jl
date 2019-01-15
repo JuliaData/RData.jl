@@ -47,15 +47,17 @@ using TimeZones
     end
 
     @testset "Date conversion" begin
-        dates = load(joinpath(rdata_path, "dates.rds"))
-        @test dates[1] == Date("2017-01-01") + Dates.Day.(1:4)
-        @test dates[2] == Date("2017-01-02")
-        @test dates[3] isa DictoVec
-        @test dates[3].data == Date("2017-01-01") + Dates.Day.(1:4)
-        @test [dates[3].index2name[i] for i in 1:length(dates[3])] == ["A", "B", "C", "D"]
-        @test dates[4] isa DictoVec
-        @test dates[4].data == [Date("2017-01-02")]
-        @test dates[4].index2name[1] == "A"
+        numdates = load(joinpath(rdata_path, "numdates.rds"))
+        @test numdates == Date("2017-01-01") + Dates.Day.(1:4)
+
+        numdates_ascii = load(joinpath(rdata_path, "numdates_ascii.rds"))
+        @test numdates_ascii == Date("2017-01-01") + Dates.Day.(1:4)
+
+        intdates = load(joinpath(rdata_path, "intdates.rds"))
+        @test intdates == Date("2017-01-01") + Dates.Day.(1:4)
+
+        intdates_ascii = load(joinpath(rdata_path, "intdates_ascii.rds"))
+        @test intdates_ascii == Date("2017-01-01") + Dates.Day.(1:4)
     end
 
     @testset "DateTime conversion" begin
