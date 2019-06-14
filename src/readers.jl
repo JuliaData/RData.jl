@@ -250,6 +250,13 @@ function readbytecode(ctx::RDAContext, fl::RDATag)
     return res
 end
 
+function readaltrep(ctx::RDAContext, fl::RDATag)
+    info = readitem(ctx)
+    state = readitem(ctx)
+    attr = readitem(ctx)
+    return RAltRep(info, state, isa(attr, RDummy) ? emptyhash : attr)
+end
+
 function readunsupported(ctx::RDAContext, fl::RDATag)
     error("Reading SEXPREC of type $(sxtype(fl)) ($(SXTypes[sxtype(fl)].name)) is not supported")
 end
@@ -307,7 +314,8 @@ const SXTypes = Dict{SXType, SXTypeInfo}(
     UNBOUNDVALUE_SXP  => SXTypeInfo("UnboundValue",readdummy),
     GLOBALENV_SXP     => SXTypeInfo("GlobalEnv",readdummy),
     NILVALUE_SXP      => SXTypeInfo("NilValue",readnil),
-    REFSXP            => SXTypeInfo("Ref",readref)
+    REFSXP            => SXTypeInfo("Ref",readref),
+    ALTREP_SXP        => SXTypeInfo("AltRep",readaltrep)
 )
 
 function readitem(ctx::RDAContext, fl::RDATag)

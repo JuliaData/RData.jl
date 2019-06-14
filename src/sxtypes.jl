@@ -39,7 +39,7 @@ const FREESXP =     0x1F # node released by GC
 const FUNSXP =      0x63 # Closure or Builtin or Special
 
 #=
- = Administrative SXP values
+ = Administrative SXP values (from serialize.c)
  =#
 const REFSXP =            0xFF
 const NILVALUE_SXP =      0xFE
@@ -58,6 +58,7 @@ const EMPTYENV_SXP =      0xF2
 const BASEENV_SXP =       0xF1
 const ATTRLANGSXP =       0xF0
 const ATTRLISTSXP =       0xEF
+const ALTREP_SXP =        0xEE
 
 ##############################################################################
 ##
@@ -218,6 +219,12 @@ end
 
 struct RNamespace <: RSEXPREC{NAMESPACESXP}
     name::Vector{RString}
+end
+
+struct RAltRep <: ROBJ{ALTREP_SXP}
+    info
+    state
+    attr::Hash
 end
 
 # R objects without body (empty environments, missing args etc)
