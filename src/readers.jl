@@ -313,7 +313,7 @@ const SXTypes = Dict{SXType, SXTypeInfo}(
 function readitem(ctx::RDAContext)
     fl = readuint32(ctx.io)
     sxt = sxtype(fl)
-    if !haskey(SXTypes, sxt) error("$name: encountered unknown SEXPREC type $sxt") end
+    haskey(SXTypes, sxt) || error("encountered unknown SEXPREC type $sxt")
     sxtinfo = SXTypes[sxt]
     return sxtinfo.reader(ctx, fl)
 ### Should not occur at the top level
