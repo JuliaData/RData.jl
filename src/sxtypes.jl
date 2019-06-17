@@ -148,6 +148,8 @@ struct RPairList <: ROBJ{LISTSXP}
     RPairList(attr::Hash = Hash()) = new(RSEXPREC[], RString[], attr)
 end
 
+Base.length(list::RPairList) = length(list.items)
+
 function Base.push!(pl::RPairList, item::RSEXPREC, tag::RString)
     push!(pl.tags, tag)
     push!(pl.items, item)
