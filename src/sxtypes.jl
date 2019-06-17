@@ -95,6 +95,8 @@ struct RSymbol <: RSEXPREC{SYMSXP}
     displayname::RString
 end
 
+Base.string(symbol::RSymbol) = symbol.displayname
+
 """
 Base class for all R types (objects) that can have attributes.
 """
