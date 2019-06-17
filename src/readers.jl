@@ -310,8 +310,7 @@ const SXTypes = Dict{SXType, SXTypeInfo}(
     REFSXP            => SXTypeInfo("Ref",readref)
 )
 
-function readitem(ctx::RDAContext)
-    fl = readuint32(ctx.io)
+function readitem(ctx::RDAContext, fl::RDATag)
     sxt = sxtype(fl)
     haskey(SXTypes, sxt) || error("encountered unknown SEXPREC type $sxt")
     sxtinfo = SXTypes[sxt]
@@ -320,3 +319,5 @@ function readitem(ctx::RDAContext)
 ###    if sxt == NILVALUE_SXP return nothing end      # terminates dotted pair lists
 ###    if sxt == CHARSXP return readcharacter(ctx.io, ff) end
 end
+
+readitem(ctx::RDAContext) = readitem(ctx, readuint32(ctx.io))
