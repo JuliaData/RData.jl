@@ -6,18 +6,6 @@ using RData
 @testset "Loading RData files (version=$ver)" for ver in (2, 3)
     rdata_path = joinpath(dirname(@__FILE__), "data_v$ver")
 
-    # check for Float64 NA
-    @testset "Detect R floating-point NAs" begin
-        @test !RData.isna_float64(reinterpret(UInt64, 1.0))
-        @test !RData.isna(1.0)
-        @test !RData.isna(NaN)
-        @test !RData.isna(Inf)
-        @test !RData.isna(-Inf)
-        @test RData.isna_float64(RData.R_NA_FLOAT64)
-        # check that alternative NA is also recognized (#10)
-        @test RData.isna_float64(reinterpret(UInt64, RData.R_NA_FLOAT64 | ((Base.significand_mask(Float64) + 1) >> 1)))
-    end
-
     @testset "Reading minimal RData" begin
         df = DataFrame(num = [1.1, 2.2])
         min_rda = load(joinpath(rdata_path, "minimal.rda"), convert=false)
