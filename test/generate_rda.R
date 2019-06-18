@@ -104,5 +104,7 @@ Sys.setenv(TZ = sys_tz) # restore timezone
 # generate V3 format AltRep objects
 longseq <- 1:1000 # compact_intseq AltRep
 wrapvec <- .Internal(wrap_meta(c(1, 2.5, 3), TRUE, TRUE)) # wrap_real AltRep
-save(longseq, wrapvec, file=file.path("data_v3", "altrep.rda"), version=3)
-save(longseq, wrapvec, file=file.path("data_v3", "altrep_ascii.rda"), version=3, ascii=TRUE)
+# wrap_real AltRep of a matrix contains non-standard pairlist that doesn't end with NILVALUE_SXP
+nonnilpairlist <- .Internal(wrap_meta(matrix(integer(), nrow=0, ncol=10), TRUE, TRUE))
+save(longseq, wrapvec, nonnilpairlist, file=file.path("data_v3", "altrep.rda"), version=3)
+save(longseq, wrapvec, nonnilpairlist, file=file.path("data_v3", "altrep_ascii.rda"), version=3, ascii=TRUE)

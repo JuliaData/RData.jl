@@ -102,16 +102,19 @@ end # for ver in ...
 @testset "Loading AltRep-containing RData files (version=3)" begin
     altrep_rda = load(joinpath("data_v3", "altrep.rda"), convert=false)
     load(joinpath("data_v3", "altrep_ascii.rda"), convert=false)
-    @test length(altrep_rda) == 2
+    @test length(altrep_rda) == 3
     # test AltRep objects are recognized
     @test isa(altrep_rda["longseq"], RData.RAltRep)
     # TODO test that longseq is converted into Julia UnitRange
     @test isa(altrep_rda["wrapvec"], RData.RAltRep)
     @test sexp2julia(altrep_rda["wrapvec"]) == [1.0, 2.5, 3.0]
+    @test isa(altrep_rda["nonnilpairlist"], RData.RAltRep)
 
     # test automatic conversion
     altrep_conv_rda = load(joinpath("data_v3", "altrep.rda"), convert=true)
     @test altrep_conv_rda["wrapvec"] == [1.0, 2.5, 3.0]
+    @test isa(altrep_conv_rda["nonnilpairlist"], Matrix{Int32})
+    @test size(altrep_conv_rda["nonnilpairlist"]) == (0, 10)
 end
 
 end # module TestRDA
