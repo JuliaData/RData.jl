@@ -100,3 +100,9 @@ saveRDS(list(as.POSIXct("2017-01-01 13:23"),
 Sys.setenv(TZ = sys_tz) # restore timezone
 
 } # for (ver in ...)
+
+# generate V3 format AltRep objects
+longseq <- 1:1000 # compact_intseq AltRep
+wrapvec <- .Internal(wrap_meta(c(1, 2.5, 3), TRUE, TRUE)) # wrap_real AltRep
+save(longseq, wrapvec, file=file.path("data_v3", "altrep.rda"), version=3)
+save(longseq, wrapvec, file=file.path("data_v3", "altrep_ascii.rda"), version=3, ascii=TRUE)

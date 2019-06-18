@@ -169,12 +169,30 @@ end
 function sexp2julia(rl::RList)
     if isdataframe(rl)
         # FIXME add force_missing option to control whether always convert to Union{T, Missing}
-        DataFrame(Any[jlvec(col, false) for col in rl.data], identifier.(names(rl)), makeunique=true)
+        DataFrame(Any[isa(col, RAltRep) ? sexp2julia(col) : jlvec(col, false) for col in rl.data],
+                  identifier.(names(rl)), makeunique=true)
     elseif hasnames(rl)
         DictoVec(Any[sexp2julia(item) for item in rl.data], names(rl))
     else
         # FIXME return DictoVec if forceDictoVec is on
         map(sexp2julia, rl.data)
+    end
+end
+
+function sexp2julia(ar::RAltRep)
+    # detect if it's a standard R 3.5+ wrapper
+    if isa(ar.info, RPairList) && length(ar.info) >= 1 &&
+        isa(ar.info.items[1], RSymbol) && startswith(string(ar.info.items[1]), "wrap_")
+        # the first element of the AltRep state should be the wrapped one
+        if isa(ar.state, RPairList) && length(ar.state) >= 1
+            return sexp2julia(ar.state.items[1])
+        else
+            error("Unexpected state of \"$(ar.info.items[1])\" AltRep SEXP")
+        end
+    else
+        # TODO support compact_intseq and compact_realseq AltRep
+        @warn "Unsupported AltRep SEXP"
+        return nothing
     end
 end
 
