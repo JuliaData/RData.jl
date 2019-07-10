@@ -6,18 +6,6 @@ using RData
 @testset "Loading RData files (version=$ver)" for ver in (2, 3)
     rdata_path = joinpath(dirname(@__FILE__), "data_v$ver")
 
-    # check for Float64 NA
-    @testset "Detect R floating-point NAs" begin
-        @test !RData.isna_float64(reinterpret(UInt64, 1.0))
-        @test !RData.isna(1.0)
-        @test !RData.isna(NaN)
-        @test !RData.isna(Inf)
-        @test !RData.isna(-Inf)
-        @test RData.isna_float64(RData.R_NA_FLOAT64)
-        # check that alternative NA is also recognized (#10)
-        @test RData.isna_float64(reinterpret(UInt64, RData.R_NA_FLOAT64 | ((Base.significand_mask(Float64) + 1) >> 1)))
-    end
-
     @testset "Reading minimal RData" begin
         df = DataFrame(num = [1.1, 2.2])
         min_rda = load(joinpath(rdata_path, "minimal.rda"), convert=false)
@@ -110,5 +98,23 @@ using RData
     end
 
 end # for ver in ...
+
+@testset "Loading AltRep-containing RData files (version=3)" begin
+    altrep_rda = load(joinpath("data_v3", "altrep.rda"), convert=false)
+    load(joinpath("data_v3", "altrep_ascii.rda"), convert=false)
+    @test length(altrep_rda) == 3
+    # test AltRep objects are recognized
+    @test isa(altrep_rda["longseq"], RData.RAltRep)
+    # TODO test that longseq is converted into Julia UnitRange
+    @test isa(altrep_rda["wrapvec"], RData.RAltRep)
+    @test sexp2julia(altrep_rda["wrapvec"]) == [1.0, 2.5, 3.0]
+    @test isa(altrep_rda["nonnilpairlist"], RData.RAltRep)
+
+    # test automatic conversion
+    altrep_conv_rda = load(joinpath("data_v3", "altrep.rda"), convert=true)
+    @test altrep_conv_rda["wrapvec"] == [1.0, 2.5, 3.0]
+    @test isa(altrep_conv_rda["nonnilpairlist"], Matrix{Int32})
+    @test size(altrep_conv_rda["nonnilpairlist"]) == (0, 10)
+end
 
 end # module TestRDA

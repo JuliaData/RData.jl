@@ -110,23 +110,39 @@ end
 # reads single-linked lists R objects
 function readpairedobjects(ctx::RDAContext, fl::RDATag)
     res = RPairList(readattrs(ctx, fl))
-    while sxtype(fl) != NILVALUE_SXP
-        if hastag(fl)
-            tag = readitem(ctx)
-            if isa(tag, RSymbol)
-                nm = tag.displayname
+    ifl = fl # RDATag for the list item
+    while true
+        if sxtype(ifl) == sxtype(fl)
+            if hastag(ifl)
+                tag = readitem(ctx)
+                if isa(tag, RSymbol)
+                    nm = tag.displayname
+                else
+                    nm = emptyhashkey
+                end
             else
                 nm = emptyhashkey
             end
-        else
-            nm = emptyhashkey
+            item = readitem(ctx)
+            push!(res, item, nm)
+            ifl = readuint32(ctx.io)
+            # read the item attributes
+            # FIXME what to do with the attributes?
+            (sxtype(ifl) == sxtype(fl)) && readattrs(ctx, ifl)
+        elseif sxtype(ifl) == NILVALUE_SXP # end of list
+            break
+        else # end of list (not a single-linked list item)
+            # it's not clear whether it's an error of handling AltReps
+            # or a feature of AltReps (it only occurs within AltReps)
+            # normally pairlists should be terminated by NILVALUE_SXP
+            @warn "$ifl element in a $fl list, assuming it's the last element"
+            item = readitem(ctx, ifl)
+            push!(res, item, emptyhashkey)
+            break
         end
-        push!(res, readitem(ctx), nm)
-        fl = readuint32(ctx.io)
-        readattrs(ctx, fl)
     end
 
-    res
+    return res
 end
 
 function readpairlist(ctx::RDAContext, fl::RDATag)
@@ -250,6 +266,13 @@ function readbytecode(ctx::RDAContext, fl::RDATag)
     return res
 end
 
+function readaltrep(ctx::RDAContext, fl::RDATag)
+    info = readitem(ctx)
+    state = readitem(ctx)
+    attr = readitem(ctx)
+    return RAltRep(info, state, isa(attr, RDummy) ? emptyhash : attr)
+end
+
 function readunsupported(ctx::RDAContext, fl::RDATag)
     error("Reading SEXPREC of type $(sxtype(fl)) ($(SXTypes[sxtype(fl)].name)) is not supported")
 end
@@ -307,16 +330,18 @@ const SXTypes = Dict{SXType, SXTypeInfo}(
     UNBOUNDVALUE_SXP  => SXTypeInfo("UnboundValue",readdummy),
     GLOBALENV_SXP     => SXTypeInfo("GlobalEnv",readdummy),
     NILVALUE_SXP      => SXTypeInfo("NilValue",readnil),
-    REFSXP            => SXTypeInfo("Ref",readref)
+    REFSXP            => SXTypeInfo("Ref",readref),
+    ALTREP_SXP        => SXTypeInfo("AltRep",readaltrep)
 )
 
-function readitem(ctx::RDAContext)
-    fl = readuint32(ctx.io)
+function readitem(ctx::RDAContext, fl::RDATag)
     sxt = sxtype(fl)
-    if !haskey(SXTypes, sxt) error("$name: encountered unknown SEXPREC type $sxt") end
+    haskey(SXTypes, sxt) || error("encountered unknown SEXPREC type $sxt")
     sxtinfo = SXTypes[sxt]
     return sxtinfo.reader(ctx, fl)
 ### Should not occur at the top level
 ###    if sxt == NILVALUE_SXP return nothing end      # terminates dotted pair lists
 ###    if sxt == CHARSXP return readcharacter(ctx.io, ff) end
 end
+
+readitem(ctx::RDAContext) = readitem(ctx, readuint32(ctx.io))

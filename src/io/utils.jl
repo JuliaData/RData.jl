@@ -71,3 +71,6 @@ function readcharacter(io::RDAIO, n::RVecLength)  # a single character string
     end
     return res, na
 end
+
+# in R strings ' character is also escaped
+unescape_rstring(str::AbstractString) = unescape_string(replace(str, "\\'" => "'"))

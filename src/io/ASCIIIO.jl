@@ -43,7 +43,7 @@ readuint8(io::ASCIIIO, n::RVecLength) = UInt8[hex2bytes(chomp(readline(io.sub)))
 
 function readnchars(io::ASCIIIO, n::Int32)  # reads N bytes-sized string
     if (n==-1) return "" end
-    str = unescape_string(chomp(readline(io.sub)))
+    str = unescape_rstring(chomp(readline(io.sub)))
     length(str) == n || error("Character string length mismatch")
     convert(RString, str)
 end

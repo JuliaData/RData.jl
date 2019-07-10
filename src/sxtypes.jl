@@ -23,7 +23,7 @@ const REALSXP =     0x0E # real variables
 const CPLXSXP =     0x0F # complex variables
 const STRSXP =      0x10 # string vectors
 const DOTSXP =      0x11 # dot-dot-dot object
-const ANYSXP = 	    0x12 # make "any" args work. Used in specifying types for symbol registration to mean anything is okay
+const ANYSXP =      0x12 # make "any" args work. Used in specifying types for symbol registration to mean anything is okay
 const VECSXP =      0x13 # generic vectors
 const EXPRSXP =     0x14 # expressions vectors
 const BCODESXP =    0x15 # byte code
@@ -39,7 +39,7 @@ const FREESXP =     0x1F # node released by GC
 const FUNSXP =      0x63 # Closure or Builtin or Special
 
 #=
- = Administrative SXP values
+ = Administrative SXP values (from serialize.c)
  =#
 const REFSXP =            0xFF
 const NILVALUE_SXP =      0xFE
@@ -58,6 +58,7 @@ const EMPTYENV_SXP =      0xF2
 const BASEENV_SXP =       0xF1
 const ATTRLANGSXP =       0xF0
 const ATTRLISTSXP =       0xEF
+const ALTREP_SXP =        0xEE
 
 ##############################################################################
 ##
@@ -94,6 +95,8 @@ Not quite the same as a Julia symbol.
 struct RSymbol <: RSEXPREC{SYMSXP}
     displayname::RString
 end
+
+Base.string(symbol::RSymbol) = symbol.displayname
 
 """
 Base class for all R types (objects) that can have attributes.
@@ -145,6 +148,8 @@ struct RPairList <: ROBJ{LISTSXP}
 
     RPairList(attr::Hash = Hash()) = new(RSEXPREC[], RString[], attr)
 end
+
+Base.length(list::RPairList) = length(list.items)
 
 function Base.push!(pl::RPairList, item::RSEXPREC, tag::RString)
     push!(pl.tags, tag)
@@ -214,6 +219,12 @@ end
 
 struct RNamespace <: RSEXPREC{NAMESPACESXP}
     name::Vector{RString}
+end
+
+struct RAltRep <: ROBJ{ALTREP_SXP}
+    info
+    state
+    attr::Hash
 end
 
 # R objects without body (empty environments, missing args etc)
