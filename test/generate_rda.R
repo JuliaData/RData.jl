@@ -108,3 +108,11 @@ wrapvec <- .Internal(wrap_meta(c(1, 2.5, 3), TRUE, TRUE)) # wrap_real AltRep
 nonnilpairlist <- .Internal(wrap_meta(matrix(integer(), nrow=0, ncol=10), TRUE, TRUE))
 save(longseq, wrapvec, nonnilpairlist, file=file.path("data_v3", "altrep.rda"), version=3)
 save(longseq, wrapvec, nonnilpairlist, file=file.path("data_v3", "altrep_ascii.rda"), version=3, ascii=TRUE)
+
+# generate files using each of the supported compression types
+df <- data.frame(num = c(1.1, 2.2))
+rdata_path <- "data_v3"
+save(df, file=file.path(rdata_path, "compressed_gzip.rda"), version=3, compress="gzip")
+save(df, file=file.path(rdata_path, "compressed_bzip2.rda"), version=3, compress="bzip2")
+save(df, file=file.path(rdata_path, "compressed_xz.rda"), version=3, compress="xz")
+save(df, file=file.path(rdata_path, "compressed_false.rda"), version=3, compress=FALSE)

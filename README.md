@@ -14,16 +14,33 @@ Can read any R data archive, although not all R types could be converted into Ju
 
 For running R code from Julia see [RCall.jl](https://github.com/JuliaInterop/RCall.jl).
 
-Installation
-------------
+## Installation
 
 From Julia REPL:
 ```julia
 Pkg.add("RData")
 ```
 
-Usage
------
+### Compression formats
+
+R data files could be compressed by either *Gzip* (the default), *Bzip2* or *Xz* methods. `RData.jl` supports *Gzip*-compressed files out-of-the-box. To read *Bzip2* or *Xz*-compressed files [CodecBzip2.jl](https://github.com/bicycle1885/CodecBzip2.jl) or [CodecXz.jl](https://github.com/bicycle1885/CodecXz.jl) must be installed.
+
+For example, to load a file compressed by *Bzip2* you must first install the required codec:
+
+```julia
+Pkg.add("CodecBzip2")
+```
+
+Then ensure *CodecBzip2* is loaded before calling *RData.load*:
+
+```julia
+using RData
+import CodecBzip2
+
+load('some_bzip2_compressed.rda')
+```
+
+## Usage
 
 To read R objects from "example.rda" file:
 ```julia
