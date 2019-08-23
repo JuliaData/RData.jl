@@ -77,6 +77,23 @@ function Base.get(f::Function, dict::DictoVec, key)
     return get(f, dict, ix)
 end
 
+function Base.delete!(dict::DictoVec, key)
+    ix = pop!(dict.name2index, key, 0)
+    if ix > 0
+        deleteat!(dict.data, ix)
+        deleteat!(dict.index2name, ix)
+        if ix <= length(dict)
+            # update indices
+            for (k, oldix) in pairs(dict.name2index)
+                if oldix > ix
+                    dict.name2index[k] = oldix - 1
+                end
+            end
+        end
+    end
+    return dict
+end
+
 Base.keys(dict::DictoVec) = keys(dict.name2index)
 
 Base.values(dict::DictoVec) = dict.data

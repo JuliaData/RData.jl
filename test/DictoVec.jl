@@ -63,6 +63,16 @@ end
     @test length(dv) == 1
     @test dv[1] == :yy
     @test dv["a"] == :yy
+
+    # deleting an element by key
+    @test delete!(dv, 1) === dv
+    @test length(dv) == 1
+    delete!(dv, "b")
+    @test length(dv) == 1
+    delete!(dv, "a")
+    @test length(dv) == 0
+    @test !haskey(dv, "a")
+    @test_throws BoundsError dv[1]
 end
 
 @testset "Nameless DictoVec" begin
@@ -92,6 +102,10 @@ end
     @test dv["a"] === 3.0
     @test dv[4] === 3.0
     @test show2string(dv) == "DictoVec{Float64}(2.0,5.0,4.0,\"a\"=>3.0)"
+
+    @test delete!(dv, "a") === dv
+    @test length(dv) == 3
+    @test !haskey(dv, "a")
 end
 
 @testset "DictoVec with names" begin
@@ -119,6 +133,13 @@ end
     @test dv["a"] === 6.0
     @test dv[1] === 6.0
     @test show2string(dv) == "DictoVec{Float64}(\"a\"=>6.0,\"b\"=>5.0,\"c\"=>4.0)"
+
+    # deleting an element from the middle
+    @test delete!(dv, "b") === dv
+    @test length(dv) == 2
+    @test !haskey(dv, "b")
+    @test dv[2] == 4.0 # indices has updated
+    @test show2string(dv) == "DictoVec{Float64}(\"a\"=>6.0,\"c\"=>4.0)"
 end
 
 end
