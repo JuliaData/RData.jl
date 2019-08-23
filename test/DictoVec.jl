@@ -1,0 +1,126 @@
+module TestDictoVec
+using Test
+using RData
+
+function show2string(dv::DictoVec)
+    iob = IOBuffer()
+    show(iob, dv)
+    return String(take!(iob))
+end
+
+@testset "RData DictoVec type" begin
+
+@testset "Empty DictoVec" begin
+    @test_throws MethodError DictoVec(Symbol[], [:a])
+    @test_throws DimensionMismatch DictoVec(Symbol[], ["a"])
+    dv = DictoVec(Symbol[])
+
+    @test typeof(dv) === DictoVec{Symbol}
+    @test eltype(dv) === Symbol
+    @test length(dv) == 0
+    @test isempty(dv)
+    @test collect(keys(dv)) == RData.RString[]
+    @test values(dv) == Symbol[]
+    @test !haskey(dv, "a")
+    @test !haskey(dv, :a)
+    @test !haskey(dv, 1)
+    @test_throws BoundsError dv[1]
+    @test_throws KeyError dv["a"]
+    @test_throws KeyError dv[:a]
+
+    @test get(dv, 1, :x) == :x
+    @test get(() -> :y, dv, 1) == :y
+    @test get(dv, "a", :x) == :x
+    @test get(() -> :y, dv, "a") == :y
+    @test length(dv) == 0
+
+    @test convert(Dict{RData.RString, Any}, dv) == Dict{RData.RString, Any}()
+
+    @test show2string(dv) == "DictoVec{Symbol}()"
+
+    # add an element
+    @test_throws MethodError (dv[1] = "xx") # incompatible value
+    @test length(dv) == 0
+    @test_throws BoundsError (dv[1] = :xx) # cannot create new elements by integer index
+    @test length(dv) == 0
+    @test_throws MethodError (dv[:a] = "xx") # incompatible key
+    @test length(dv) == 0
+    @test_throws MethodError (dv["a"] = "xx") # incompatible value
+    @test length(dv) == 0
+    dv["a"] = :xx
+    @test !isempty(dv)
+    @test length(dv) == 1
+    @test haskey(dv, "a")
+    @test dv["a"] == :xx
+    @test dv[1] == :xx
+    @test collect(keys(dv)) == ["a"]
+    @test values(dv) == [:xx]
+
+    @test show2string(dv) == "DictoVec{Symbol}(\"a\"=>:xx)"
+
+    # reassign element
+    dv[1] = :yy
+    @test length(dv) == 1
+    @test dv[1] == :yy
+    @test dv["a"] == :yy
+end
+
+@testset "Nameless DictoVec" begin
+    dv = DictoVec([2.0, 5.0, 4.0])
+    @test typeof(dv) === DictoVec{Float64}
+    @test eltype(dv) === Float64
+    @test length(dv) == 3
+    @test !isempty(dv)
+    @test !haskey(dv, 1)
+    @test !haskey(dv, "a")
+    @test !haskey(dv, :a)
+    @test show2string(dv) == "DictoVec{Float64}(2.0,5.0,4.0)"
+    @test collect(keys(dv)) == RData.RString[]
+    @test values(dv) == [2.0, 5.0, 4.0]
+
+    @test_throws BoundsError dv[0]
+    @test_throws BoundsError dv[4]
+    @test dv[1] == 2.0
+    @test dv[[1, 3]] == [2.0, 4.0]
+    @test_throws KeyError dv["a"]
+    @test_throws KeyError dv[:a]
+
+    # add new element by name
+    dv["a"] = 3
+    @test haskey(dv, "a")
+    @test length(dv) == 4
+    @test dv["a"] === 3.0
+    @test dv[4] === 3.0
+    @test show2string(dv) == "DictoVec{Float64}(2.0,5.0,4.0,\"a\"=>3.0)"
+end
+
+@testset "DictoVec with names" begin
+    dv = DictoVec([2.0, 5.0, 4.0], ["a", "b", "c"])
+    @test typeof(dv) === DictoVec{Float64}
+    @test eltype(dv) === Float64
+    @test length(dv) == 3
+    @test !isempty(dv)
+    @test !haskey(dv, 1)
+    @test haskey(dv, "a")
+    @test !haskey(dv, :a)
+    @test sort!(collect(keys(dv))) == ["a", "b", "c"]
+    @test values(dv) == [2.0, 5.0, 4.0]
+    @test show2string(dv) == "DictoVec{Float64}(\"a\"=>2.0,\"b\"=>5.0,\"c\"=>4.0)"
+
+    @test dv[1] === 2.0
+    @test dv["a"] === 2.0
+    @test dv[[1, 3]] == [2.0, 4.0]
+    @test_throws KeyError dv[:a]
+
+    # reassign element by name
+    dv["a"] = 6
+    @test haskey(dv, "a")
+    @test length(dv) == 3
+    @test dv["a"] === 6.0
+    @test dv[1] === 6.0
+    @test show2string(dv) == "DictoVec{Float64}(\"a\"=>6.0,\"b\"=>5.0,\"c\"=>4.0)"
+end
+
+end
+
+end # TestDictoVec
