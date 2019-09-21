@@ -65,10 +65,10 @@ using RData
                        factor = categorical(Union{String, Missing}["ab", "c"], true),
                        cplx = Union{ComplexF64, Missing}[1.1+0.5im, 1.0im])
 
-        df[2, :] = missing
+        df[2, :] .= Ref(missing)
         push!(df, df[2, :]) # add another row
         df[3, :num] = NaN
-        df[:, :cplx] = [missing, ComplexF64(1, NaN), NaN]
+        df[!, :cplx] = [missing, ComplexF64(1, NaN), NaN]
         @test isequal(sexp2julia(load(joinpath(rdata_path, "NAs.rda"), convert=false)["df"]), df)
         @test isequal(sexp2julia(load(joinpath(rdata_path, "NAs_ascii.rda"), convert=false)["df"]), df)
     end

@@ -14,7 +14,7 @@ TimeZones = "f269a46b-ccf7-5d73-abea-4c690281aa53"
 [compat]
 CategoricalArrays = "≥ 0.3.0"
 CodecZlib = "≥ 0.4.0"
-DataFrames = "≥ 0.13.0"
+DataFrames = "≥ 0.19.0"
 FileIO = "≥ 1.0.5"
 TimeZones = "≥ 0.7.3"
 julia = "1.0"
