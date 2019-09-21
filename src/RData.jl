@@ -1,11 +1,13 @@
 module RData
 
-using DataFrames, CategoricalArrays, CodecZlib, FileIO, TimeZones
+using DataFrames, CategoricalArrays, FileIO, TimeZones
 import DataFrames: identifier
 
 export
     sexp2julia,
     DictoVec,
+    RDataException,
+    CodecMissingError,
     load # reexport FileIO.load()
 
 include("config.jl")
@@ -15,6 +17,8 @@ include("sxtypes.jl")
 Abstract RDA format IO stream wrapper.
 """
 abstract type RDAIO end
+
+include("errors.jl")
 
 include("io/XDRIO.jl")
 include("io/ASCIIIO.jl")
@@ -27,6 +31,12 @@ include("convert.jl")
 include("context.jl")
 include("readers.jl")
 
+include("decompression.jl")
+
+function __init__()
+    define_optional_decompressor_streams()
+end
+
 ##############################################################################
 ##
 ## FileIO integration.
@@ -36,16 +46,6 @@ include("readers.jl")
 ## TODO option for disabling names checking (e.g. column names)
 ##
 ##############################################################################
-
-function decompress(io)
-    # check GZip magic number
-    gzipped = read(io, UInt8) == 0x1F && read(io, UInt8) == 0x8B
-    seekstart(io)
-    if gzipped
-        io = GzipDecompressorStream(io)
-    end
-    return io
-end
 
 function fileio_load(s::Stream{format"RData"}; kwoptions...)
     io = stream(s)
