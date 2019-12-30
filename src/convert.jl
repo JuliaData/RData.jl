@@ -95,7 +95,7 @@ end
 function jlvec(::Type{CategoricalArray}, ri::RVEC, force_missing::Bool=true)
     @assert isfactor(ri)
 
-    rlevels = getattr(ri, "levels", emptystrvec)
+    rlevels = getattr(ri, "levels")
     sz = length(rlevels)
     REFTYPE = sz <= typemax(UInt8)  ? UInt8 :
               sz <= typemax(UInt16) ? UInt16 :
