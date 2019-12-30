@@ -50,10 +50,10 @@ using RData
                        factor = categorical(["ab", "c"], true),
                        cplx = [1.1+0.5im, 1.0im])
         rdf = sexp2julia(load(joinpath(rdata_path, "types.rda"), convert=false)["df"])
-        @test eltypes(rdf) == eltypes(df)
+        @test eltype.(eachcol(rdf)) == eltype.(eachcol(df))
         @test rdf == df
         rdf_ascii = sexp2julia(load(joinpath(rdata_path, "types_ascii.rda"), convert=false)["df"])
-        @test eltypes(rdf_ascii) == eltypes(df)
+        @test eltype.(eachcol(rdf_ascii)) == eltype.(eachcol(df))
         @test rdf_ascii == df
     end
 
