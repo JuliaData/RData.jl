@@ -21,6 +21,16 @@ end
     @test RData.unescape_rstring("\\'") == "'"
 end
 
+@testset "Internals" begin
+    @testset "addattr()" begin
+        v = RData.RVector{Int, RData.INTSXP}([1, 2, 3], RData.emptyhash)
+        v2 = RData.addattr(v)
+        @test v2 isa RData.RVector{Int, RData.INTSXP}
+        @test v2.data === v.data
+        @test v2.attr !== RData.emptyhash
+    end
+end
+
 end
 
 end # TestBasic

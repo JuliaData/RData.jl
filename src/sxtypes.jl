@@ -119,6 +119,10 @@ struct RVector{T, S} <: RVEC{T, S}
         new{T,S}(v, attr)
 end
 
+# add unique attribute storage to ROBJ if one doesn't have it
+addattr(v::RVector{T, S}) where {T,S} =
+    v.attr === emptyhash ? RVector{T, S}(v.data, Hash()) : v
+
 const RLogicalVector = RVector{Int32, LGLSXP}
 const RIntegerVector = RVector{Int32, INTSXP}
 const RNumericVector = RVector{Float64, REALSXP}
