@@ -185,7 +185,18 @@ function sexp2julia(ar::RAltRep)
         isa(ar.info.items[1], RSymbol) && startswith(string(ar.info.items[1]), "wrap_")
         # the first element of the AltRep state should be the wrapped one
         if isa(ar.state, RPairList) && length(ar.state) >= 1
-            return sexp2julia(ar.state.items[1])
+            data = ar.state.items[1] # the actual data
+            # recover object attributes from the AltRep head
+            for (attrname, attr) in ar.attr
+                if !haskey(data.attr, attrname)
+                    if data.attr === emptyhash
+                        # make sure data has its own dedicated attribute storage
+                        data = addattr(data)
+                    end
+                    data.attr[attrname] = attr
+                end
+            end
+            return sexp2julia(data)
         else
             error("Unexpected state of \"$(ar.info.items[1])\" AltRep SEXP")
         end
