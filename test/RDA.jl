@@ -50,10 +50,10 @@ using RData
                        factor = categorical(["ab", "c"], true),
                        cplx = [1.1+0.5im, 1.0im])
         rdf = sexp2julia(load(joinpath(rdata_path, "types.rda"), convert=false)["df"])
-        @test eltypes(rdf) == eltypes(df)
+        @test eltype.(eachcol(rdf)) == eltype.(eachcol(df))
         @test rdf == df
         rdf_ascii = sexp2julia(load(joinpath(rdata_path, "types_ascii.rda"), convert=false)["df"])
-        @test eltypes(rdf_ascii) == eltypes(df)
+        @test eltype.(eachcol(rdf_ascii)) == eltype.(eachcol(df))
         @test rdf_ascii == df
     end
 
@@ -102,17 +102,22 @@ end # for ver in ...
 @testset "Loading AltRep-containing RData files (version=3)" begin
     altrep_rda = load(joinpath("data_v3", "altrep.rda"), convert=false)
     load(joinpath("data_v3", "altrep_ascii.rda"), convert=false)
-    @test length(altrep_rda) == 3
+    @test length(altrep_rda) == 4
     # test AltRep objects are recognized
     @test isa(altrep_rda["longseq"], RData.RAltRep)
     # TODO test that longseq is converted into Julia UnitRange
     @test isa(altrep_rda["wrapvec"], RData.RAltRep)
     @test sexp2julia(altrep_rda["wrapvec"]) == [1.0, 2.5, 3.0]
     @test isa(altrep_rda["nonnilpairlist"], RData.RAltRep)
+    @test isa(altrep_rda["factoraltrep"], RData.RAltRep)
+    @test isequal(sexp2julia(altrep_rda["factoraltrep"]),
+                  compress(categorical(repeat(["A", "B", missing, "C"], inner=5000))))
 
     # test automatic conversion
     altrep_conv_rda = load(joinpath("data_v3", "altrep.rda"), convert=true)
     @test altrep_conv_rda["wrapvec"] == [1.0, 2.5, 3.0]
+    @test isequal(altrep_conv_rda["factoraltrep"],
+                  compress(categorical(repeat(["A", "B", missing, "C"], inner=5000))))
     @test isa(altrep_conv_rda["nonnilpairlist"], Matrix{Int32})
     @test size(altrep_conv_rda["nonnilpairlist"]) == (0, 10)
 end

@@ -33,11 +33,17 @@ const LONG_VECTOR_SUPPORT = (Sys.WORD_SIZE > 32) # disable long vectors support 
 const RVecLength = LONG_VECTOR_SUPPORT ? Int64 : Int
 
 const RString = String     # default String container for R string
-const Hash = Dict{RString, Any}
+const Hash = Dict{RString, Any} # ROBJ attributes storage
 
+# Placeholder for ROBJ.attr when R object does not have attributes.
+# emptyhash is shared by all R objects without attributes
+# (and so helps reducing resources usage).
+# FIXME Sharing is a bad idea, since it's possible to accidentally write
+#       into attrs of some ROBJ, which references emptyhash, making it non-empty
+#       in all the other objects as well.
+#       Probably should support attr::Union{Hash, Nothing} instead.
 const emptyhash = Hash()
 const emptyhashkey = RString("\0")
 
 const R_Date_Class = ["Date"]
 const R_POSIXct_Class = ["POSIXct", "POSIXt"]
-

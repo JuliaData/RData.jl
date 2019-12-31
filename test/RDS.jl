@@ -17,32 +17,32 @@ using TimeZones
                        cplx = ComplexF64[1.1+0.5im, 1.0im])
         rdf = sexp2julia(load(joinpath(rdata_path, "types.rds"), convert=false))
         @test rdf isa DataFrame
-        @test eltypes(rdf) == eltypes(df)
+        @test eltype.(eachcol(rdf)) == eltype.(eachcol(df))
         @test isequal(rdf, df)
 
         rdf_ascii = sexp2julia(load(joinpath(rdata_path, "types_ascii.rds"), convert=false))
         @test rdf_ascii isa DataFrame
-        @test eltypes(rdf_ascii) == eltypes(df)
+        @test eltype.(eachcol(rdf_ascii)) == eltype.(eachcol(df))
         @test isequal(rdf_ascii, df)
 
         rdf_decomp = sexp2julia(load(joinpath(rdata_path, "types_decomp.rds"), convert=false))
         @test rdf_decomp isa DataFrame
-        @test eltypes(rdf_decomp) == eltypes(df)
+        @test eltype.(eachcol(rdf_decomp)) == eltype.(eachcol(df))
         @test isequal(rdf_decomp, df)
 
         rdf = load(joinpath(rdata_path, "types.rds"))
         @test rdf isa DataFrame
-        @test eltypes(rdf) == eltypes(df)
+        @test eltype.(eachcol(rdf)) == eltype.(eachcol(df))
         @test isequal(rdf, df)
 
         rdf_ascii = load(joinpath(rdata_path, "types_ascii.rds"))
         @test rdf_ascii isa DataFrame
-        @test eltypes(rdf_ascii) == eltypes(df)
+        @test eltype.(eachcol(rdf_ascii)) == eltype.(eachcol(df))
         @test isequal(rdf_ascii, df)
 
         rdf_decomp = load(joinpath(rdata_path, "types_decomp.rds"))
         @test rdf_decomp isa DataFrame
-        @test eltypes(rdf_decomp) == eltypes(df)
+        @test eltype.(eachcol(rdf_decomp)) == eltype.(eachcol(df))
         @test isequal(rdf_decomp, df)
     end
 
@@ -81,8 +81,8 @@ using TimeZones
         @test length(rdfs) == 2
         @test rdfs[1] isa DataFrame
         @test rdfs[2] isa DataFrame
-        @test eltypes(df) == eltypes(rdfs[1])
-        @test eltypes(df) == eltypes(rdfs[2])
+        @test eltype.(eachcol(df)) == eltype.(eachcol(rdfs[1]))
+        @test eltype.(eachcol(df)) == eltype.(eachcol(rdfs[2]))
         @test isequal(df[1:1, :], rdfs[1])
         @test isequal(df, rdfs[2])
     end
