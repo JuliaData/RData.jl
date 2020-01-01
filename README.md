@@ -1,9 +1,5 @@
 # RData.jl
 
-[![Julia 0.6 Status](http://pkg.julialang.org/badges/RData_0.6.svg)](http://pkg.julialang.org/?pkg=RData&ver=0.6)
-[![Julia 0.7 Status](http://pkg.julialang.org/badges/RData_0.7.svg)](http://pkg.julialang.org/?pkg=RData&ver=0.7)
-[![Julia 1.0 Status](http://pkg.julialang.org/badges/RData_1.0.svg)](http://pkg.julialang.org/?pkg=RData&ver=1.0)
-
 [![Coverage Status](https://coveralls.io/repos/github/JuliaData/RData.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaData/RData.jl?branch=master)
 [![Build Status](https://travis-ci.org/JuliaData/RData.jl.svg?branch=master)](https://travis-ci.org/JuliaData/RData.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/kc2s5kmvyew4w8in/branch/master?svg=true)](https://ci.appveyor.com/project/alyst/rdata-jl/branch/master)
