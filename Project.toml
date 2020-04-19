@@ -12,7 +12,7 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 TimeZones = "f269a46b-ccf7-5d73-abea-4c690281aa53"
 
 [compat]
-CategoricalArrays = "0.5, 0.6, 0.7"
+CategoricalArrays = "0.5, 0.6, 0.7, 0.8"
 CodecZlib = "0.4, 0.5, 0.6, 0.7"
 DataFrames = "0.19, 0.20"
 FileIO = "1.0.5"
