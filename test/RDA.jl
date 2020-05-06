@@ -47,7 +47,7 @@ using RData
                        int = Int32[1, 2],
                        logi = [true, false],
                        chr = ["ab", "c"],
-                       factor = categorical(["ab", "c"], true),
+                       factor = categorical(["ab", "c"], compress=true),
                        cplx = [1.1+0.5im, 1.0im])
         rdf = sexp2julia(load(joinpath(rdata_path, "types.rda"), convert=false)["df"])
         @test eltype.(eachcol(rdf)) == eltype.(eachcol(df))
@@ -62,7 +62,7 @@ using RData
                        int = Union{Int32, Missing}[1, 2],
                        logi = Union{Bool, Missing}[true, false],
                        chr = Union{String, Missing}["ab", "c"],
-                       factor = categorical(Union{String, Missing}["ab", "c"], true),
+                       factor = categorical(Union{String, Missing}["ab", "c"], compress=true),
                        cplx = Union{ComplexF64, Missing}[1.1+0.5im, 1.0im])
 
         df[2, :] .= Ref(missing)
