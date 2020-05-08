@@ -1,7 +1,6 @@
 module RData
 
-using DataFrames, CategoricalArrays, FileIO, TimeZones
-import DataFrames: identifier
+using DataFrames, CategoricalArrays, FileIO, TimeZones, Unicode
 
 export
     sexp2julia,

@@ -75,10 +75,10 @@ using RData
 
     @testset "Column names conversion" begin
         rda_names = names(sexp2julia(load(joinpath(rdata_path, "names.rda"), convert=false)["df"]))
-        expected_names = [:_end, :x!, :x1, :_B_C_, :x, :x_1]
+        expected_names = ["_end", "x!", "x1", "_B_C_", "x", "x_1"]
         @test rda_names == expected_names
         rda_names = names(sexp2julia(load(joinpath(rdata_path, "names_ascii.rda"), convert=false)["df"]))
-        @test rda_names == [:_end, :x!, :x1, :_B_C_, :x, :x_1]
+        @test rda_names == expected_names
     end
 
     @testset "Reading RDA with complex types (environments, closures etc)" begin
