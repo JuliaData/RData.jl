@@ -127,8 +127,8 @@ end
     @test dup_cat[1] == "Paced"
     @test dup_cat[2] == "Inferior"
     @test dup_cat[end] == "Anterior"
-    @test all(levels(dup_cat) .== ["Inferior", "Anterior", "LBBB", "Missing",
-                                   "NoSTUp", "OtherSTUp", "Paced" ])
+    @test levels(dup_cat) ==
+        ["Inferior", "Anterior", "LBBB", "Missing", "NoSTUp", "OtherSTUp", "Paced"]
 end
 
 end # module TestRDA
