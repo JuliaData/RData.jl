@@ -95,15 +95,33 @@ end
 function jlvec(::Type{CategoricalArray}, ri::RVEC, force_missing::Bool=true)
     @assert isfactor(ri)
 
-    rlevels = getattr(ri, "levels")
+    rlevels0 = getattr(ri, "levels")
+    sz0 = length(rlevels0)
+    # CategoricalArrays#v0.8 does not allow duplicate levels
+    rlevels = unique(rlevels0)
     sz = length(rlevels)
-    REFTYPE = sz <= typemax(UInt8)  ? UInt8 :
+    hasduplicates = sz0 != sz
+
+    REFTYPE(sz) = sz <= typemax(UInt8)  ? UInt8 :
               sz <= typemax(UInt16) ? UInt16 :
               sz <= typemax(UInt32) ? UInt32 :
                                       UInt64
-    refs = na2zero(REFTYPE, ri.data)
+    RT = REFTYPE(sz0)
+    refs = na2zero(RT, ri.data)
+    
+    if hasduplicates
+        RT = REFTYPE(sz)
+        # map refs with dups to unique refs
+        ref_map = RT.(indexin(rlevels0, rlevels))
+        refs = map(refs) do ref
+            new_ref = ref == 0 ? zero(RT) : ref_map[ref]
+        end
+        @warn "Dropped duplicate levels"
+        refs
+    end
+
     anyna = any(iszero, refs)
-    pool = CategoricalPool{String, REFTYPE}(rlevels, inherits(ri, "ordered"))
+    pool = CategoricalPool{String, RT}(rlevels, inherits(ri, "ordered"))
     if force_missing || anyna
         return CategoricalArray{Union{String, Missing}, 1}(refs, pool)
     else
