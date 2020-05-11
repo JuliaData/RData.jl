@@ -122,4 +122,11 @@ end # for ver in ...
     @test size(altrep_conv_rda["nonnilpairlist"]) == (0, 10)
 end
 
+@testset "Duplicate levels in factor (version=3)" begin
+    dup_cat = sexp2julia(load(joinpath("data_v3", "dup_levels.rda"), convert=false)["dup_levels"])
+    @test dup_cat[1] == "Paced"
+    @test dup_cat[2] == "Inferior"
+    @test dup_cat[end] == "Anterior"
+end
+
 end # module TestRDA
