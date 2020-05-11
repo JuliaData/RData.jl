@@ -102,17 +102,15 @@ function jlvec(::Type{CategoricalArray}, ri::RVEC, force_missing::Bool=true)
     sz = length(rlevels)
     hasduplicates = sz0 != sz
 
-    REFTYPE(sz) = sz <= typemax(UInt8)  ? UInt8 :
-              sz <= typemax(UInt16) ? UInt16 :
-              sz <= typemax(UInt32) ? UInt32 :
+    REFTYPE = sz0 <= typemax(UInt8)  ? UInt8 :
+              sz0 <= typemax(UInt16) ? UInt16 :
+              sz0 <= typemax(UInt32) ? UInt32 :
                                       UInt64
-    RT = REFTYPE(sz0)
-    refs = na2zero(RT, ri.data)
+    refs = na2zero(REFTYPE, ri.data)
     
     if hasduplicates
-        RT = REFTYPE(sz)
         # map refs with dups to unique refs
-        ref_map = RT.(indexin(rlevels0, rlevels))
+        ref_map = REFTYPE.(indexin(rlevels0, rlevels))
         @inbounds for i in eachindex(refs)
             ref = refs[i]
             refs[i] = ref == 0 ? 0 : ref_map[ref]
@@ -121,7 +119,7 @@ function jlvec(::Type{CategoricalArray}, ri::RVEC, force_missing::Bool=true)
     end
 
     anyna = any(iszero, refs)
-    pool = CategoricalPool{String, RT}(rlevels, inherits(ri, "ordered"))
+    pool = CategoricalPool{String, REFTYPE}(rlevels, inherits(ri, "ordered"))
     if force_missing || anyna
         return CategoricalArray{Union{String, Missing}, 1}(refs, pool)
     else
