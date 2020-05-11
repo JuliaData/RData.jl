@@ -113,11 +113,11 @@ function jlvec(::Type{CategoricalArray}, ri::RVEC, force_missing::Bool=true)
         RT = REFTYPE(sz)
         # map refs with dups to unique refs
         ref_map = RT.(indexin(rlevels0, rlevels))
-        refs = map(refs) do ref
-            new_ref = ref == 0 ? zero(RT) : ref_map[ref]
+        @inbounds for i in eachindex(refs)
+            ref = refs[i]
+            refs[i] = ref == 0 ? 0 : ref_map[ref]
         end
-        @warn "Dropped duplicate levels"
-        refs
+        @warn "Dropped duplicate factor levels"
     end
 
     anyna = any(iszero, refs)
