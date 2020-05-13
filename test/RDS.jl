@@ -13,7 +13,7 @@ using TimeZones
                        int = Int32[1, 2],
                        logi = [true, false],
                        chr = ["ab", "c"],
-                       factor = categorical(["ab", "c"], true),
+                       factor = categorical(["ab", "c"], compress=true),
                        cplx = ComplexF64[1.1+0.5im, 1.0im])
         rdf = sexp2julia(load(joinpath(rdata_path, "types.rds"), convert=false))
         @test rdf isa DataFrame

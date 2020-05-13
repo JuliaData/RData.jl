@@ -47,7 +47,7 @@ using RData
                        int = Int32[1, 2],
                        logi = [true, false],
                        chr = ["ab", "c"],
-                       factor = categorical(["ab", "c"], true),
+                       factor = categorical(["ab", "c"], compress=true),
                        cplx = [1.1+0.5im, 1.0im])
         rdf = sexp2julia(load(joinpath(rdata_path, "types.rda"), convert=false)["df"])
         @test eltype.(eachcol(rdf)) == eltype.(eachcol(df))
@@ -62,7 +62,7 @@ using RData
                        int = Union{Int32, Missing}[1, 2],
                        logi = Union{Bool, Missing}[true, false],
                        chr = Union{String, Missing}["ab", "c"],
-                       factor = categorical(Union{String, Missing}["ab", "c"], true),
+                       factor = categorical(Union{String, Missing}["ab", "c"], compress=true),
                        cplx = Union{ComplexF64, Missing}[1.1+0.5im, 1.0im])
 
         df[2, :] .= Ref(missing)
@@ -75,10 +75,10 @@ using RData
 
     @testset "Column names conversion" begin
         rda_names = names(sexp2julia(load(joinpath(rdata_path, "names.rda"), convert=false)["df"]))
-        expected_names = [:_end, :x!, :x1, :_B_C_, :x, :x_1]
+        expected_names = ["_end", "x!", "x1", "_B_C_", "x", "x_1"]
         @test rda_names == expected_names
         rda_names = names(sexp2julia(load(joinpath(rdata_path, "names_ascii.rda"), convert=false)["df"]))
-        @test rda_names == [:_end, :x!, :x1, :_B_C_, :x, :x_1]
+        @test rda_names == expected_names
     end
 
     @testset "Reading RDA with complex types (environments, closures etc)" begin
@@ -120,6 +120,15 @@ end # for ver in ...
                   compress(categorical(repeat(["A", "B", missing, "C"], inner=5000))))
     @test isa(altrep_conv_rda["nonnilpairlist"], Matrix{Int32})
     @test size(altrep_conv_rda["nonnilpairlist"]) == (0, 10)
+end
+
+@testset "Duplicate levels in factor (version=3)" begin
+    dup_cat = sexp2julia(load(joinpath("data_v3", "dup_levels.rda"), convert=false)["dup_levels"])
+    @test dup_cat[1] == "Paced"
+    @test dup_cat[2] == "Inferior"
+    @test dup_cat[end] == "Anterior"
+    @test levels(dup_cat) ==
+        ["Inferior", "Anterior", "LBBB", "Missing", "NoSTUp", "OtherSTUp", "Paced"]
 end
 
 end # module TestRDA
