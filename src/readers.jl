@@ -135,7 +135,7 @@ function readpairedobjects(ctx::RDAContext, fl::RDATag)
             # it's not clear whether it's an error of handling AltReps
             # or a feature of AltReps (it only occurs within AltReps)
             # normally pairlists should be terminated by NILVALUE_SXP
-            @warn "$ifl element in a $fl list, assuming it's the last element"
+            @warn "0x$(string(ifl, base=16)) element in a 0x$(string(fl, base=16)) list, assuming it's the last element"
             item = readitem(ctx, ifl)
             push!(res, item, emptyhashkey)
             break
