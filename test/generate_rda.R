@@ -1,5 +1,6 @@
 # R script to generate test .rda and .rds files
-if ((as.integer(version$major) < 3) || (as.integer(substr(version$minor, 1, 1)) < 5)) {
+if ((as.integer(version$major) < 3) ||
+    ((as.integer(version$major) == 3) && (as.integer(substr(version$minor, 1, 1)) < 5))) {
     stop("Script requires R>=3.5 to generate RData version 2 and 3")
 }
 sys_tz = Sys.getenv("TZ") # remember System TimeZone
