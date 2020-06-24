@@ -6,6 +6,7 @@ export
     sexp2julia,
     DictoVec,
     RDataException,
+    UnsupportedROBJ,
     CodecMissingError,
     load # reexport FileIO.load()
 

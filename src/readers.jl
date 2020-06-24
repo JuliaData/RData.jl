@@ -274,7 +274,7 @@ function readaltrep(ctx::RDAContext, fl::RDATag)
 end
 
 function readunsupported(ctx::RDAContext, fl::RDATag)
-    error("Reading SEXPREC of type $(sxtype(fl)) ($(SXTypes[sxtype(fl)].name)) is not supported")
+    throw(UnsupportedROBJ(sxtype(fl), "Reading SEXPREC of type $(sxtype(fl)) ($(SXTypes[sxtype(fl)].name)) is not supported"))
 end
 
 """
@@ -336,7 +336,7 @@ const SXTypes = Dict{SXType, SXTypeInfo}(
 
 function readitem(ctx::RDAContext, fl::RDATag)
     sxt = sxtype(fl)
-    haskey(SXTypes, sxt) || error("encountered unknown SEXPREC type $sxt")
+    haskey(SXTypes, sxt) || throw(UnsupportedROBJ(sxt, "encountered unknown SEXPREC type $sxt"))
     sxtinfo = SXTypes[sxt]
     return sxtinfo.reader(ctx, fl)
 ### Should not occur at the top level
