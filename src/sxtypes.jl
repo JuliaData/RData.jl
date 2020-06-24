@@ -251,8 +251,13 @@ hasattr(ro::ROBJ, attrnm) = haskey(ro.attr, attrnm)
 hasnames(ro::ROBJ) = hasattr(ro, "names")
 hasdim(ro::ROBJ) = hasattr(ro, "dim")
 hasdimnames(ro::ROBJ) = hasattr(ro, "dimnames")
-getattr(ro::ROBJ, attrnm) = getindex(ro.attr, attrnm).data
-getattr(ro::ROBJ, attrnm, default) = hasattr(ro, attrnm) ? getindex(ro.attr, attrnm).data : default
+
+getdata(ro::RSEXPREC) =
+    throw(UnsupportedROBJ(sxtype(ro), "Don't know how to get data from $(typeof(ro))"))
+getdata(ro::Union{RVector, RNullableVector, RRaw}) = ro.data
+
+getattr(ro::ROBJ, attrnm) = getdata(getindex(ro.attr, attrnm))
+getattr(ro::ROBJ, attrnm, default) = hasattr(ro, attrnm) ? getdata(getindex(ro.attr, attrnm)) : default
 
 Base.names(ro::ROBJ) = getattr(ro, "names")
 
