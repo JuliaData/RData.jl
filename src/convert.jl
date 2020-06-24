@@ -107,7 +107,7 @@ function jlvec(::Type{CategoricalArray}, ri::RVEC, force_missing::Bool=true)
               sz0 <= typemax(UInt32) ? UInt32 :
                                       UInt64
     refs = na2zero(REFTYPE, ri.data)
-    
+
     if hasduplicates
         # map refs with dups to unique refs
         ref_map = REFTYPE.(indexin(rlevels0, rlevels))
