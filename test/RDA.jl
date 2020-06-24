@@ -113,6 +113,13 @@ end # for ver in ...
     @test isequal(sexp2julia(altrep_rda["factoraltrep"]),
                   compress(categorical(repeat(["A", "B", missing, "C"], inner=5000))))
 
+    # test that AltRep-based column names are converted correctly
+    altrep_names_rda = load(joinpath("data_v3", "altrep_names.rda"), convert=false)
+    @test isa(altrep_names_rda["altrepnames_df"].attr["names"], RData.RAltRep)
+    @test sexp2julia(altrep_names_rda["altrepnames_df"]) isa DataFrame
+    wide_df = sexp2julia(altrep_names_rda["altrepnames_df"])
+    @test names(wide_df) == ["a", "b", "c"]
+
     # test automatic conversion
     altrep_conv_rda = load(joinpath("data_v3", "altrep.rda"), convert=true)
     @test altrep_conv_rda["wrapvec"] == [1.0, 2.5, 3.0]

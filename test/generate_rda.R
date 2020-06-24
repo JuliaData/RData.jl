@@ -117,6 +117,13 @@ save(longseq, wrapvec, factoraltrep, nonnilpairlist,
 save(longseq, wrapvec, factoraltrep, nonnilpairlist,
      file=file.path("data_v3", "altrep_ascii.rda"), version=3, ascii=TRUE, compress=TRUE)
 
+# for wide data frame (100 columns or more) R 3.5 *sometimes* uses AltRep to store the column names
+altrepnames_list <- as.list(c(1, 2, 3))
+names(altrepnames_list) <- .Internal(wrap_meta(c("a", "b", "c"), TRUE, TRUE))
+altrepnames_df <- as.data.frame(altrepnames_list)
+names(altrepnames_df) <- names(altrepnames_list)
+save(altrepnames_list, altrepnames_df, file=file.path("data_v3", "altrep_names.rda"), version=3)
+
 # generate files using each of the supported compression types
 df <- data.frame(num = c(1.1, 2.2))
 rdata_path <- "data_v3"
