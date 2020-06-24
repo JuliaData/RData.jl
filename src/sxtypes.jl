@@ -88,6 +88,9 @@ Base class for RData internal representation of all R types.
 """
 abstract type RSEXPREC{S} end
 
+sxtype(sxt::Type{T}) where T <: RSEXPREC{S} where S = S
+sxtype(sxt::RSEXPREC) = sxtype(typeof(sxt))
+
 """
 R symbol.
 Not quite the same as a Julia symbol.

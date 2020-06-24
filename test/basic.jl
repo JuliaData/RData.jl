@@ -22,6 +22,15 @@ end
 end
 
 @testset "Internals" begin
+    @testset "sxtype()" begin
+        v = RData.RVector{Int, RData.INTSXP}([1, 2], RData.emptyhash)
+        @test RData.sxtype(typeof(v)) == RData.INTSXP
+        @test RData.sxtype(v) == RData.INTSXP
+        s = RData.RSymbol("abc")
+        @test RData.sxtype(typeof(s)) == RData.SYMSXP
+        @test RData.sxtype(s) == RData.SYMSXP
+    end
+
     @testset "addattr()" begin
         v = RData.RVector{Int, RData.INTSXP}([1, 2, 3], RData.emptyhash)
         v2 = RData.addattr(v)
