@@ -1,5 +1,6 @@
 # R script to generate test .rda and .rds files
-if ((as.integer(version$major) < 3) || (as.integer(substr(version$minor, 1, 1)) < 5)) {
+if ((as.integer(version$major) < 3) ||
+    ((as.integer(version$major) == 3) && (as.integer(substr(version$minor, 1, 1)) < 5))) {
     stop("Script requires R>=3.5 to generate RData version 2 and 3")
 }
 sys_tz = Sys.getenv("TZ") # remember System TimeZone
@@ -115,6 +116,13 @@ save(longseq, wrapvec, factoraltrep, nonnilpairlist,
      file=file.path("data_v3", "altrep.rda"), version=3)
 save(longseq, wrapvec, factoraltrep, nonnilpairlist,
      file=file.path("data_v3", "altrep_ascii.rda"), version=3, ascii=TRUE, compress=TRUE)
+
+# for wide data frame (100 columns or more) R 3.5 *sometimes* uses AltRep to store the column names
+altrepnames_list <- as.list(c(1, 2, 3))
+names(altrepnames_list) <- .Internal(wrap_meta(c("a", "b", "c"), TRUE, TRUE))
+altrepnames_df <- as.data.frame(altrepnames_list)
+names(altrepnames_df) <- names(altrepnames_list)
+save(altrepnames_list, altrepnames_df, file=file.path("data_v3", "altrep_names.rda"), version=3)
 
 # generate files using each of the supported compression types
 df <- data.frame(num = c(1.1, 2.2))

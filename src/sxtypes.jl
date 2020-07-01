@@ -88,6 +88,9 @@ Base class for RData internal representation of all R types.
 """
 abstract type RSEXPREC{S} end
 
+sxtype(sxt::Type{T}) where T <: RSEXPREC{S} where S = S
+sxtype(sxt::RSEXPREC) = sxtype(typeof(sxt))
+
 """
 R symbol.
 Not quite the same as a Julia symbol.
@@ -248,8 +251,13 @@ hasattr(ro::ROBJ, attrnm) = haskey(ro.attr, attrnm)
 hasnames(ro::ROBJ) = hasattr(ro, "names")
 hasdim(ro::ROBJ) = hasattr(ro, "dim")
 hasdimnames(ro::ROBJ) = hasattr(ro, "dimnames")
-getattr(ro::ROBJ, attrnm) = getindex(ro.attr, attrnm).data
-getattr(ro::ROBJ, attrnm, default) = hasattr(ro, attrnm) ? getindex(ro.attr, attrnm).data : default
+
+getdata(ro::RSEXPREC) =
+    throw(UnsupportedROBJ(sxtype(ro), "Don't know how to get data from $(typeof(ro))"))
+getdata(ro::Union{RVector, RNullableVector, RRaw}) = ro.data
+
+getattr(ro::ROBJ, attrnm) = getdata(getindex(ro.attr, attrnm))
+getattr(ro::ROBJ, attrnm, default) = hasattr(ro, attrnm) ? getdata(getindex(ro.attr, attrnm)) : default
 
 Base.names(ro::ROBJ) = getattr(ro, "names")
 
@@ -272,3 +280,42 @@ Base.size(rv::RVEC) = length(rv.data)
 Base.size(rl::RList) = isdataframe(rl) ? (length(rl.data[1]), length(rl.data)) : length(rl.data)
 
 row_names(ro::ROBJ) = getattr(ro, "row.names", emptystrvec)
+
+# unwrap data contained in RAltRep
+function unwrap(ar::RAltRep)
+    if isa(ar.info, RPairList) && length(ar.info) >= 1 && isa(ar.info.items[1], RSymbol)
+        arinfo = ar.info.items[1]
+        if startswith(string(arinfo), "wrap_")
+            # the first element of the AltRep state should be the wrapped one
+            if isa(ar.state, RPairList) && length(ar.state) >= 1
+                data = ar.state.items[1] # the actual data
+                # recover object attributes from the AltRep head
+                for (attrname, attr) in ar.attr
+                    if !haskey(data.attr, attrname)
+                        if data.attr === emptyhash
+                            # make sure data has its own dedicated attribute storage
+                            data = addattr(data)
+                        end
+                        data.attr[attrname] = attr
+                    end
+                end
+                return data
+            else
+                error("Unexpected state of \"$(arinfo)\" AltRep SEXP")
+            end
+        else
+            # TODO support compact_intseq and compact_realseq AltRep
+            @warn "Unsupported AltRep SEXP variant ($(arinfo.displayname))"
+        end
+    else
+        @warn "Unsupported AltRep SEXP variant (info type $(typeof(ar.info)))"
+        return nothing
+    end
+end
+
+# accessing AltRep data is special
+function getdata(ar::RAltRep)
+    unwrapped = unwrap(ar)
+    return (unwrapped === nothing) || (unwrapped === ar) ? unwrapped : getdata(unwrapped)
+end
+

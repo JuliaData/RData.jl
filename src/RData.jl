@@ -6,6 +6,7 @@ export
     sexp2julia,
     DictoVec,
     RDataException,
+    UnsupportedROBJ,
     CodecMissingError,
     load # reexport FileIO.load()
 
@@ -25,6 +26,7 @@ include("io/NativeIO.jl")
 include("io/utils.jl")
 
 include("DictoVec.jl")
+include("identifier.jl")
 include("convert.jl")
 
 include("context.jl")

@@ -22,12 +22,34 @@ end
 end
 
 @testset "Internals" begin
+    @testset "sxtype()" begin
+        v = RData.RVector{Int, RData.INTSXP}([1, 2], RData.emptyhash)
+        @test RData.sxtype(typeof(v)) == RData.INTSXP
+        @test RData.sxtype(v) == RData.INTSXP
+        s = RData.RSymbol("abc")
+        @test RData.sxtype(typeof(s)) == RData.SYMSXP
+        @test RData.sxtype(s) == RData.SYMSXP
+    end
+
+    @testset "getdata()" begin
+        v = RData.RVector{Int, RData.INTSXP}([1, 2, 3], RData.emptyhash)
+        @test RData.getdata(v) == [1, 2, 3]
+        @test RData.getdata(v) === v.data
+        @test_throws UnsupportedROBJ RData.getdata(RData.RSymbol("abc"))
+    end
+
     @testset "addattr()" begin
         v = RData.RVector{Int, RData.INTSXP}([1, 2, 3], RData.emptyhash)
         v2 = RData.addattr(v)
         @test v2 isa RData.RVector{Int, RData.INTSXP}
         @test v2.data === v.data
         @test v2.attr !== RData.emptyhash
+    end
+
+    @testset "getattr()" begin
+        v = RData.addattr(RData.RVector{Int, RData.INTSXP}([1, 2, 3], RData.emptyhash))
+        @test_throws KeyError RData.getattr(v, "names")
+        @test RData.getattr(v, "names", ["a", "b", "c"]) == ["a", "b", "c"]
     end
 end
 
