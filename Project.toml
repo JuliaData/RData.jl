@@ -13,9 +13,9 @@ TimeZones = "f269a46b-ccf7-5d73-abea-4c690281aa53"
 Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [compat]
-CategoricalArrays = "0.8"
+CategoricalArrays = "0.8, 0.9"
 CodecZlib = "0.4, 0.5, 0.6, 0.7"
-DataFrames = "0.21"
+DataFrames = "0.21, 0.22"
 FileIO = "1.0.5"
 Requires = "1.0.0"
 TimeZones = "0.7, 0.8, 0.9, 0.10, 1.0"
