@@ -1,6 +1,7 @@
 module TestRDA
 using Test
 using DataFrames
+using CategoricalArrays
 using RData
 
 @testset "Loading RData files (version=$ver)" for ver in (2, 3)
