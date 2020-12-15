@@ -1,8 +1,11 @@
 # RData.jl
 
-[![Coverage Status](https://coveralls.io/repos/github/JuliaData/RData.jl/badge.svg?branch=master)](https://coveralls.io/github/JuliaData/RData.jl?branch=master)
-[![Build Status](https://travis-ci.org/JuliaData/RData.jl.svg?branch=master)](https://travis-ci.org/JuliaData/RData.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/kc2s5kmvyew4w8in/branch/master?svg=true)](https://ci.appveyor.com/project/alyst/rdata-jl/branch/master)
+[![CI](https://github.com/JuliaData/RData.jl/workflows/CI/badge.svg)](https://github.com/JuliaData/RData.jl/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/JuliaData/RData.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaData/RData.jl)
+[![deps](https://juliahub.com/docs/RData/deps.svg)](https://juliahub.com/ui/Packages/RData/yjnue?t=2)
+[![deps](https://juliahub.com/docs/RData/deps.svg)](https://juliahub.com/ui/Packages/RData/idMMA?t=2)
+[![version](https://juliahub.com/docs/RData/version.svg)](https://juliahub.com/ui/Packages/RData/idMMA)
+[![pkgeval](https://juliahub.com/docs/RData/pkgeval.svg)](https://juliahub.com/ui/Packages/RData/idMMA)
 
 Read R data files (.rda, .RData) and optionally convert the contents into Julia equivalents.
 
