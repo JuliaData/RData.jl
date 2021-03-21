@@ -100,19 +100,48 @@ using RData
 
     @testset "List of vectors (#82)" begin
         f = load(joinpath(rdata_path, "list_of_vec.rda"))
-        @test f["listofvec"] isa Vector
-        @test length(f["listofvec"]) == 3
-        @test isequal(f["listofvec"], [[1., 2., missing], [3., 4.], [5., 6., missing]])
+        listofvec = f["listofvec"]
+        @test listofvec isa Vector{Vector{Union{Float64, Missing}}}
+        @test length(listofvec) == 3
+        @test isequal(listofvec, [[1., 2., missing], [3., 4.], [5., 6., missing]])
+        @test listofvec[1] isa Vector{Union{Float64, Missing}}
+        @test listofvec[2] isa Vector{Union{Float64, Missing}}
 
-        @test f["namedlistofvec"] isa DictoVec
-        @test length(f["namedlistofvec"]) == 3
-        @test f["namedlistofvec"].name2index == Dict("A"=>1, "B"=>3)
-        @test isequal(values(f["namedlistofvec"]), [[1., 2., missing], [3., 4.], [5., 6., missing]])
+        listofvec2 = f["listofvec2"]
+        @test listofvec2 isa Vector{Any}
+        @test length(listofvec2) == 3
+        @test isequal(listofvec2, [[1, 2, missing], [3., 4.], [5., 6., missing]])
+        @test listofvec2[1] isa Vector{Union{Int32, Missing}}
+        @test listofvec2[2] isa Vector{Float64}
 
-        @test f["testdf"] isa DataFrame
-        @test nrow(f["testdf"]) == 3
-        @test isequal(f["testdf"][!, "listascol"], [[1., 2., missing], [3., 4.], [5., 6., missing, 7.]])
-    end
+        listofvec3 = f["listofvec3"]
+        @test listofvec3 isa Vector{Any}
+        @test length(listofvec3) == 2
+        @test isequal(listofvec3, [[1, 2], [3., 4.]])
+        @test listofvec3[1] isa Vector{Int32}
+        @test listofvec3[2] isa Vector{Float64}
+
+        listofvec4 = f["listofvec4"]
+        @test listofvec4 isa Vector{Vector{Float64}}
+        @test length(listofvec4) == 2
+        @test isequal(listofvec4, [[1., 2.], [3., 4., 5.]])
+        @test listofvec4[1] isa Vector{Float64}
+        @test listofvec4[2] isa Vector{Float64}
+
+        namedlistofvec = f["namedlistofvec"]
+        @test namedlistofvec isa DictoVec
+        @test length(namedlistofvec) == 3
+        @test namedlistofvec.name2index == Dict("A"=>1, "B"=>3)
+        @test isequal(values(namedlistofvec), [[1., 2., missing], [3., 4.], [5., 6., missing]])
+
+        testdf = f["testdf"]
+        @test testdf isa DataFrame
+        @test nrow(testdf) == 3
+        @test eltype(testdf[!, "listascol"]) === Vector{Union{Float64, Missing}}
+        @test isequal(testdf[!, "listascol"], [[1., 2., missing], [3., 4.], [5., 6., missing, 7.]])
+        @test testdf[!, "listascol2"] isa Vector{Any}
+        @test isequal(testdf[!, "listascol2"], [[1., 2.], [3, 4], [5., 6., 7.]])
+    end # list of vectors
 end # for ver in ...
 
 @testset "Loading AltRep-containing RData files (version=3)" begin

@@ -59,7 +59,7 @@ function jlvec(rv::RVEC, force_missing::Bool=true)
     elseif inherits(rv, R_POSIXct_Class)
         return jlvec(ZonedDateTime, rv, force_missing)
     else
-        return jlvec(eltype(rv.data), rv, force_missing)
+        return jlvec(isconcretetype(eltype(rv.data)) ? eltype(rv.data) : Any, rv, force_missing)
     end
 end
 
@@ -154,9 +154,44 @@ function jlvec(::Type{ZonedDateTime}, rv::RVEC, force_missing::Bool=true)
     return datetimes
 end
 
+function simplify_eltype(v::AbstractVector)
+    isconcretetype(eltype(v)) && return eltype(v)
+
+    eltypes = Set{DataType}()
+    eltyp = Union{}
+    try
+        for x in v
+            xtyp = typeof(x)
+            if !(xtyp in eltypes)
+                # promote only if arrays have the same eltype, otherwise return Any
+                if (eltyp === Union{}) ||
+                   (nonmissingtype(xtyp) === nonmissingtype(eltyp)) ||
+                   (xtyp <: AbstractArray && eltyp <: AbstractArray &&
+                    nonmissingtype(eltype(xtyp)) === nonmissingtype(eltype(eltyp)))
+                    eltyp = promote_type(eltyp, xtyp)
+                else
+                    return Any
+                end
+                if !isconcretetype(eltyp) || (eltyp === Any)
+                    return Any
+                end
+                push!(eltypes, xtyp)
+            end
+        end
+    catch e # missing promotion rule
+        return Any
+    end
+    return eltyp
+end
+
 # generic vector conversion
 function jlvec(::Type{T}, rv::RVEC, force_missing::Bool=true) where T
-    return sexp2julia.(rv.data)
+    res = sexp2julia.(rv.data)
+    if !isconcretetype(eltype(res))
+        return convert(Vector{simplify_eltype(res)}, res)
+    else
+        return res
+    end
 end
 
 function sexp2julia(rex::RSEXPREC)
