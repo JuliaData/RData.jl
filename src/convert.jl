@@ -25,7 +25,7 @@ isna(x::ComplexF64) = isna(real(x)) || isna(imag(x))
 # convert R vector into Vector holding elements of type T
 # if force_missing is true, the result is always Vector{Union{T,Missing}},
 # otherwise it's Vector{T} if `rv` doesn't contain NAs
-function jlvec(::Type{T}, rv::RVEC, force_missing::Bool=true) where T
+function jlvec(::Type{T}, rv::RVEC, force_missing::Bool=true) where T <: Number
     anyna = any(isna, rv.data)
     if force_missing || anyna
         res = convert(Vector{Union{T,Missing}}, rv.data)
@@ -154,6 +154,11 @@ function jlvec(::Type{ZonedDateTime}, rv::RVEC, force_missing::Bool=true)
     return datetimes
 end
 
+# generic vector conversion
+function jlvec(::Type{T}, rv::RVEC, force_missing::Bool=true) where T
+    return sexp2julia.(rv.data)
+end
+
 function sexp2julia(rex::RSEXPREC)
     @warn "Conversion of $(typeof(rex)) to Julia is not implemented"
     return nothing
@@ -188,10 +193,10 @@ function sexp2julia(rl::RList)
         DataFrame(Any[isa(col, RAltRep) ? sexp2julia(col) : jlvec(col, false) for col in rl.data],
                   identifier.(names(rl)), makeunique=true)
     elseif hasnames(rl)
-        DictoVec(Any[sexp2julia(item) for item in rl.data], names(rl))
+        DictoVec(jlvec(Any, rl), names(rl))
     else
         # FIXME return DictoVec if forceDictoVec is on
-        map(sexp2julia, rl.data)
+        jlvec(Any, rl)
     end
 end
 

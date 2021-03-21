@@ -98,6 +98,21 @@ using RData
         @test f["x"] == f["y"] == ["a", "b", "c"]
     end
 
+    @testset "List of vectors (#82)" begin
+        f = load(joinpath(rdata_path, "list_of_vec.rda"))
+        @test f["listofvec"] isa Vector
+        @test length(f["listofvec"]) == 3
+        @test isequal(f["listofvec"], [[1., 2., missing], [3., 4.], [5., 6., missing]])
+
+        @test f["namedlistofvec"] isa DictoVec
+        @test length(f["namedlistofvec"]) == 3
+        @test f["namedlistofvec"].name2index == Dict("A"=>1, "B"=>3)
+        @test isequal(values(f["namedlistofvec"]), [[1., 2., missing], [3., 4.], [5., 6., missing]])
+
+        @test f["testdf"] isa DataFrame
+        @test nrow(f["testdf"]) == 3
+        @test isequal(f["testdf"][!, "listascol"], [[1., 2., missing], [3., 4.], [5., 6., missing, 7.]])
+    end
 end # for ver in ...
 
 @testset "Loading AltRep-containing RData files (version=3)" begin
