@@ -16,10 +16,11 @@ struct CodecMissingError <: RDataException
 end
 
 function Base.showerror(io::IO, e::CodecMissingError)
+    codecpkg = "Codec" * titlecase(String(e.formatName))
     print(io, string(
-        "$(typeof(e)): Codec$(e.formatName) package is required to read ",
+        "$(typeof(e)): $codecpkg package is required to read ",
         "$(e.formatName)-compressed RData files. Run ",
-        "Pkg.add(\"Codec$(e.formatName)\") to install it. Then in your code call ",
-        "\"using Codec$(e.formatName)\" before \"using RData\"."
+        "Pkg.add(\"$codecpkg\") to install it. Then in your code call ",
+        "\"using $codecpkg\" before \"using RData\"."
     ))
 end
