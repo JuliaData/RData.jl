@@ -124,6 +124,20 @@ altrepnames_df <- as.data.frame(altrepnames_list)
 names(altrepnames_df) <- names(altrepnames_list)
 save(altrepnames_list, altrepnames_df, file=file.path("data_v3", "altrep_names.rda"), version=3)
 
+# list of vectors variable and list of vectors column (for #82)
+listofvec <- list(c(1, 2, NA), c(3, 4), c(5, 6, NA))
+listofvec2 <- list(c(1L, 2L, NA), c(3, 4), c(5, 6, NA))
+listofvec3 <- list(c(1L, 2L), c(3, 4))
+listofvec4 <- list(c(1, 2), c(3, 4,5))
+namedlistofvec <- list(A=c(1, 2, NA), c(3, 4), B=c(5, 6, NA))
+testdf <- data.frame(a = c("a", "b", "c"))
+testdf$listascol <- list(c(1, 2, NA), c(3, 4), c(5, 6, NA, 7))
+testdf$listascol2 <- list(c(1, 2), c(3L, 4L), c(5, 6, 7))
+for (rdaver in c(2L, 3L)) {
+    save(listofvec, listofvec2, listofvec3, listofvec4, namedlistofvec, testdf,
+         file=file.path(paste0("data_v", rdaver), "list_of_vec.rda"), version=rdaver)
+}
+
 # generate files using each of the supported compression types
 df <- data.frame(num = c(1.1, 2.2))
 rdata_path <- "data_v3"
