@@ -2,6 +2,7 @@ module TestRDS
 using Test
 using Dates
 using DataFrames
+using CategoricalArrays
 using RData
 using TimeZones
 

@@ -25,7 +25,7 @@ isna(x::ComplexF64) = isna(real(x)) || isna(imag(x))
 # convert R vector into Vector holding elements of type T
 # if force_missing is true, the result is always Vector{Union{T,Missing}},
 # otherwise it's Vector{T} if `rv` doesn't contain NAs
-function jlvec(::Type{T}, rv::RVEC, force_missing::Bool=true) where T
+function jlvec(::Type{T}, rv::RVEC, force_missing::Bool=true) where T <: Number
     anyna = any(isna, rv.data)
     if force_missing || anyna
         res = convert(Vector{Union{T,Missing}}, rv.data)
@@ -59,7 +59,7 @@ function jlvec(rv::RVEC, force_missing::Bool=true)
     elseif inherits(rv, R_POSIXct_Class)
         return jlvec(ZonedDateTime, rv, force_missing)
     else
-        return jlvec(eltype(rv.data), rv, force_missing)
+        return jlvec(isconcretetype(eltype(rv.data)) ? eltype(rv.data) : Any, rv, force_missing)
     end
 end
 
@@ -154,6 +154,46 @@ function jlvec(::Type{ZonedDateTime}, rv::RVEC, force_missing::Bool=true)
     return datetimes
 end
 
+function simplify_eltype(v::AbstractVector)
+    isconcretetype(eltype(v)) && return eltype(v)
+
+    eltypes = Set{DataType}()
+    eltyp = Union{}
+    try
+        for x in v
+            xtyp = typeof(x)
+            if !(xtyp in eltypes)
+                # promote only if arrays have the same eltype, otherwise return Any
+                if (eltyp === Union{}) ||
+                   (nonmissingtype(xtyp) === nonmissingtype(eltyp)) ||
+                   (xtyp <: AbstractArray && eltyp <: AbstractArray &&
+                    nonmissingtype(eltype(xtyp)) === nonmissingtype(eltype(eltyp)))
+                    eltyp = promote_type(eltyp, xtyp)
+                else
+                    return Any
+                end
+                if !isconcretetype(eltyp) || (eltyp === Any)
+                    return Any
+                end
+                push!(eltypes, xtyp)
+            end
+        end
+    catch e # missing promotion rule
+        return Any
+    end
+    return eltyp
+end
+
+# generic vector conversion
+function jlvec(::Type{T}, rv::RVEC, force_missing::Bool=true) where T
+    res = sexp2julia.(rv.data)
+    if !isconcretetype(eltype(res))
+        return convert(Vector{simplify_eltype(res)}, res)
+    else
+        return res
+    end
+end
+
 function sexp2julia(rex::RSEXPREC)
     @warn "Conversion of $(typeof(rex)) to Julia is not implemented"
     return nothing
@@ -188,10 +228,10 @@ function sexp2julia(rl::RList)
         DataFrame(Any[isa(col, RAltRep) ? sexp2julia(col) : jlvec(col, false) for col in rl.data],
                   identifier.(names(rl)), makeunique=true)
     elseif hasnames(rl)
-        DictoVec(Any[sexp2julia(item) for item in rl.data], names(rl))
+        DictoVec(jlvec(Any, rl), names(rl))
     else
         # FIXME return DictoVec if forceDictoVec is on
-        map(sexp2julia, rl.data)
+        jlvec(Any, rl)
     end
 end
 
