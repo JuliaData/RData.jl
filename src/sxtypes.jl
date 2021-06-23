@@ -302,6 +302,11 @@ function iswrapped(ar::RAltRep)
     return artype !== nothing && startswith(artype, "wrap_")
 end
 
+function iscompactseq(ar::RAltRep)
+    artype = altrep_typename(ar)
+    return artype !== nothing && occursin(r"^compact_.+seq$", artype)
+end
+
 # unwrap data contained in RAltRep
 function unwrap(ar::RAltRep)
     # the first element of the AltRep state should be the wrapped one
@@ -323,12 +328,30 @@ function unwrap(ar::RAltRep)
     return data
 end
 
+# convert R compact sequence to Julia range
+function jlrange(ar::RAltRep)
+    artype = altrep_typename(ar)
+    if string(artype) == "compact_intseq"
+        T = Int
+    elseif string(artype) == "compact_realseq"
+        T = Float64
+    else
+        error("Unsupported AltRep SEXP variant ($artype)")
+    end
+    if !(ar.state isa RVEC && rvec_eltype(ar.state) <: Number && length(ar.state) == 3)
+        error("$artype: expected 3-element number vector")
+    end
+    seqdef = getdata(ar.state)
+    return range(T(seqdef[2]), length=Int(seqdef[1]), step=seqdef[3] != 1 ? T(seqdef[3]) : nothing)
+end
+
 # accessing AltRep data is special
 function getdata(ar::RAltRep)
     if iswrapped(ar)
         return getdata(unwrap(ar))
+    elseif iscompactseq(ar)
+        return jlrange(ar)
     else
-        # TODO support compact_intseq and compact_realseq AltRep
         @warn unsupported_altrep_message(ar)
         return nothing
     end

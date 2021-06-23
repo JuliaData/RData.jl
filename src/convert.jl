@@ -238,8 +238,9 @@ end
 function sexp2julia(ar::RAltRep)
     if iswrapped(ar)
         return sexp2julia(unwrap(ar))
+    elseif iscompactseq(ar)
+        return jlrange(ar)
     else
-        # TODO support compact_intseq and compact_realseq AltRep
         @warn unsupported_altrep_message(ar)
         return nothing
     end
