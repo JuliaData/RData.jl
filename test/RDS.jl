@@ -101,7 +101,7 @@ using TimeZones
 
     @testset "DateTime timezones" begin
         # tz"CST" is not supported by TimeZones.jl
-        datetimes = @test_logs (:warn, "Could not determine the timezone of 'CST', treating as UTC.") begin
+        datetimes = @test_logs (:warn, "Could not determine the timezone of 'CST', treating as 'UTC'") begin
             load(joinpath(rdata_path, "datetimes_tz.rds"))
         end
         # assumes generate_rda.R was generated on system set to PST!
