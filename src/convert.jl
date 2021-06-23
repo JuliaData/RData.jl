@@ -236,8 +236,13 @@ function sexp2julia(rl::RList)
 end
 
 function sexp2julia(ar::RAltRep)
-    ro = unwrap(ar)
-    return (ro !== nothing) ? sexp2julia(ro) : nothing
+    if iswrapped(ar)
+        return sexp2julia(unwrap(ar))
+    else
+        # TODO support compact_intseq and compact_realseq AltRep
+        @warn unsupported_altrep_message(ar)
+        return nothing
+    end
 end
 
 function rdays2date(days::Real)

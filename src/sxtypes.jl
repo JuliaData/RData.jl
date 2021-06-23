@@ -284,41 +284,53 @@ Base.size(rl::RList) = isdataframe(rl) ? (length(rl.data[1]), length(rl.data)) :
 
 row_names(ro::ROBJ) = getattr(ro, "row.names", emptystrvec)
 
+altrep_typename(ar::RAltRep) =
+    isa(ar.info, RPairList) && length(ar.info) >= 1 && isa(ar.info.items[1], RSymbol) ?
+    string(ar.info.items[1]) : nothing
+
+function unsupported_altrep_message(ar::RAltRep)
+    artype = altrep_typename(ar)
+    if artype !== nothing
+        return "Unsupported AltRep SEXP variant ($artype)"
+    else
+        return "Unsupported AltRep SEXP variant (info type $(typeof(ar.info)))"
+    end
+end
+
+function iswrapped(ar::RAltRep)
+    artype = altrep_typename(ar)
+    return artype !== nothing && startswith(artype, "wrap_")
+end
+
 # unwrap data contained in RAltRep
 function unwrap(ar::RAltRep)
-    if isa(ar.info, RPairList) && length(ar.info) >= 1 && isa(ar.info.items[1], RSymbol)
-        arinfo = ar.info.items[1]
-        if startswith(string(arinfo), "wrap_")
-            # the first element of the AltRep state should be the wrapped one
-            if isa(ar.state, RPairList) && length(ar.state) >= 1
-                data = ar.state.items[1] # the actual data
-                # recover object attributes from the AltRep head
-                for (attrname, attr) in ar.attr
-                    if !haskey(data.attr, attrname)
-                        if data.attr === emptyhash
-                            # make sure data has its own dedicated attribute storage
-                            data = addattr(data)
-                        end
-                        data.attr[attrname] = attr
-                    end
-                end
-                return data
-            else
-                error("Unexpected state of \"$(arinfo)\" AltRep SEXP")
-            end
-        else
-            # TODO support compact_intseq and compact_realseq AltRep
-            @warn "Unsupported AltRep SEXP variant ($(arinfo.displayname))"
-        end
-    else
-        @warn "Unsupported AltRep SEXP variant (info type $(typeof(ar.info)))"
-        return nothing
+    # the first element of the AltRep state should be the wrapped one
+    if !isa(ar.state, RPairList) || length(ar.state) == 0
+        error("Unexpected state of \"$(arinfo)\" AltRep SEXP")
     end
+
+    data = ar.state.items[1] # the actual data
+    # recover object attributes from the AltRep head
+    for (attrname, attr) in ar.attr
+        if !haskey(data.attr, attrname)
+            if data.attr === emptyhash
+                # make sure data has its own dedicated attribute storage
+                data = addattr(data)
+            end
+            data.attr[attrname] = attr
+        end
+    end
+    return data
 end
 
 # accessing AltRep data is special
 function getdata(ar::RAltRep)
-    unwrapped = unwrap(ar)
-    return (unwrapped === nothing) || (unwrapped === ar) ? unwrapped : getdata(unwrapped)
+    if iswrapped(ar)
+        return getdata(unwrap(ar))
+    else
+        # TODO support compact_intseq and compact_realseq AltRep
+        @warn unsupported_altrep_message(ar)
+        return nothing
+    end
 end
 
