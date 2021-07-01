@@ -111,6 +111,9 @@ Base class for all R vector-like objects.
 """
 abstract type RVEC{T, S} <: ROBJ{S} end
 
+rvec_eltype(::Type{<:RVEC{T}}) where T = T
+rvec_eltype(v::RVEC) = rvec_eltype(typeof(v))
+
 """
 R vector object.
 """
