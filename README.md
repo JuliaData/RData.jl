@@ -60,5 +60,6 @@ convert R objects into Julia equivalents:
 | `Date`     | `Dates.Date` | |
 | `POSIXct` date time | `ZonedDateTime` | [TimeZones.jl](https://github.com/JuliaTime/TimeZones.jl) |
 | data frame | `DataFrame` | [DataFrames.jl](https://github.com/JuliaData/DataFrames.jl) |
+| `compact_xxxseq` | `UnitRange`/`StepRange` | |
 
 If conversion to the Julia type is not supported (e.g. R closure or language expression), `load()` will return the internal RData representation of the object (`RSEXPREC` subtype).

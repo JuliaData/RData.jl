@@ -138,6 +138,14 @@ for (rdaver in c(2L, 3L)) {
          file=file.path(paste0("data_v", rdaver), "list_of_vec.rda"), version=rdaver)
 }
 
+# compact_xxxseq
+intseq1 <- 5L:200L
+intseq2 <- seq.int(-2L, 1000L, 2L)
+realseq1 <- 110:300
+realseq2 <- seq(110.5, 300.5)
+realseq3 <- seq(110, 300, by=0.5)
+save(intseq1, intseq2, realseq1, realseq2, realseq3, file=file.path("data_v3", "compact_seq.rda"), version=3)
+
 # generate files using each of the supported compression types
 df <- data.frame(num = c(1.1, 2.2))
 rdata_path <- "data_v3"

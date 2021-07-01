@@ -172,6 +172,18 @@ end # for ver in ...
                   compress(categorical(repeat(["A", "B", missing, "C"], inner=5000))))
     @test isa(altrep_conv_rda["nonnilpairlist"], Matrix{Int32})
     @test size(altrep_conv_rda["nonnilpairlist"]) == (0, 10)
+
+    @testset "compact_xxxseq" begin
+        compactseq_rda = load(joinpath("data_v3", "compact_seq.rda"), convert=true)
+        @test compactseq_rda["intseq1"] === 5:200
+        @test compactseq_rda["intseq2"] isa Vector{<:Integer}
+        @test compactseq_rda["intseq2"] == -2:2:1000
+        @test compactseq_rda["realseq1"] === 110:300
+        @test compactseq_rda["realseq2"] isa Vector{Float64}
+        @test compactseq_rda["realseq2"] == 110.5:300.5
+        @test compactseq_rda["realseq3"] isa Vector{Float64}
+        @test compactseq_rda["realseq3"] == 110.0:0.5:300.0
+    end
 end
 
 @testset "Duplicate levels in factor (version=3)" begin
