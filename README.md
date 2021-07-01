@@ -1,7 +1,7 @@
 # RData.jl
 
 [![CI](https://github.com/JuliaData/RData.jl/workflows/CI/badge.svg)](https://github.com/JuliaData/RData.jl/actions?query=workflow%3ACI+branch%3Amain)
-[![codecov](https://codecov.io/gh/JuliaData/RData.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaData/RData.jl)
+[![codecov](https://codecov.io/gh/JuliaData/RData.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaData/RData.jl)
 [![deps](https://juliahub.com/docs/RData/deps.svg)](https://juliahub.com/ui/Packages/RData/idMMA?t=2)
 [![version](https://juliahub.com/docs/RData/version.svg)](https://juliahub.com/ui/Packages/RData/idMMA)
 [![pkgeval](https://juliahub.com/docs/RData/pkgeval.svg)](https://juliahub.com/ui/Packages/RData/idMMA)
