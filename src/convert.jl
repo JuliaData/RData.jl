@@ -225,14 +225,27 @@ end
 function sexp2julia(rl::RList)
     if isdataframe(rl)
         # FIXME add force_missing option to control whether always convert to Union{T, Missing}
-        DataFrame(Any[isa(col, RAltRep) ? sexp2julia(col) : jlvec(col, false) for col in rl.data],
-                  identifier.(names(rl)), makeunique=true)
+        cols = Any[isa(col, RAltRep) ? sexp2julia(col) : jlvec(col, false) for col in rl.data]
+        nms = identifier.(names(rl))
+        obj = DataFrame(cols, nms, makeunique=true)
+        meta = DataAPI.metadata(obj)
+        for (key, val) in pairs(rl.attr)
+            key in ("names", "class", "row.names") && continue
+            meta[key] = sexp2julia(val)
+        end
+        for (col, name) in zip(rl.data, nms)
+            colmeta = DataAPI.metadata(obj, name)
+            for (key, val) in pairs(col.attr)
+                colmeta[key] = sexp2julia(val)
+            end
+        end
     elseif hasnames(rl)
-        DictoVec(jlvec(Any, rl), names(rl))
+        obj = DictoVec(jlvec(Any, rl), names(rl))
     else
         # FIXME return DictoVec if forceDictoVec is on
-        jlvec(Any, rl)
+        obj = jlvec(Any, rl)
     end
+    return obj
 end
 
 function sexp2julia(ar::RAltRep)

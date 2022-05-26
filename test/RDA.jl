@@ -3,6 +3,7 @@ using Test
 using DataFrames
 using CategoricalArrays
 using RData
+using TimeZones
 
 @testset "Loading RData files (version=$ver)" for ver in (2, 3)
     rdata_path = joinpath(dirname(@__FILE__), "data_v$ver")
@@ -193,6 +194,21 @@ end
     @test dup_cat[end] == "Anterior"
     @test levels(dup_cat) ==
         ["Inferior", "Anterior", "LBBB", "Missing", "NoSTUp", "OtherSTUp", "Paced"]
+end
+
+@testset "Data frames attributes (version=3)" begin
+    df = load(joinpath("data_v3", "dfattributes.rda"))["df"]
+
+    @test metadata(df) ==
+        Dict("collectiondates" => [ZonedDateTime(2022, 05, 25, 22, 5, tz"UTC"),
+                                   ZonedDateTime(2022, 05, 26, 22, 5, tz"UTC")],
+             "comment" => "This is a data frame")
+    @test metadata(df, :x) ==
+        Dict("label" => "X")
+    @test isequal(metadata(df, :y),
+                  Dict("labels" => DictoVec([1.0, 2.0, 3.0, missing],
+                                            ["a", "b", "c", "missing"]),
+                  "unit" => "s"))
 end
 
 end # module TestRDA

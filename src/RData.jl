@@ -1,6 +1,6 @@
 module RData
 
-using DataFrames, CategoricalArrays, FileIO, TimeZones, Unicode
+using DataAPI, DataFrames, CategoricalArrays, FileIO, TimeZones, Unicode
 
 export
     sexp2julia,
