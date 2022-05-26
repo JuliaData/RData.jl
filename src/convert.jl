@@ -229,12 +229,14 @@ function sexp2julia(rl::RList)
         nms = identifier.(names(rl))
         obj = DataFrame(cols, nms, makeunique=true)
         meta = DataAPI.metadata(obj)
+        sizehint!(meta, length(rl.attr))
         for (key, val) in pairs(rl.attr)
             key in ("names", "class", "row.names") && continue
             meta[key] = sexp2julia(val)
         end
         for (col, name) in zip(rl.data, nms)
             colmeta = DataAPI.metadata(obj, name)
+            sizehint!(colmeta, length(col.attr))
             for (key, val) in pairs(col.attr)
                 colmeta[key] = sexp2julia(val)
             end
