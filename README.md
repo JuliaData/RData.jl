@@ -49,7 +49,7 @@ objs = load("path_to/example.rda")
 
 The result is a dictionary (`Dict{String, Any}`) of all R objects stored in "example.rda".
 
-If `convert=true` keyword option is specified, `load()` will try to automatically
+Unless the `convert=false` keyword option is specified, `load()` will try to automatically
 convert R objects into Julia equivalents:
 
 | R object     | Julia object           |  |
