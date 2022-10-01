@@ -143,6 +143,40 @@ using TimeZones
         @test testdf[!, "listascol2"] isa Vector{Any}
         @test isequal(testdf[!, "listascol2"], [[1., 2.], [3, 4], [5., 6., 7.]])
     end # list of vectors
+
+    @testset "Data frames attributes to metadata (version=3)" begin
+        df = load(joinpath("data_v3", "dfattributes.rda"))["df"]
+
+        @test isequal(Dict(k => metadata(df, k, style=true) for k in metadatakeys(df)),
+                    Dict("collectiontimes" => ([ZonedDateTime(2022, 05, 25, 22, 5, tz"UTC"),
+                                                ZonedDateTime(2022, 05, 26, 22, 5, tz"UTC")],
+                                                :default),
+                        "comment" => ("This is a data frame", :note),
+                        "row.names" => ([missing, -6], :default)))
+        @test Dict(k => colmetadata(df, :v1, k, style=true) for k in colmetadatakeys(df, :v1)) ==
+            Dict("label" => ("V1", :note),
+                 "labels" => (DictoVec([1.0, 2.0, 3.0], ["a", "b", "c"]), :default))
+        @test Dict(k => colmetadata(df, :v2, k, style=true) for k in colmetadatakeys(df, :v2)) ==
+            Dict("label" => ("V2", :note),
+                 "labels" => (DictoVec([1.0, 2.0, 3.0], ["a", "b", "c"]), :default),
+                 "na_values" => (3.0, :default))
+        @test Dict(k => colmetadata(df, :v3, k, style=true) for k in colmetadatakeys(df, :v3)) ==
+            Dict("label" => ("V3", :note),
+                 "labels" => (DictoVec([1.0, 2.0, 3.0], ["a", "b", "c"]), :default),
+                 "na_range" => ([3.0, Inf], :default))
+        @test Dict(k => colmetadata(df, :v4, k, style=true) for k in colmetadatakeys(df, :v4)) ==
+            Dict("label" => ("V4", :note),
+                 "comment" => ("A comment", :note),
+                 "units" => ("m/s^2", :note),
+                 "custom" => (1, :default))
+
+        df = load(joinpath("data_v3", "dfattributes.rda"), metadata=false)["df"]
+        @test isempty(metadatakeys(df))
+        @test isempty(colmetadatakeys(df, :v1))
+        @test isempty(colmetadatakeys(df, :v2))
+        @test isempty(colmetadatakeys(df, :v3))
+        @test isempty(colmetadatakeys(df, :v4))
+    end
 end # for ver in ...
 
 @testset "Loading AltRep-containing RData files (version=3)" begin
@@ -194,21 +228,6 @@ end
     @test dup_cat[end] == "Anterior"
     @test levels(dup_cat) ==
         ["Inferior", "Anterior", "LBBB", "Missing", "NoSTUp", "OtherSTUp", "Paced"]
-end
-
-@testset "Data frames attributes (version=3)" begin
-    df = load(joinpath("data_v3", "dfattributes.rda"))["df"]
-
-    @test metadata(df) ==
-        Dict("collectiondates" => [ZonedDateTime(2022, 05, 25, 22, 5, tz"UTC"),
-                                   ZonedDateTime(2022, 05, 26, 22, 5, tz"UTC")],
-             "comment" => "This is a data frame")
-    @test metadata(df, :x) ==
-        Dict("label" => "X")
-    @test isequal(metadata(df, :y),
-                  Dict("labels" => DictoVec([1.0, 2.0, 3.0, missing],
-                                            ["a", "b", "c", "missing"]),
-                  "unit" => "s"))
 end
 
 end # module TestRDA

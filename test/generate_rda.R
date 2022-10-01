@@ -100,6 +100,43 @@ saveRDS(list(as.POSIXct("2017-01-01 13:23"),
         file=file.path(rdata_path, "datetimes_tz.rds"), version=ver)
 Sys.setenv(TZ = sys_tz) # restore timezone
 
+# Importing data frame attributes as defined by common packages to metadata
+
+# Column-level attributes used by packages haven, labelled and sjlabelled
+# Generating code:
+# library(haven)
+# v1 <- labelled(c(1, 2, 2, 3, NA, 1), label="V1", labels=c(a=1, b=2, c=3))
+# v2 <- labelled_spss(c(1, 2, 2, 3, NA, 1), label="V2", labels=c(a=1, b=2, c=3),
+#                     na_values=3)
+# v3 <- labelled_spss(c(1, 2, 2, 3, NA, 1), label="V3", labels=c(a=1, b=2, c=3),
+#                     na_range=c(3, Inf))
+v1 <- structure(c(1, 2, 2, 3, NA, 1), labels=c(a=1, b=2, c=3), label="V1",
+                class="numeric")
+v2 <- structure(c(1, 2, 2, 3, NA, 1), labels=c(a=1, b=2, c=3), label="V2",
+                na_values=3, class="numeric")
+v3 <- structure(c(1, 2, 2, 3, NA, 1), labels=c(a=1, b=2, c=3), label="V3",
+                na_range=c(3, Inf), class="numeric")
+
+# Column-level attributes used by packages Hmisc, units and labelVector
+# (plus `comment` from base R and some custom attributes)
+# Generating code:
+# library(Hmisc)
+# v4 <- c(1, 2, 2, 3, NA, 1)
+# label(v4) <- "V4"
+# comment(v4) <- "A comment"
+# units(v4) <- "m/s^2"
+# attr(v4, "custom") <- 1
+v4 <- structure(c(1, 2, 2, 3, NA, 1), label="V4", class="numeric",
+                comment="A comment", units="m/s^2", custom=1)
+
+# Data frame-level attributes
+df <- data.frame(v1, v2, v3, v4)
+comment(df) <- "This is a data frame"
+attr(df, "collectiontimes") <- c(as.POSIXct("2022-05-25 22:05:00", tz="UTC"),
+                                 as.POSIXct("2022-05-26 22:05:00", tz="UTC"))
+
+save(df, file=file.path(rdata_path, "dfattributes.rda"))
+
 } # for (ver in ...)
 
 # generate V3 format AltRep objects

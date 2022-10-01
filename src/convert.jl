@@ -194,12 +194,12 @@ function jlvec(::Type{T}, rv::RVEC, force_missing::Bool=true) where T
     end
 end
 
-function sexp2julia(rex::RSEXPREC)
+function sexp2julia(rex::RSEXPREC; metadata::Bool=true)
     @warn "Conversion of $(typeof(rex)) to Julia is not implemented" maxlog=1
     return nothing
 end
 
-function sexp2julia(rv::RVEC)
+function sexp2julia(rv::RVEC; metadata::Bool=true)
     # TODO dimnames?
     # FIXME add force_missing option to control whether always convert to Union{T, Missing}
     jv = jlvec(rv, false)
@@ -222,23 +222,34 @@ function sexp2julia(rv::RVEC)
     end
 end
 
-function sexp2julia(rl::RList)
+function sexp2julia(rl::RList; metadata::Bool=true)
     if isdataframe(rl)
         # FIXME add force_missing option to control whether always convert to Union{T, Missing}
         cols = Any[isa(col, RAltRep) ? sexp2julia(col) : jlvec(col, false) for col in rl.data]
         nms = identifier.(names(rl))
         obj = DataFrame(cols, nms, makeunique=true)
-        meta = DataAPI.metadata(obj)
-        sizehint!(meta, length(rl.attr))
-        for (key, val) in pairs(rl.attr)
-            key in ("names", "class", "row.names") && continue
-            meta[key] = sexp2julia(val)
-        end
-        for (col, name) in zip(rl.data, nms)
-            colmeta = DataAPI.metadata(obj, name)
-            sizehint!(colmeta, length(col.attr))
-            for (key, val) in pairs(col.attr)
-                colmeta[key] = sexp2julia(val)
+        if metadata
+            for (key, val) in pairs(rl.attr)
+                # skip already processed system attributes
+                if key in ("names", "class")
+                    continue
+                elseif key in ("comment", "label")
+                    metadata!(obj, key, sexp2julia(val), style=:note)
+                else
+                    metadata!(obj, key, sexp2julia(val), style=:default)
+                end
+            end
+            for (col, name) in zip(rl.data, nms)
+                for (key, val) in pairs(col.attr)
+                    # skip already processed system attributes
+                    if key in ("names", "class", "levels")
+                        continue
+                    elseif key in ("comment", "label", "units")
+                        colmetadata!(obj, name, key, sexp2julia(val), style=:note)
+                    else
+                        colmetadata!(obj, name, key, sexp2julia(val), style=:default)
+                    end
+                end
             end
         end
     elseif hasnames(rl)
@@ -250,9 +261,9 @@ function sexp2julia(rl::RList)
     return obj
 end
 
-function sexp2julia(ar::RAltRep)
+function sexp2julia(ar::RAltRep; metadata::Bool=true)
     if iswrapped(ar)
-        return sexp2julia(unwrap(ar))
+        return sexp2julia(unwrap(ar), metadata=metadata)
     elseif iscompactseq(ar)
         return jlrange(ar)
     else
