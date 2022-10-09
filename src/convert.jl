@@ -234,7 +234,7 @@ function sexp2julia(rl::RList; metadata::Bool=true)
                 if key in ("names", "class")
                     continue
                 elseif key in ("comment", "label")
-                    metadata!(obj, key, sexp2julia(val), style=:note)
+                    metadata!(obj, key, sexp2julia(val; metadata=metadata), style=:note)
                 else
                     metadata!(obj, key, sexp2julia(val), style=:default)
                 end
