@@ -1,6 +1,6 @@
 module RData
 
-using DataFrames, CategoricalArrays, FileIO, TimeZones, Unicode
+using DataAPI, DataFrames, CategoricalArrays, FileIO, TimeZones, Unicode
 
 export
     sexp2julia,
@@ -44,6 +44,8 @@ end
 ## supported `kwoptions`:
 ## convert::Bool (true by default) for converting R objects into Julia equivalents,
 ##               otherwise load() returns R internal representation (ROBJ-derived objects)
+## metadata::Bool (true by default) for importing R attributes into metadata
+##                (only has an effect for data frames currently)
 ## TODO option for disabling names checking (e.g. column names)
 ##
 ##############################################################################
@@ -57,6 +59,7 @@ function fileio_load(s::Stream{format"RData"}; kwoptions...)
     @debug "minimal R version: $(ctx.Rmin)"
 
     convert2julia = get(ctx.kwdict, :convert, true)
+    metadata = get(ctx.kwdict, :metadata, true)
 
     # top level read -- must be a paired list of objects
     # we read it here to be able to convert to julia objects inplace
@@ -70,7 +73,7 @@ function fileio_load(s::Stream{format"RData"}; kwoptions...)
         tag = readitem(ctx)
         obj_name = convert(RString, isa(tag, RSymbol) ? tag.displayname : "\0")
         obj = readitem(ctx)
-        setindex!(res, (convert2julia ? sexp2julia(obj) : obj), obj_name)
+        setindex!(res, (convert2julia ? sexp2julia(obj, metadata=metadata) : obj), obj_name)
         fl = readuint32(ctx.io)
         readattrs(ctx, fl)
     end
@@ -84,7 +87,8 @@ function fileio_load(s::Stream{format"RDataSingle"}; kwoptions...)
     ctx = RDAContext(rdaio(io, chomp(readline(io))); kwoptions...)
     @assert ctx.fmtver == 2 || ctx.fmtver == 3  # supported format versions
     convert2julia = get(ctx.kwdict, :convert, true)
-    return convert2julia ? sexp2julia(readitem(ctx)) : readitem(ctx)
+    metadata = get(ctx.kwdict, :metadata, true)
+    return convert2julia ? sexp2julia(readitem(ctx), metadata=metadata) : readitem(ctx)
 end
 
 function fileio_load(f::Union{File{format"RData"}, File{format"RDataSingle"}};

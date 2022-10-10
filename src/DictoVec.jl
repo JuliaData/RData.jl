@@ -26,6 +26,15 @@ struct DictoVec{T}
     end
 end
 
+Base.:(==)(dict1::DictoVec, dict2::DictoVec) =
+    dict1.name2index == dict2.name2index && dict1.data == dict2.data
+Base.isequal(dict1::DictoVec, dict2::DictoVec) =
+    isequal(dict1.name2index, dict2.name2index) && isequal(dict1.data, dict2.data)
+
+const hash_dictovec_seed = UInt === UInt64 ? 0xe00ac4bbcfc2fa07 : 0x57f3f900
+Base.hash(dict::DictoVec, h::UInt) =
+    hash(dict.name2index, hash(dict.data, h + hash_dictovec_seed))
+
 Base.eltype(::Type{DictoVec{T}}) where T = T
 Base.eltype(dict::DictoVec) = eltype(typeof(dict))
 Base.length(dict::DictoVec) = length(dict.data)

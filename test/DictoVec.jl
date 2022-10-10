@@ -28,6 +28,13 @@ end
     @test_throws KeyError dv["a"]
     @test_throws KeyError dv[:a]
 
+    @test dv == DictoVec(Symbol[]) == DictoVec(Int[])
+    @test isequal(dv, DictoVec(Symbol[]))
+    @test isequal(dv, DictoVec(Int[]))
+    @test dv != DictoVec([:a], ["a"])
+    @test !isequal(dv, DictoVec([:a], ["a"]))
+    @test hash(dv) == hash(DictoVec(Symbol[])) == hash(DictoVec(Int[]))
+
     @test get(dv, 1, :x) == :x
     @test get(() -> :y, dv, 1) == :y
     @test get(dv, "a", :x) == :x
@@ -88,6 +95,17 @@ end
     @test collect(keys(dv)) == RData.RString[]
     @test values(dv) == [2.0, 5.0, 4.0]
 
+    @test dv == DictoVec([2.0, 5.0, 4.0])
+    @test dv == DictoVec([2, 5, 4])
+    @test isequal(dv, DictoVec([2.0, 5.0, 4.0]))
+    @test dv != DictoVec([3.0, 5.0, 4.0])
+    @test !isequal(dv, DictoVec([3.0, 5.0, 4.0]))
+    @test dv != DictoVec([2.0, 5.0, 4.0], ["b", "c", "a"])
+    @test !isequal(dv, DictoVec([2.0, 5.0, 4.0], ["b", "c", "a"]))
+    @test hash(dv) ==
+        hash(DictoVec([2.0, 5.0, 4.0])) ==
+        hash(DictoVec([2, 5, 4]))
+
     @test_throws BoundsError dv[0]
     @test_throws BoundsError dv[4]
     @test dv[1] == 2.0
@@ -121,6 +139,17 @@ end
     @test values(dv) == [2.0, 5.0, 4.0]
     @test show2string(dv) == "DictoVec{Float64}(\"a\"=>2.0,\"b\"=>5.0,\"c\"=>4.0)"
 
+    @test dv == DictoVec([2.0, 5.0, 4.0], ["a", "b", "c"])
+    @test dv == DictoVec([2, 5, 4], ["a", "b", "c"])
+    @test isequal(dv, DictoVec([2.0, 5.0, 4.0], ["a", "b", "c"]))
+    @test dv != DictoVec([3.0, 5.0, 4.0], ["a", "b", "c"])
+    @test !isequal(dv, DictoVec([3.0, 5.0, 4.0], ["a", "b", "c"]))
+    @test dv != DictoVec([2.0, 5.0, 4.0], ["b", "c", "a"])
+    @test !isequal(dv, DictoVec([2.0, 5.0, 4.0], ["b", "c", "a"]))
+    @test hash(dv) ==
+        hash(DictoVec([2.0, 5.0, 4.0], ["a", "b", "c"])) ==
+        hash(DictoVec([2, 5, 4], ["a", "b", "c"]))
+
     @test dv[1] === 2.0
     @test dv["a"] === 2.0
     @test dv[[1, 3]] == [2.0, 4.0]
@@ -140,6 +169,23 @@ end
     @test !haskey(dv, "b")
     @test dv[2] == 4.0 # indices has updated
     @test show2string(dv) == "DictoVec{Float64}(\"a\"=>6.0,\"c\"=>4.0)"
+end
+
+@testset "== and isequal with -0.0, NaN and missing" begin
+    @test DictoVec([0.0, 5.0, 4.0], ["b", "c", "a"]) ==
+        DictoVec([-0.0, 5.0, 4.0], ["b", "c", "a"])
+    @test !isequal(DictoVec([0.0, 5.0, 4.0], ["b", "c", "a"]),
+        DictoVec([-0.0, 5.0, 4.0], ["b", "c", "a"]))
+
+    @test DictoVec([NaN, 5.0, 4.0], ["b", "c", "a"]) !=
+        DictoVec([NaN, 5.0, 4.0], ["b", "c", "a"])
+    @test isequal(DictoVec([NaN, 5.0, 4.0], ["b", "c", "a"]),
+        DictoVec([NaN, 5.0, 4.0], ["b", "c", "a"]))
+
+    @test ismissing(DictoVec([missing, 5.0, 4.0], ["b", "c", "a"]) !=
+                    DictoVec([missing, 5.0, 4.0], ["b", "c", "a"]))
+    @test isequal(DictoVec([missing, 5.0, 4.0], ["b", "c", "a"]),
+        DictoVec([missing, 5.0, 4.0], ["b", "c", "a"]))
 end
 
 end
