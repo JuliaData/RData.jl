@@ -17,7 +17,9 @@ end
 
     @test typeof(dv) === DictoVec{Symbol}
     @test eltype(dv) === Symbol
+    @test dv isa AbstractVector{Symbol}
     @test length(dv) == 0
+    @test size(dv) == (0,)
     @test isempty(dv)
     @test collect(keys(dv)) == RData.RString[]
     @test values(dv) == Symbol[]
@@ -85,8 +87,10 @@ end
 @testset "Nameless DictoVec" begin
     dv = DictoVec([2.0, 5.0, 4.0])
     @test typeof(dv) === DictoVec{Float64}
+    @test dv isa AbstractVector{Float64}
     @test eltype(dv) === Float64
     @test length(dv) == 3
+    @test size(dv) == (3,)
     @test !isempty(dv)
     @test !haskey(dv, 1)
     @test !haskey(dv, "a")
@@ -129,8 +133,10 @@ end
 @testset "DictoVec with names" begin
     dv = DictoVec([2.0, 5.0, 4.0], ["a", "b", "c"])
     @test typeof(dv) === DictoVec{Float64}
+    @test dv isa AbstractVector{Float64}
     @test eltype(dv) === Float64
     @test length(dv) == 3
+    @test size(dv) == (3,)
     @test !isempty(dv)
     @test !haskey(dv, 1)
     @test haskey(dv, "a")
