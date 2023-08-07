@@ -3,7 +3,7 @@ Container that mimics R vector behaviour.
 Elements could be accessed either by indices as a normal vector,
 or (optionally) by string keys as a dictionary.
 """
-struct DictoVec{T}
+struct DictoVec{T} <: AbstractVector{T}
     data::Vector{T}
     name2index::Dict{RString, Int}
     index2name::Vector{Union{RString, Nothing}}
@@ -39,6 +39,7 @@ Base.eltype(::Type{DictoVec{T}}) where T = T
 Base.eltype(dict::DictoVec) = eltype(typeof(dict))
 Base.length(dict::DictoVec) = length(dict.data)
 Base.isempty(dict::DictoVec) = isempty(dict.data)
+Base.size(dict::DictoVec) = size(dict.data)
 
 # key-based indexing
 Base.haskey(dict::DictoVec, key) = haskey(dict.name2index, key)
