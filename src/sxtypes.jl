@@ -183,26 +183,33 @@ end
 const REnvTypes = Union{REnvironment, RNamespace, RDummy}
 
 """
-Representation of R's paired list-like structures (`LISTSXP`, `LANGSXP`).
-Unlike R which represents these as singly-linked list,
-`RPairList` uses vector representation.
+Representation of R's single linked list-like structures
+(`LISTSXP`, `LANGSXP`, 'DOTSXP').
+Unlike R, which represents these as single linked list,
+`RSpecialList` uses vector representation.
+It is "special" because in R it is used to represent some internal data types.
 """
-struct RPairList <: ROBJ{LISTSXP}
+struct RSpecialList{S} <: ROBJ{S}
     items::Vector{RSEXPREC}
     tags::Vector{RString}
     attr::Hash
 
-    RPairList(attr::Hash = Hash()) = new(RSEXPREC[], RString[], attr)
+    RSpecialList{S}(attr::Hash = Hash()) where S =
+        new{S}(RSEXPREC[], RString[], attr)
 end
 
-Base.length(list::RPairList) = length(list.items)
-Base.size(list::RPairList) = size(list.items)
-Base.isempty(list::RPairList) = isempty(list.items)
+Base.length(list::RSpecialList) = length(list.items)
+Base.size(list::RSpecialList) = size(list.items)
+Base.isempty(list::RSpecialList) = isempty(list.items)
 
-function Base.push!(pl::RPairList, item::RSEXPREC, tag::RString)
+function Base.push!(pl::RSpecialList, item::RSEXPREC, tag::RString)
     push!(pl.tags, tag)
     push!(pl.items, item)
 end
+
+const RPairList = RSpecialList{LISTSXP}
+const RLang = RSpecialList{LANGSXP}
+const RDot = RSpecialList{DOTSXP}
 
 struct RClosure <: ROBJ{CLOSXP}
     formals::RSEXPREC

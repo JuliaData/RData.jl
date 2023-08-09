@@ -109,8 +109,10 @@ function readpackage(ctx::RDAContext, fl::RDATag)
 end
 
 # reads single-linked lists R objects
-function readpairedobjects(ctx::RDAContext, fl::RDATag)
-    res = RPairList(readattrs(ctx, fl))
+# the type of the result is RSpecialList{S},
+# where S is the SXTYPE of the R object
+function readsinglelinkedlist(::Val{S}, ctx::RDAContext, fl::RDATag) where S
+    res = RSpecialList{S}(readattrs(ctx, fl))
     ifl = fl # RDATag for the list item
     while true
         if sxtype(ifl) == sxtype(fl)
@@ -146,14 +148,11 @@ function readpairedobjects(ctx::RDAContext, fl::RDATag)
     return res
 end
 
-function readpairlist(ctx::RDAContext, fl::RDATag)
-    @assert sxtype(fl) == LISTSXP
-    readpairedobjects(ctx, fl)
-end
-
-function readlang(ctx::RDAContext, fl::RDATag)
-    @assert sxtype(fl) == LANGSXP
-    readpairedobjects(ctx, fl)
+function readsinglelinkedlist(ctx::RDAContext, fl::RDATag)
+    S = sxtype(fl)
+    # check the SXTYPE is supported
+    @assert S == LISTSXP || S == LANGSXP || S == DOTSXP
+    readsinglelinkedlist(Val(S), ctx, fl)
 end
 
 function readclosure(ctx::RDAContext, fl::RDATag)
@@ -292,11 +291,11 @@ Maps R type id (`SXType`) to its `SXTypeInfo`.
 const SXTypes = Dict{SXType, SXTypeInfo}(
     NILSXP     => SXTypeInfo("NULL",readdummy),
     SYMSXP     => SXTypeInfo("Symbol",readsymbol),
-    LISTSXP    => SXTypeInfo("Pairlist",readpairlist),
+    LISTSXP    => SXTypeInfo("Pairlist",readsinglelinkedlist),
     CLOSXP     => SXTypeInfo("Closure",readclosure),
     ENVSXP     => SXTypeInfo("Environment",readenv),
     PROMSXP    => SXTypeInfo("Promise",readpromise),
-    LANGSXP    => SXTypeInfo("Lang",readlang),
+    LANGSXP    => SXTypeInfo("Lang",readsinglelinkedlist),
     SPECIALSXP => SXTypeInfo("Special",readbuiltin),
     BUILTINSXP => SXTypeInfo("Builtin",readbuiltin),
     CHARSXP    => SXTypeInfo("Char",readunsupported),
@@ -305,7 +304,7 @@ const SXTypes = Dict{SXType, SXTypeInfo}(
     REALSXP    => SXTypeInfo("Real",readnumeric),
     CPLXSXP    => SXTypeInfo("Complex",readcomplex),
     STRSXP     => SXTypeInfo("String",readstring),
-    DOTSXP     => SXTypeInfo("Dot",readunsupported),
+    DOTSXP     => SXTypeInfo("Dot",readsinglelinkedlist),
     ANYSXP     => SXTypeInfo("Any",readunsupported),
     VECSXP     => SXTypeInfo("List",readlist),
     EXPRSXP    => SXTypeInfo("Expr",readlist),

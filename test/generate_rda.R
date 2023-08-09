@@ -135,6 +135,12 @@ comment(df) <- "This is a data frame"
 attr(df, "collectiontimes") <- c(as.POSIXct("2022-05-25 22:05:00", tz="UTC"),
                                  as.POSIXct("2022-05-26 22:05:00", tz="UTC"))
 
+savedotdotdot <- function(...) {
+     dotdotdot <- get("...", environment())
+     save(dotdotdot, file=file.path(rdata_path, "dotdotdot.rda"), version=ver)
+}
+savedotdotdot(1,2,3)
+
 expr <- parse(text="a+b\nx+2")
 save(expr, file=file.path(rdata_path, "expr.rda"), version=ver)
 

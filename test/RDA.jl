@@ -244,6 +244,13 @@ end
         ["Inferior", "Anterior", "LBBB", "Missing", "NoSTUp", "OtherSTUp", "Paced"]
 end
 
+@testset "dot-dot-dot object (version=$ver)" for ver in [2, 3]
+    dotdotdot_rda = load(joinpath("data_v$ver", "dotdotdot.rda"), convert=false)
+    @test haskey(dotdotdot_rda, "dotdotdot")
+    dotdotdot = dotdotdot_rda["dotdotdot"]
+    @test dotdotdot isa RData.RDot
+end
+
 @testset "Expr list object (version=$ver)" for ver in [2, 3]
     expr_rda = load(joinpath("data_v$ver", "expr.rda"), convert=false)
     @test haskey(expr_rda, "expr")
