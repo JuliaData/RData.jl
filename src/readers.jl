@@ -113,36 +113,36 @@ end
 # where S is the SXTYPE of the R object
 function readsinglelinkedlist(::Val{S}, ctx::RDAContext, fl::RDATag) where S
     res = RSpecialList{S}(readattrs(ctx, fl))
-    ifl = fl # RDATag for the list item
-    while true
-        if sxtype(ifl) == sxtype(fl)
-            if hastag(ifl)
-                tag = readitem(ctx)
-                if isa(tag, RSymbol)
-                    nm = tag.displayname
-                else
-                    nm = emptyhashkey
-                end
-            else
-                nm = emptyhashkey
-            end
-            item = readitem(ctx)
-            push!(res, item, nm)
-            ifl = readuint32(ctx.io)
+    tag = hastag(fl) ? readitem(ctx) : RNull()
+    carfl = fl # RDATag for the CAR of the current list link
+    while carfl != NILVALUE_SXP
+        if !isempty(res) # head tag was read already
+            carfl = readuint32(ctx.io) # CAR container type
+            (carfl == NILVALUE_SXP) && break
             # read the item attributes
             # FIXME what to do with the attributes?
-            (sxtype(ifl) == sxtype(fl)) && readattrs(ctx, ifl)
-        elseif sxtype(ifl) == NILVALUE_SXP # end of list
-            break
-        else # end of list (not a single-linked list item)
-            # it's not clear whether it's an error of handling AltReps
-            # or a feature of AltReps (it only occurs within AltReps)
-            # normally pairlists should be terminated by NILVALUE_SXP
-            @warn "$(sxtypelabel(item)) element in a $(sxtypelabel(res)) list, assuming it's the last element"
-            item = readitem(ctx, ifl)
-            push!(res, item, emptyhashkey)
-            break
+            attrs = readattrs(ctx, carfl)
+            tag = hastag(carfl) ? readitem(ctx) : RNull()
         end
+        if isa(tag, RSymbol)
+            nm = tag.displayname
+        else
+            isa(tag, RNull) || @warn "$(sxtypelabel(sxtype(fl))) link has unexpected tag type $(sxtypelabel(tag))"
+            nm = emptyhashkey
+        end
+        iscontainer = sxtype(carfl) == sxtype(fl) || sxtype(carfl) == LISTSXP
+        #if !iscontainer
+        #    @warn "$(sxtypelabel(sxtype(carfl))) CAR element in a $(sxtypelabel(res)) list"
+        #end
+        item = iscontainer ?
+            readitem(ctx) : # item is inside the list link
+            readitem(ctx, carfl) # the link is the item
+        #if length(res) > 0 && sxtype(last(res.items)) != sxtype(item)
+        #    # the items in the list are not required to be of the same type
+        #    @warn "$(sxtypelabel(item)) element in a $(sxtypelabel(res)) list, previous was $(sxtypelabel(last(res.items)))"
+        #end
+        push!(res, item, nm)
+        iscontainer || break # no CDR, end of the list
     end
 
     return res
