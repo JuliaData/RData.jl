@@ -234,7 +234,9 @@ end # for ver in ...
 end
 
 @testset "Duplicate levels in factor (version=3)" begin
-    dup_cat = sexp2julia(load(joinpath("data_v3", "dup_levels.rda"), convert=false)["dup_levels"])
+    dup_cat = @test_logs (:warn, "Dropped duplicate factor levels") begin
+        sexp2julia(load(joinpath("data_v3", "dup_levels.rda"), convert=false)["dup_levels"])
+    end
     @test dup_cat[1] == "Paced"
     @test dup_cat[2] == "Inferior"
     @test dup_cat[end] == "Anterior"
