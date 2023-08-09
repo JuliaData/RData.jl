@@ -8,18 +8,21 @@ struct DictoVec{T} <: AbstractVector{T}
     name2index::Dict{RString, Int}
     index2name::Vector{Union{RString, Nothing}}
 
-    function DictoVec(data::AbstractVector{T}, names::AbstractVector{<:AbstractString} = Vector{RString}()) where T
-        if !isempty(names) && length(data) != length(names)
+    function DictoVec(data::AbstractVector{T},
+                      names::Union{AbstractVector{<:AbstractString}, Nothing} = nothing) where T
+        if (names !== nothing) && !isempty(names) && length(data) != length(names)
             throw(DimensionMismatch("Lengths of data ($(length(data))) and element names ($(length(names))) differ"))
         end
         n2i = Dict{RString, Int}()
         i2n = fill!(similar(data, Union{RString, Nothing}), nothing)
-        @inbounds for (i, k) in enumerate(names)
-            if k != "" && k !== nothing
-                n2i[k] = i
-                i2n[i] = k
-            else
-                i2n[i] = nothing
+        if names !== nothing
+            @inbounds for (i, k) in enumerate(names)
+                if k != "" && k !== nothing
+                    n2i[k] = i
+                    i2n[i] = k
+                else
+                    i2n[i] = nothing
+                end
             end
         end
         new{T}(data, n2i, i2n)
