@@ -145,6 +145,7 @@ end
 
 const RStringVector = RNullableVector{RString,STRSXP}
 const RList = RVector{RSEXPREC,VECSXP}  # "list" in R == Julia cell array
+const RExprList = RVector{RSEXPREC,EXPRSXP} # expression "list"
 
 """
 Representation of R's paired list-like structures (`LISTSXP`, `LANGSXP`).

@@ -50,10 +50,11 @@ function readstring(ctx::RDAContext, fl::RDATag)
 end
 
 function readlist(ctx::RDAContext, fl::RDATag)
-    @assert sxtype(fl) == VECSXP
+    @assert sxtype(fl) == VECSXP || sxtype(fl) == EXPRSXP
     n = readlength(ctx.io)
-    RList(RSEXPREC[readitem(ctx) for i in 1:n],
-          readattrs(ctx, fl))
+    RVector{RSEXPREC, sxtype(fl)}(
+        RSEXPREC[readitem(ctx) for _ in 1:n],
+        readattrs(ctx, fl))
 end
 
 function readref(ctx::RDAContext, fl::RDATag)
@@ -307,7 +308,7 @@ const SXTypes = Dict{SXType, SXTypeInfo}(
     DOTSXP     => SXTypeInfo("Dot",readunsupported),
     ANYSXP     => SXTypeInfo("Any",readunsupported),
     VECSXP     => SXTypeInfo("List",readlist),
-    EXPRSXP    => SXTypeInfo("Expr",readunsupported),
+    EXPRSXP    => SXTypeInfo("Expr",readlist),
     BCODESXP   => SXTypeInfo("ByteCode",readbytecode),
     EXTPTRSXP  => SXTypeInfo("XPtr",readextptr),
     WEAKREFSXP => SXTypeInfo("WeakRef",readunsupported),
