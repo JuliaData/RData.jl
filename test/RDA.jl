@@ -258,4 +258,11 @@ end
     @test expr isa RData.RExprList
 end
 
+@testset "GLM (version=$ver)" for ver in [2, 3]
+    budworm_glm_rda = load(joinpath("data_v$ver", "budworm_glm.rda"), convert=false)
+    @test haskey(budworm_glm_rda, "budworm")
+    budworm_glm = budworm_glm_rda["budworm"]
+    @test RData.class(budworm_glm) == ["glm", "lm"]
+end
+
 end # module TestRDA
