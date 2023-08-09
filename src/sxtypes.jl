@@ -204,13 +204,11 @@ function Base.push!(pl::RPairList, item::RSEXPREC, tag::RString)
     push!(pl.items, item)
 end
 
-mutable struct RClosure <: ROBJ{CLOSXP}
-    formals
-    body
-    env
+struct RClosure <: ROBJ{CLOSXP}
+    formals::RSEXPREC
+    body::RSEXPREC
+    env::REnvTypes
     attr::Hash
-
-    RClosure(attr::Hash = Hash()) = new(nothing, nothing, nothing, attr)
 end
 
 struct RBuiltin <: RSEXPREC{BUILTINSXP}

@@ -158,11 +158,11 @@ end
 
 function readclosure(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == CLOSXP
-    res = RClosure(readattrs(ctx, fl))
-    hastag(fl) && (res.env = readitem(ctx))
-    res.formals = readitem(ctx)
-    res.body = readitem(ctx)
-    return res
+    attrs = readattrs(ctx, fl)
+    env = hastag(fl) ? readitem(ctx) : RNull()
+    formals = readitem(ctx)
+    body = readitem(ctx)
+    return RClosure(formals, body, env, attrs)
 end
 
 function readpromise(ctx::RDAContext, fl::RDATag)
