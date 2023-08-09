@@ -163,12 +163,12 @@ const RBaseEnv = RDummy{BASEENV_SXP}
 const REmptyEnv = RDummy{EMPTYENV_SXP}
 
 mutable struct REnvironment <: ROBJ{ENVSXP}
-    enclosed
-    frame
-    hashtab
+    enclosed::RSEXPREC
+    frame::RSEXPREC
+    hashtab::RSEXPREC
     attr::Hash
 
-    REnvironment() = new(nothing, nothing, nothing, Hash())
+    REnvironment() = new(RNull(), RNull(), RNull(), Hash())
 end
 
 mutable struct RNamespace <: RSEXPREC{NAMESPACESXP}
