@@ -179,6 +179,9 @@ mutable struct RPackage <: RSEXPREC{PACKAGESXP}
     name::Vector{RString}
 end
 
+# any types that could be used as R environment in promises and closures
+const REnvTypes = Union{REnvironment, RNamespace, RDummy}
+
 """
 Representation of R's paired list-like structures (`LISTSXP`, `LANGSXP`).
 Unlike R which represents these as singly-linked list,
