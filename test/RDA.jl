@@ -13,6 +13,7 @@ using TimeZones
         min_rda = load(joinpath(rdata_path, "minimal.rda"), convert=false)
         rdf = min_rda["df"]
         @test rdf isa RData.RList
+
         @testset "class() and inherits()" begin
             # not SEXP
             @test_throws MethodError RData.class(5)
@@ -37,10 +38,19 @@ using TimeZones
 
             rnumvec = rdf.data[1]
             @test rnumvec isa RData.RNumericVector
+            @test length(rnumvec) == 2
+            @test !isempty(rnumvec)
+            @test size(rnumvec) == (2,)
             @test RData.class(rnumvec) != ["data.frame"]
             @test !RData.inherits(rnumvec, "data.frame")
             @test !RData.inherits(rnumvec, ["data.frame"])
         end
+
+        @test RData.isdataframe(rdf)
+        @test !isempty(rdf)
+        @test length(rdf) == 1
+        @test size(rdf) == (2, 1)
+
         @test sexp2julia(min_rda["df"]) == df
         @test load(joinpath(rdata_path, "minimal.rda"), convert=true)["df"] == df
         @test load(joinpath(rdata_path, "minimal_ascii.rda"))["df"] == df

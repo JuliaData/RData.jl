@@ -114,6 +114,10 @@ abstract type RVEC{T, S} <: ROBJ{S} end
 rvec_eltype(::Type{<:RVEC{T}}) where T = T
 rvec_eltype(v::RVEC) = rvec_eltype(typeof(v))
 
+Base.length(rl::RVEC) = length(rl.data)
+Base.size(rv::RVEC) = size(rv.data) # overriden for RList to handle data.frame
+Base.isempty(rv::RVEC) = isempty(rv.data)
+
 """
 R vector object.
 """
@@ -147,6 +151,7 @@ const RStringVector = RNullableVector{RString,STRSXP}
 const RList = RVector{RSEXPREC,VECSXP}  # "list" in R == Julia cell array
 const RExprList = RVector{RSEXPREC,EXPRSXP} # expression "list"
 
+Base.size(rl::RList) = isdataframe(rl) ? (length(rl.data[1]), length(rl.data)) : size(rl.data)
 """
 Representation of R's paired list-like structures (`LISTSXP`, `LANGSXP`).
 Unlike R which represents these as singly-linked list,
@@ -161,6 +166,8 @@ struct RPairList <: ROBJ{LISTSXP}
 end
 
 Base.length(list::RPairList) = length(list.items)
+Base.size(list::RPairList) = size(list.items)
+Base.isempty(list::RPairList) = isempty(list.items)
 
 function Base.push!(pl::RPairList, item::RSEXPREC, tag::RString)
     push!(pl.tags, tag)
@@ -278,10 +285,6 @@ inherits(ro::ROBJ, classnames::AbstractVector{<:AbstractString}) =
 
 isdataframe(rl::RList) = inherits(rl, "data.frame")
 isfactor(ri::RIntegerVector) = inherits(ri, "factor")
-
-Base.length(rl::RVEC) = length(rl.data)
-Base.size(rv::RVEC) = length(rv.data)
-Base.size(rl::RList) = isdataframe(rl) ? (length(rl.data[1]), length(rl.data)) : length(rl.data)
 
 row_names(ro::ROBJ) = getattr(ro, "row.names", emptystrvec)
 
