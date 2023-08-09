@@ -162,6 +162,23 @@ const RGlobalEnv = RDummy{GLOBALENV_SXP}
 const RBaseEnv = RDummy{BASEENV_SXP}
 const REmptyEnv = RDummy{EMPTYENV_SXP}
 
+mutable struct REnvironment <: ROBJ{ENVSXP}
+    enclosed
+    frame
+    hashtab
+    attr::Hash
+
+    REnvironment() = new(nothing, nothing, nothing, Hash())
+end
+
+mutable struct RNamespace <: RSEXPREC{NAMESPACESXP}
+    name::Vector{RString}
+end
+
+mutable struct RPackage <: RSEXPREC{PACKAGESXP}
+    name::Vector{RString}
+end
+
 """
 Representation of R's paired list-like structures (`LISTSXP`, `LANGSXP`).
 Unlike R which represents these as singly-linked list,
@@ -206,15 +223,6 @@ mutable struct RPromise <: ROBJ{PROMSXP}
     RPromise(attr::Hash = Hash()) = new(nothing, nothing, nothing, attr)
 end
 
-mutable struct REnvironment <: ROBJ{ENVSXP}
-    enclosed
-    frame
-    hashtab
-    attr::Hash
-
-    REnvironment() = new(nothing, nothing, nothing, Hash())
-end
-
 struct RRaw <: ROBJ{RAWSXP}
     data::Vector{UInt8}
     attr::Hash
@@ -239,14 +247,6 @@ mutable struct RBytecode <: ROBJ{BCODESXP}
     cdr
     RBytecode(code = nothing, consts = nothing, attr::Hash = Hash()) =
         new(attr, nothing, code, consts)
-end
-
-struct RPackage <: RSEXPREC{PACKAGESXP}
-    name::Vector{RString}
-end
-
-struct RNamespace <: RSEXPREC{NAMESPACESXP}
-    name::Vector{RString}
 end
 
 struct RAltRep <: ROBJ{ALTREP_SXP}
