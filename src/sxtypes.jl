@@ -211,17 +211,15 @@ struct RClosure <: ROBJ{CLOSXP}
     attr::Hash
 end
 
-struct RBuiltin <: RSEXPREC{BUILTINSXP}
-    internal_function::RString
+struct RPromise <: ROBJ{PROMSXP}
+    value::RSEXPREC
+    expr::RSEXPREC
+    env::REnvTypes
+    attr::Hash
 end
 
-mutable struct RPromise <: ROBJ{PROMSXP}
-    value
-    expr
-    env
-    attr::Hash
-
-    RPromise(attr::Hash = Hash()) = new(nothing, nothing, nothing, attr)
+struct RBuiltin <: RSEXPREC{BUILTINSXP}
+    internal_function::RString
 end
 
 struct RRaw <: ROBJ{RAWSXP}

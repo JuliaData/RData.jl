@@ -167,11 +167,11 @@ end
 
 function readpromise(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == PROMSXP
-    res = RPromise(readattrs(ctx, fl))
-    hastag(fl) && (res.env = readitem(ctx))
-    res.value = readitem(ctx)
-    res.expr = readitem(ctx)
-    return res
+    attrs = readattrs(ctx, fl)
+    env = hastag(fl) ? readitem(ctx) : RNull()
+    value = readitem(ctx)
+    expr = readitem(ctx)
+    return RPromise(value, expr, env, attrs)
 end
 
 function readraw(ctx::RDAContext, fl::RDATag)
