@@ -152,6 +152,16 @@ const RList = RVector{RSEXPREC,VECSXP}  # "list" in R == Julia cell array
 const RExprList = RVector{RSEXPREC,EXPRSXP} # expression "list"
 
 Base.size(rl::RList) = isdataframe(rl) ? (length(rl.data[1]), length(rl.data)) : size(rl.data)
+
+# R objects without body (empty environments, missing args etc)
+struct RDummy{S} <: RSEXPREC{S}
+end
+
+const RNull = RDummy{NILSXP}
+const RGlobalEnv = RDummy{GLOBALENV_SXP}
+const RBaseEnv = RDummy{BASEENV_SXP}
+const REmptyEnv = RDummy{EMPTYENV_SXP}
+
 """
 Representation of R's paired list-like structures (`LISTSXP`, `LANGSXP`).
 Unlike R which represents these as singly-linked list,
@@ -243,10 +253,6 @@ struct RAltRep <: ROBJ{ALTREP_SXP}
     info
     state
     attr::Hash
-end
-
-# R objects without body (empty environments, missing args etc)
-struct RDummy{S} <: RSEXPREC{S}
 end
 
 ##############################################################################
