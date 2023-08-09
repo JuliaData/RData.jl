@@ -136,7 +136,7 @@ function readpairedobjects(ctx::RDAContext, fl::RDATag)
             # it's not clear whether it's an error of handling AltReps
             # or a feature of AltReps (it only occurs within AltReps)
             # normally pairlists should be terminated by NILVALUE_SXP
-            @warn "0x$(string(ifl, base=16)) element in a 0x$(string(fl, base=16)) list, assuming it's the last element"
+            @warn "$(sxtypelabel(item)) element in a $(sxtypelabel(res)) list, assuming it's the last element"
             item = readitem(ctx, ifl)
             push!(res, item, emptyhashkey)
             break
@@ -275,7 +275,7 @@ function readaltrep(ctx::RDAContext, fl::RDATag)
 end
 
 function readunsupported(ctx::RDAContext, fl::RDATag)
-    throw(UnsupportedROBJ(sxtype(fl), "Reading SEXPREC of type $(sxtype(fl)) ($(SXTypes[sxtype(fl)].name)) is not supported"))
+    throw(UnsupportedROBJ(sxtype(fl), "Reading SEXPREC of type $(sxtypelabel(sxtype(fl))) is not supported"))
 end
 
 """
@@ -335,9 +335,12 @@ const SXTypes = Dict{SXType, SXTypeInfo}(
     ALTREP_SXP        => SXTypeInfo("AltRep",readaltrep)
 )
 
+sxtypelabel(sxt::SXType) = "$(haskey(SXTypes, sxt) ? SXTypes[sxt].name : "Unknown") (0x$(string(sxt, base=16)))"
+sxtypelabel(sxt::RSEXPREC) = sxtypelabel(sxtype(sxt))
+
 function readitem(ctx::RDAContext, fl::RDATag)
     sxt = sxtype(fl)
-    haskey(SXTypes, sxt) || throw(UnsupportedROBJ(sxt, "encountered unknown SEXPREC type $sxt"))
+    haskey(SXTypes, sxt) || throw(UnsupportedROBJ(sxt, "encountered unknown SEXPREC type 0x$(string(fl, base=16))"))
     sxtinfo = SXTypes[sxt]
     return sxtinfo.reader(ctx, fl)
 ### Should not occur at the top level

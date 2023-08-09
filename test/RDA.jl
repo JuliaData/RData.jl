@@ -21,6 +21,8 @@ using TimeZones
             @test_throws MethodError RData.inherits(5, ["number"])
 
             rnotobj = RData.RBuiltin("test") # not a ROBJ
+            @test RData.sxtypelabel(rnotobj) == "Builtin (0x8)"
+            @test RData.sxtypelabel(RData.sxtype(0x33453CE)) == "Unknown (0xce)"
             @inferred RData.class(rnotobj)
             @inferred RData.inherits(rnotobj, "dummy")
             @test RData.class(rnotobj) === RData.emptystrvec
