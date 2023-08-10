@@ -13,6 +13,7 @@ using TimeZones
         min_rda = load(joinpath(rdata_path, "minimal.rda"), convert=false)
         rdf = min_rda["df"]
         @test rdf isa RData.RList
+
         @testset "class() and inherits()" begin
             # not SEXP
             @test_throws MethodError RData.class(5)
@@ -21,6 +22,8 @@ using TimeZones
             @test_throws MethodError RData.inherits(5, ["number"])
 
             rnotobj = RData.RBuiltin("test") # not a ROBJ
+            @test RData.sxtypelabel(rnotobj) == "Builtin (0x8)"
+            @test RData.sxtypelabel(RData.sxtype(0x33453CE)) == "Unknown (0xce)"
             @inferred RData.class(rnotobj)
             @inferred RData.inherits(rnotobj, "dummy")
             @test RData.class(rnotobj) === RData.emptystrvec
@@ -35,10 +38,19 @@ using TimeZones
 
             rnumvec = rdf.data[1]
             @test rnumvec isa RData.RNumericVector
+            @test length(rnumvec) == 2
+            @test !isempty(rnumvec)
+            @test size(rnumvec) == (2,)
             @test RData.class(rnumvec) != ["data.frame"]
             @test !RData.inherits(rnumvec, "data.frame")
             @test !RData.inherits(rnumvec, ["data.frame"])
         end
+
+        @test RData.isdataframe(rdf)
+        @test !isempty(rdf)
+        @test length(rdf) == 1
+        @test size(rdf) == (2, 1)
+
         @test sexp2julia(min_rda["df"]) == df
         @test load(joinpath(rdata_path, "minimal.rda"), convert=true)["df"] == df
         @test load(joinpath(rdata_path, "minimal_ascii.rda"))["df"] == df
@@ -222,12 +234,35 @@ end # for ver in ...
 end
 
 @testset "Duplicate levels in factor (version=3)" begin
-    dup_cat = sexp2julia(load(joinpath("data_v3", "dup_levels.rda"), convert=false)["dup_levels"])
+    dup_cat = @test_logs (:warn, "Dropped duplicate factor levels") begin
+        sexp2julia(load(joinpath("data_v3", "dup_levels.rda"), convert=false)["dup_levels"])
+    end
     @test dup_cat[1] == "Paced"
     @test dup_cat[2] == "Inferior"
     @test dup_cat[end] == "Anterior"
     @test levels(dup_cat) ==
         ["Inferior", "Anterior", "LBBB", "Missing", "NoSTUp", "OtherSTUp", "Paced"]
+end
+
+@testset "dot-dot-dot object (version=$ver)" for ver in [2, 3]
+    dotdotdot_rda = load(joinpath("data_v$ver", "dotdotdot.rda"), convert=false)
+    @test haskey(dotdotdot_rda, "dotdotdot")
+    dotdotdot = dotdotdot_rda["dotdotdot"]
+    @test dotdotdot isa RData.RDot
+end
+
+@testset "Expr list object (version=$ver)" for ver in [2, 3]
+    expr_rda = load(joinpath("data_v$ver", "expr.rda"), convert=false)
+    @test haskey(expr_rda, "expr")
+    expr = expr_rda["expr"]
+    @test expr isa RData.RExprList
+end
+
+@testset "GLM (version=$ver)" for ver in [2, 3]
+    budworm_glm_rda = load(joinpath("data_v$ver", "budworm_glm.rda"), convert=false)
+    @test haskey(budworm_glm_rda, "budworm")
+    budworm_glm = budworm_glm_rda["budworm"]
+    @test RData.class(budworm_glm) == ["glm", "lm"]
 end
 
 end # module TestRDA

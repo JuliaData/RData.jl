@@ -50,10 +50,11 @@ function readstring(ctx::RDAContext, fl::RDATag)
 end
 
 function readlist(ctx::RDAContext, fl::RDATag)
-    @assert sxtype(fl) == VECSXP
+    @assert sxtype(fl) == VECSXP || sxtype(fl) == EXPRSXP
     n = readlength(ctx.io)
-    RList(RSEXPREC[readitem(ctx) for i in 1:n],
-          readattrs(ctx, fl))
+    RVector{RSEXPREC, sxtype(fl)}(
+        RSEXPREC[readitem(ctx) for _ in 1:n],
+        readattrs(ctx, fl))
 end
 
 function readref(ctx::RDAContext, fl::RDATag)
@@ -108,69 +109,68 @@ function readpackage(ctx::RDAContext, fl::RDATag)
 end
 
 # reads single-linked lists R objects
-function readpairedobjects(ctx::RDAContext, fl::RDATag)
-    res = RPairList(readattrs(ctx, fl))
-    ifl = fl # RDATag for the list item
-    while true
-        if sxtype(ifl) == sxtype(fl)
-            if hastag(ifl)
-                tag = readitem(ctx)
-                if isa(tag, RSymbol)
-                    nm = tag.displayname
-                else
-                    nm = emptyhashkey
-                end
-            else
-                nm = emptyhashkey
-            end
-            item = readitem(ctx)
-            push!(res, item, nm)
-            ifl = readuint32(ctx.io)
+# the type of the result is RSpecialList{S},
+# where S is the SXTYPE of the R object
+function readsinglelinkedlist(::Val{S}, ctx::RDAContext, fl::RDATag) where S
+    res = RSpecialList{S}(readattrs(ctx, fl))
+    tag = hastag(fl) ? readitem(ctx) : RNull()
+    carfl = fl # RDATag for the CAR of the current list link
+    while carfl != NILVALUE_SXP
+        if !isempty(res) # head tag was read already
+            carfl = readuint32(ctx.io) # CAR container type
+            (carfl == NILVALUE_SXP) && break
             # read the item attributes
             # FIXME what to do with the attributes?
-            (sxtype(ifl) == sxtype(fl)) && readattrs(ctx, ifl)
-        elseif sxtype(ifl) == NILVALUE_SXP # end of list
-            break
-        else # end of list (not a single-linked list item)
-            # it's not clear whether it's an error of handling AltReps
-            # or a feature of AltReps (it only occurs within AltReps)
-            # normally pairlists should be terminated by NILVALUE_SXP
-            @warn "0x$(string(ifl, base=16)) element in a 0x$(string(fl, base=16)) list, assuming it's the last element"
-            item = readitem(ctx, ifl)
-            push!(res, item, emptyhashkey)
-            break
+            attrs = readattrs(ctx, carfl)
+            tag = hastag(carfl) ? readitem(ctx) : RNull()
         end
+        if isa(tag, RSymbol)
+            nm = tag.displayname
+        else
+            isa(tag, RNull) || @warn "$(sxtypelabel(sxtype(fl))) link has unexpected tag type $(sxtypelabel(tag))"
+            nm = emptyhashkey
+        end
+        iscontainer = sxtype(carfl) == sxtype(fl) || sxtype(carfl) == LISTSXP
+        #if !iscontainer
+        #    @warn "$(sxtypelabel(sxtype(carfl))) CAR element in a $(sxtypelabel(res)) list"
+        #end
+        item = iscontainer ?
+            readitem(ctx) : # item is inside the list link
+            readitem(ctx, carfl) # the link is the item
+        #if length(res) > 0 && sxtype(last(res.items)) != sxtype(item)
+        #    # the items in the list are not required to be of the same type
+        #    @warn "$(sxtypelabel(item)) element in a $(sxtypelabel(res)) list, previous was $(sxtypelabel(last(res.items)))"
+        #end
+        push!(res, item, nm)
+        iscontainer || break # no CDR, end of the list
     end
 
     return res
 end
 
-function readpairlist(ctx::RDAContext, fl::RDATag)
-    @assert sxtype(fl) == LISTSXP
-    readpairedobjects(ctx, fl)
-end
-
-function readlang(ctx::RDAContext, fl::RDATag)
-    @assert sxtype(fl) == LANGSXP
-    readpairedobjects(ctx, fl)
+function readsinglelinkedlist(ctx::RDAContext, fl::RDATag)
+    S = sxtype(fl)
+    # check the SXTYPE is supported
+    @assert S == LISTSXP || S == LANGSXP || S == DOTSXP
+    readsinglelinkedlist(Val(S), ctx, fl)
 end
 
 function readclosure(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == CLOSXP
-    res = RClosure(readattrs(ctx, fl))
-    hastag(fl) && (res.env = readitem(ctx))
-    res.formals = readitem(ctx)
-    res.body = readitem(ctx)
-    return res
+    attrs = readattrs(ctx, fl)
+    env = hastag(fl) ? readitem(ctx) : RNull()
+    formals = readitem(ctx)
+    body = readitem(ctx)
+    return RClosure(formals, body, env, attrs)
 end
 
 function readpromise(ctx::RDAContext, fl::RDATag)
     @assert sxtype(fl) == PROMSXP
-    res = RPromise(readattrs(ctx, fl))
-    hastag(fl) && (res.env = readitem(ctx))
-    res.value = readitem(ctx)
-    res.expr = readitem(ctx)
-    return res
+    attrs = readattrs(ctx, fl)
+    env = hastag(fl) ? readitem(ctx) : RNull()
+    value = readitem(ctx)
+    expr = readitem(ctx)
+    return RPromise(value, expr, env, attrs)
 end
 
 function readraw(ctx::RDAContext, fl::RDATag)
@@ -274,7 +274,7 @@ function readaltrep(ctx::RDAContext, fl::RDATag)
 end
 
 function readunsupported(ctx::RDAContext, fl::RDATag)
-    throw(UnsupportedROBJ(sxtype(fl), "Reading SEXPREC of type $(sxtype(fl)) ($(SXTypes[sxtype(fl)].name)) is not supported"))
+    throw(UnsupportedROBJ(sxtype(fl), "Reading SEXPREC of type $(sxtypelabel(sxtype(fl))) is not supported"))
 end
 
 """
@@ -291,11 +291,11 @@ Maps R type id (`SXType`) to its `SXTypeInfo`.
 const SXTypes = Dict{SXType, SXTypeInfo}(
     NILSXP     => SXTypeInfo("NULL",readdummy),
     SYMSXP     => SXTypeInfo("Symbol",readsymbol),
-    LISTSXP    => SXTypeInfo("Pairlist",readpairlist),
+    LISTSXP    => SXTypeInfo("Pairlist",readsinglelinkedlist),
     CLOSXP     => SXTypeInfo("Closure",readclosure),
     ENVSXP     => SXTypeInfo("Environment",readenv),
     PROMSXP    => SXTypeInfo("Promise",readpromise),
-    LANGSXP    => SXTypeInfo("Lang",readlang),
+    LANGSXP    => SXTypeInfo("Lang",readsinglelinkedlist),
     SPECIALSXP => SXTypeInfo("Special",readbuiltin),
     BUILTINSXP => SXTypeInfo("Builtin",readbuiltin),
     CHARSXP    => SXTypeInfo("Char",readunsupported),
@@ -304,10 +304,10 @@ const SXTypes = Dict{SXType, SXTypeInfo}(
     REALSXP    => SXTypeInfo("Real",readnumeric),
     CPLXSXP    => SXTypeInfo("Complex",readcomplex),
     STRSXP     => SXTypeInfo("String",readstring),
-    DOTSXP     => SXTypeInfo("Dot",readunsupported),
+    DOTSXP     => SXTypeInfo("Dot",readsinglelinkedlist),
     ANYSXP     => SXTypeInfo("Any",readunsupported),
     VECSXP     => SXTypeInfo("List",readlist),
-    EXPRSXP    => SXTypeInfo("Expr",readunsupported),
+    EXPRSXP    => SXTypeInfo("Expr",readlist),
     BCODESXP   => SXTypeInfo("ByteCode",readbytecode),
     EXTPTRSXP  => SXTypeInfo("XPtr",readextptr),
     WEAKREFSXP => SXTypeInfo("WeakRef",readunsupported),
@@ -334,9 +334,12 @@ const SXTypes = Dict{SXType, SXTypeInfo}(
     ALTREP_SXP        => SXTypeInfo("AltRep",readaltrep)
 )
 
+sxtypelabel(sxt::SXType) = "$(haskey(SXTypes, sxt) ? SXTypes[sxt].name : "Unknown") (0x$(string(sxt, base=16)))"
+sxtypelabel(sxt::RSEXPREC) = sxtypelabel(sxtype(sxt))
+
 function readitem(ctx::RDAContext, fl::RDATag)
     sxt = sxtype(fl)
-    haskey(SXTypes, sxt) || throw(UnsupportedROBJ(sxt, "encountered unknown SEXPREC type $sxt"))
+    haskey(SXTypes, sxt) || throw(UnsupportedROBJ(sxt, "encountered unknown SEXPREC type 0x$(string(fl, base=16))"))
     sxtinfo = SXTypes[sxt]
     return sxtinfo.reader(ctx, fl)
 ### Should not occur at the top level

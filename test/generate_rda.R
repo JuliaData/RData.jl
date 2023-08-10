@@ -135,7 +135,26 @@ comment(df) <- "This is a data frame"
 attr(df, "collectiontimes") <- c(as.POSIXct("2022-05-25 22:05:00", tz="UTC"),
                                  as.POSIXct("2022-05-26 22:05:00", tz="UTC"))
 
-save(df, file=file.path(rdata_path, "dfattributes.rda"))
+save(df, file=file.path(rdata_path, "dfattributes.rda"), version=ver)
+
+savedotdotdot <- function(...) {
+     dotdotdot <- get("...", environment())
+     save(dotdotdot, file=file.path(rdata_path, "dotdotdot.rda"), version=ver)
+}
+savedotdotdot(1,2,3)
+
+expr <- parse(text="a+b\nx+2")
+save(expr, file=file.path(rdata_path, "expr.rda"), version=ver)
+
+# generate files storing GLM results (as an example of a more complex R object)
+# taken from "Generalized Linear Models in R", https://web.stanford.edu/class/stats306a/RforGLM.pdf
+df = data.frame(ldose = rep(0:5, 2),
+                numdead = c(1,4,9,13,18,20,0,2,6,10,12,16),
+                sex = factor(rep(c("M", "F"), rep(6, 2))))
+df$numalive = 20 - df$numdead
+df$SF = cbind(df$numdead, df$numalive)
+budworm <- glm(SF ~ sex * ldose, family=binomial, data = df)
+save(budworm, file=file.path(rdata_path, "budworm_glm.rda"), version=ver)
 
 } # for (ver in ...)
 

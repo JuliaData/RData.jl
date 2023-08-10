@@ -101,6 +101,7 @@ end
 
     @test dv == DictoVec([2.0, 5.0, 4.0])
     @test dv == DictoVec([2, 5, 4])
+    @test dv == DictoVec([2, 5, 4], String[])
     @test isequal(dv, DictoVec([2.0, 5.0, 4.0]))
     @test dv != DictoVec([3.0, 5.0, 4.0])
     @test !isequal(dv, DictoVec([3.0, 5.0, 4.0]))

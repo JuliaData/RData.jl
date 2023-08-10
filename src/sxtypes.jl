@@ -114,6 +114,10 @@ abstract type RVEC{T, S} <: ROBJ{S} end
 rvec_eltype(::Type{<:RVEC{T}}) where T = T
 rvec_eltype(v::RVEC) = rvec_eltype(typeof(v))
 
+Base.length(rl::RVEC) = length(rl.data)
+Base.size(rv::RVEC) = size(rv.data) # overriden for RList to handle data.frame
+Base.isempty(rv::RVEC) = isempty(rv.data)
+
 """
 R vector object.
 """
@@ -145,56 +149,84 @@ end
 
 const RStringVector = RNullableVector{RString,STRSXP}
 const RList = RVector{RSEXPREC,VECSXP}  # "list" in R == Julia cell array
+const RExprList = RVector{RSEXPREC,EXPRSXP} # expression "list"
+
+Base.size(rl::RList) = isdataframe(rl) ? (length(rl.data[1]), length(rl.data)) : size(rl.data)
+
+# R objects without body (empty environments, missing args etc)
+struct RDummy{S} <: RSEXPREC{S}
+end
+
+const RNull = RDummy{NILSXP}
+const RGlobalEnv = RDummy{GLOBALENV_SXP}
+const RBaseEnv = RDummy{BASEENV_SXP}
+const REmptyEnv = RDummy{EMPTYENV_SXP}
+
+mutable struct REnvironment <: ROBJ{ENVSXP}
+    enclosed::RSEXPREC
+    frame::RSEXPREC
+    hashtab::RSEXPREC
+    attr::Hash
+
+    REnvironment() = new(RNull(), RNull(), RNull(), Hash())
+end
+
+mutable struct RNamespace <: RSEXPREC{NAMESPACESXP}
+    name::Vector{RString}
+end
+
+mutable struct RPackage <: RSEXPREC{PACKAGESXP}
+    name::Vector{RString}
+end
+
+# any types that could be used as R environment in promises and closures
+const REnvTypes = Union{REnvironment, RNamespace, RDummy}
 
 """
-Representation of R's paired list-like structures (`LISTSXP`, `LANGSXP`).
-Unlike R which represents these as singly-linked list,
-`RPairList` uses vector representation.
+Representation of R's single linked list-like structures
+(`LISTSXP`, `LANGSXP`, 'DOTSXP').
+Unlike R, which represents these as single linked list,
+`RSpecialList` uses vector representation.
+It is "special" because in R it is used to represent some internal data types.
 """
-struct RPairList <: ROBJ{LISTSXP}
+struct RSpecialList{S} <: ROBJ{S}
     items::Vector{RSEXPREC}
     tags::Vector{RString}
     attr::Hash
 
-    RPairList(attr::Hash = Hash()) = new(RSEXPREC[], RString[], attr)
+    RSpecialList{S}(attr::Hash = Hash()) where S =
+        new{S}(RSEXPREC[], RString[], attr)
 end
 
-Base.length(list::RPairList) = length(list.items)
+Base.length(list::RSpecialList) = length(list.items)
+Base.size(list::RSpecialList) = size(list.items)
+Base.isempty(list::RSpecialList) = isempty(list.items)
 
-function Base.push!(pl::RPairList, item::RSEXPREC, tag::RString)
+function Base.push!(pl::RSpecialList, item::RSEXPREC, tag::RString)
     push!(pl.tags, tag)
     push!(pl.items, item)
 end
 
-mutable struct RClosure <: ROBJ{CLOSXP}
-    formals
-    body
-    env
-    attr::Hash
+const RPairList = RSpecialList{LISTSXP}
+const RLang = RSpecialList{LANGSXP}
+const RDot = RSpecialList{DOTSXP}
 
-    RClosure(attr::Hash = Hash()) = new(nothing, nothing, nothing, attr)
+struct RClosure <: ROBJ{CLOSXP}
+    formals::RSEXPREC
+    body::RSEXPREC
+    env::REnvTypes
+    attr::Hash
+end
+
+struct RPromise <: ROBJ{PROMSXP}
+    value::RSEXPREC
+    expr::RSEXPREC
+    env::REnvTypes
+    attr::Hash
 end
 
 struct RBuiltin <: RSEXPREC{BUILTINSXP}
     internal_function::RString
-end
-
-mutable struct RPromise <: ROBJ{PROMSXP}
-    value
-    expr
-    env
-    attr::Hash
-
-    RPromise(attr::Hash = Hash()) = new(nothing, nothing, nothing, attr)
-end
-
-mutable struct REnvironment <: ROBJ{ENVSXP}
-    enclosed
-    frame
-    hashtab
-    attr::Hash
-
-    REnvironment() = new(nothing, nothing, nothing, Hash())
 end
 
 struct RRaw <: ROBJ{RAWSXP}
@@ -223,22 +255,10 @@ mutable struct RBytecode <: ROBJ{BCODESXP}
         new(attr, nothing, code, consts)
 end
 
-struct RPackage <: RSEXPREC{PACKAGESXP}
-    name::Vector{RString}
-end
-
-struct RNamespace <: RSEXPREC{NAMESPACESXP}
-    name::Vector{RString}
-end
-
 struct RAltRep <: ROBJ{ALTREP_SXP}
     info
     state
     attr::Hash
-end
-
-# R objects without body (empty environments, missing args etc)
-struct RDummy{S} <: RSEXPREC{S}
 end
 
 ##############################################################################
@@ -277,10 +297,6 @@ inherits(ro::ROBJ, classnames::AbstractVector{<:AbstractString}) =
 
 isdataframe(rl::RList) = inherits(rl, "data.frame")
 isfactor(ri::RIntegerVector) = inherits(ri, "factor")
-
-Base.length(rl::RVEC) = length(rl.data)
-Base.size(rv::RVEC) = length(rv.data)
-Base.size(rl::RList) = isdataframe(rl) ? (length(rl.data[1]), length(rl.data)) : length(rl.data)
 
 row_names(ro::ROBJ) = getattr(ro, "row.names", emptystrvec)
 
