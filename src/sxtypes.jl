@@ -33,7 +33,7 @@ const RAWSXP =      0x18 # raw bytes
 const S4SXP =       0x19 # S4, non-vector
 
 # used for detecting PROTECT issues in memory.c
-const NEWSXP =      0x1E # fresh node creaed in new page
+const NEWSXP =      0x1E # fresh node created in new page
 const FREESXP =     0x1F # node released by GC
 
 const FUNSXP =      0x63 # Closure or Builtin or Special
