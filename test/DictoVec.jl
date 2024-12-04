@@ -48,7 +48,7 @@ end
     @test show2string(dv) == "DictoVec{Symbol}()"
 
     # add an element
-    @test_throws Exception (dv[1] = "xx") # incompatible value
+    @test_throws MethodError (dv["A"] = "xx") # incompatible value
     @test length(dv) == 0
     @test_throws BoundsError (dv[1] = :xx) # cannot create new elements by integer index
     @test length(dv) == 0
