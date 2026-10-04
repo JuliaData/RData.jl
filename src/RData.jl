@@ -50,7 +50,24 @@ end
 ##
 ##############################################################################
 
-function fileio_load(s::Stream{format"RData"}; kwoptions...)
+function fileio_load(s::Stream{F}; kwoptions...) where {F<:Union{format"RData", format"RDataSingle"}}
+    input = stream(s)
+    io = decompress(input)
+    try
+        # Anonymous compressed inputs need their decoded header to distinguish RDA from RDS.
+        input_format = if io !== input && filename(s) === nothing
+            seekstart(io)
+            read(io, UInt8) == UInt8('R') ? format"RData" : format"RDataSingle"
+        else
+            F
+        end
+        return read_rdata(Stream{input_format}(io); kwoptions...)
+    finally
+        io === input || close(io)
+    end
+end
+
+function read_rdata(s::Stream{format"RData"}; kwoptions...)
     io = stream(s)
     @assert FileIO.detect_rdata(io)
     ctx = RDAContext(rdaio(io, chomp(readline(io))); kwoptions...)
@@ -81,7 +98,7 @@ function fileio_load(s::Stream{format"RData"}; kwoptions...)
     return res
 end
 
-function fileio_load(s::Stream{format"RDataSingle"}; kwoptions...)
+function read_rdata(s::Stream{format"RDataSingle"}; kwoptions...)
     io = stream(s)
     @assert FileIO.detect_rdata_single(io)
     ctx = RDAContext(rdaio(io, chomp(readline(io))); kwoptions...)
@@ -95,10 +112,7 @@ function fileio_load(f::Union{File{format"RData"}, File{format"RDataSingle"}};
                      kwoptions...)
     io = open(filename(f), "r")
     try
-        io = decompress(io)
         return fileio_load(Stream(f, io); kwoptions...)
-    catch
-        rethrow()
     finally
         close(io)
     end
