@@ -11,6 +11,9 @@ jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
     continue-on-error: ${{ matrix.version == 'nightly' }}
     strategy:
       fail-fast: false
@@ -26,19 +29,19 @@ jobs:
         arch:
           - x64
           - x86
-        include: # macos doesn't support x86
+        include: # macos-latest is Apple Silicon; Julia 1.6 has no aarch64 macOS build
           - os: macos-latest
             version: '1.6'
             arch: x64
           - os: macos-latest
             version: 'lts'
-            arch: x64
+            arch: aarch64
           - os: macos-latest
             version: '1'
-            arch: x64
+            arch: aarch64
           - os: macos-latest
             version: 'pre'
-            arch: x64
+            arch: aarch64
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
@@ -60,7 +63,8 @@ jobs:
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v5
         with:
-          file: lcov.info
+          files: lcov.info
+          use_oidc: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
   # docs:
   #   name: Documentation
   #   runs-on: ubuntu-latest

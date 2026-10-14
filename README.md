@@ -35,7 +35,7 @@ Then ensure *CodecBzip2* is loaded before calling *RData.load*:
 using RData
 import CodecBzip2
 
-load('some_bzip2_compressed.rda')
+load("some_bzip2_compressed.rda")
 ```
 
 ## Usage
@@ -48,6 +48,18 @@ objs = load("path_to/example.rda")
 ```
 
 The result is a dictionary (`Dict{String, Any}`) of all R objects stored in "example.rda".
+
+To load data already held in memory, pass an `IOBuffer`:
+
+```julia
+bytes = read("path_to/example.rda")
+objs = RData.load(IOBuffer(bytes))
+```
+
+Seekable streams support the same uncompressed, Gzip, Bzip2, and Xz inputs as files,
+including `.rds` data containing one R object. Optional codecs must be loaded as
+described above. Loading reads from the start and leaves the input stream open.
+Decompression may read ahead; use `seekstart` before loading the same stream again.
 
 Unless the `convert=false` keyword option is specified, `load()` will try to automatically
 convert R objects into Julia equivalents:
