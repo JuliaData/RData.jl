@@ -29,19 +29,19 @@ jobs:
         arch:
           - x64
           - x86
-        include: # macos doesn't support x86
+        include: # macos-latest is Apple Silicon; Julia 1.6 has no aarch64 macOS build
           - os: macos-latest
             version: '1.6'
             arch: x64
           - os: macos-latest
             version: 'lts'
-            arch: x64
+            arch: aarch64
           - os: macos-latest
             version: '1'
-            arch: x64
+            arch: aarch64
           - os: macos-latest
             version: 'pre'
-            arch: x64
+            arch: aarch64
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
